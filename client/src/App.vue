@@ -1,32 +1,89 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+  <div id="root">
+    <router-view></router-view>
   </div>
 </template>
 
+<script>
+import "materialize-css/dist/css/materialize.min.css";
+export default {
+  name: "App",
+};
+</script>
+
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+$background: #4f4f4f;
+$text-color: #373737;
+$primary: #00695c;
+
+html {
+  font-size: 18px;
 }
 
-#nav {
-  padding: 30px;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+h1 {
+  font-size: 2.5rem;
+}
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
+h2 {
+  font-size: 2.2rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+h4 {
+  font-size: 1.8rem;
+}
+
+strong {
+  color: $primary;
+  font-weight: 800;
+}
+
+body {
+  height: 100vh;
+  width: 100vw;
+  background: $background;
+  color: $text-color;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 400;
+
+  #root {
+    width: 500px;
+    height: 90vh;
+    background: rgb(235, 235, 235);
+    padding: 2%;
   }
 }
+
+@media (max-width: 500px) {
+  body #root {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// #nav {
+//   padding: 30px;
+
+//   a {
+//     font-weight: bold;
+//     color: #2c3e50;
+
+//     &.router-link-exact-active {
+//       color: #42b983;
+//     }
+//   }
+// }
 </style>
