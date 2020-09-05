@@ -8,7 +8,7 @@
     
     <div class="actions">
       <router-link to="/register">
-        <Button label="Register" :icon="{name: 'face', direction: 'left'}"/>
+        <Button label="Register" :icon="{name: 'favorite', direction: 'right'}"/>
       </router-link>
 
       <router-link to="/login">
@@ -34,12 +34,7 @@ export default {
   * {
     text-align: center;
   }
-
-  em {
-    font-weight: 700;
-    font-style: normal;
-  }
-
+  
   #home {
     display: flex;
     justify-content: center;
