@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import M from "materialize-css";
+
 export default {
     name: 'TextInput',
     props: {
@@ -34,6 +36,9 @@ export default {
             required: true
         }
     },
+    updated: function() {
+        M.updateTextFields();
+    }
 }
 </script>
 
