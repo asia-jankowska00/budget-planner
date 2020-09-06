@@ -1,6 +1,6 @@
 <template>
   <div id="home">
-    <h3>Welcome to <br><em class="teal-text text-darken-3">Budget planner</em></h3>
+    <h3>Welcome to <br><em>Budget planner</em></h3>
     
     <div class="description">
       <p>All you need to do to keep track of your money is to <strong>define your sources</strong> and <strong>group them together</strong>.</p>
@@ -44,10 +44,14 @@ export default {
 
     h3 {
       margin: 0;
+    
+      em {
+        color: #2979ff;
+      }
     }
 
     .description {
-      margin: 75px 0 150px;
+      margin: 10vh 0 15vh;
     }
 
     .steps li{

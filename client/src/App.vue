@@ -15,8 +15,9 @@ export default {
 
 <style lang="scss">
 $background: #4f4f4f;
-$text-color: #373737;
-$primary: #00796b;
+$appbackground: #eceff1;
+$text-color: #455a65;
+$primary: #2979ff;
 
 html {
   font-size: 18px;
@@ -83,8 +84,9 @@ body {
   #root {
     width: 450px;
     height: 90vh;
-    background: rgb(235, 235, 235);
+    background: $appbackground;
     padding: 2%;
+    overflow: auto;
   }
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <button class="waves-effect waves-dark btn teal darken-3" :type="type">
+  <button class="waves-effect waves-dark btn blue accent-3" :type="type">
     <i 
       v-if="icon"
       class="material-icons" 

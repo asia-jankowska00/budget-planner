@@ -50,6 +50,12 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+.select-wrapper input.select-dropdown:focus {
+    border-bottom: 1px solid #2979ff;
+}
 
+.dropdown-content li:not(.disabled) > a, .dropdown-content li:not(.disabled) > span {
+    color: #2979ff !important;
+}
 </style>

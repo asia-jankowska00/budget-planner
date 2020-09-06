@@ -41,11 +41,12 @@ export default {
 <style lang="scss" scoped>
 h5 {
   text-align: center;
-  margin-top: 150px;
+  margin-top: 10vh;
+  color: #2979ff;
 }
 
 form {
-  margin-top: 50px;
+  margin-top: 5vh;
 
   .actions {
     display: flex;
@@ -58,7 +59,7 @@ form {
     }
 
     .link {
-      margin-top: 100px;
+      margin-top: 10vh;
     }
   }
 }
