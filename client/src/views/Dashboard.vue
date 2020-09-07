@@ -2,6 +2,7 @@
   <div id="dashboard">
       <Panel />
       <Tabs />
+      <router-view></router-view>
   </div>
 </template>
 

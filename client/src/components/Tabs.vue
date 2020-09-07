@@ -1,9 +1,11 @@
 <template>
     <!-- hardcoded for now -->
-    <ul class="tabs light-primary-bg ">
-        <li class="tab col s3 primary"><router-link to="/dashboard/sources">Sources</router-link></li>
-        <li class="tab col s3 primary"><router-link to="/dashboard/budgets">Budgets</router-link></li>
-    </ul>
+    <div class="col s12">
+        <ul class="tabs light-primary-bg ">
+            <li class="tab col s6 primary"><router-link to="/dashboard/sources">Sources</router-link></li>
+            <li class="tab col s6 primary"><router-link to="/dashboard/budgets">Budgets</router-link></li>
+        </ul>
+    </div>
 </template>
 
 <script>

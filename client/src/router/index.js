@@ -2,6 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Dashboard from '../views/Dashboard.vue'
+import Source from '../views/Source.vue';
+import Budget from '../views/Budget.vue';
 
 Vue.use(VueRouter)
 
@@ -14,17 +16,17 @@ Vue.use(VueRouter)
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard
-  },
-  {
-    path: '/dashboard/sources',
-    name: 'Sources',
-    component: Dashboard
-  },
-  {
-    path: '/dashboard/budgets',
-    name: 'Budgets',
-    component: Dashboard
+    component: Dashboard,
+    children: [
+      {
+        path: 'sources',
+        component: Source
+      },
+      {
+        path: 'budgets',
+        component: Budget
+      }
+    ]
   },
   {
     path: '/login',
