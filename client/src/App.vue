@@ -18,6 +18,7 @@ $background: #4f4f4f;
 $appbackground: #FCFDFE;
 $text-color: #455a65;
 $primary: #2979ff;
+$lightPrimary: #e5efff;
 
 html {
   font-size: 18px;
@@ -34,8 +35,16 @@ html {
   color: $primary
 }
 
+.light-primary {
+  color: $lightPrimary
+}
+
 .primary-bg {
   background-color: $primary;
+}
+
+.light-primary-bg {
+  background-color: $lightPrimary;
 }
 
 h1 {

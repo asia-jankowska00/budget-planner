@@ -17,6 +17,16 @@ Vue.use(VueRouter)
     component: Dashboard
   },
   {
+    path: '/dashboard/sources',
+    name: 'Sources',
+    component: Dashboard
+  },
+  {
+    path: '/dashboard/budgets',
+    name: 'Budgets',
+    component: Dashboard
+  },
+  {
     path: '/login',
     name: 'Login',
     // route level code-splitting
