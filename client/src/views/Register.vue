@@ -13,7 +13,7 @@
       />
 
       <div class="actions">
-        <Button label="Register" type="submit"/>
+        <Button label="Register" size="large" type="submit"/>
         <router-link to="/login" class="link">Already have an account?</router-link>
       </div>
     </form>

@@ -15,7 +15,7 @@ export default {
 
 <style lang="scss">
 $background: #4f4f4f;
-$appbackground: #eceff1;
+$appbackground: #FCFDFE;
 $text-color: #455a65;
 $primary: #2979ff;
 

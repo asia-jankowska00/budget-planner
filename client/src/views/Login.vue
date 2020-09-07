@@ -7,7 +7,7 @@
       <TextInput id="password" label="Password" type="password" v-model="password"/>
 
       <div class="actions">
-        <Button label="Login" type="submit"/>
+        <Button label="Login" size="large" type="submit"/>
         <router-link to="/register" class="link">Don't have an account?</router-link>
       </div>
     </form>

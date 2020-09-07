@@ -1,5 +1,5 @@
 <template>
-  <button class="waves-effect waves-dark btn blue accent-3" :type="type">
+  <button class="waves-effect waves-dark btn blue accent-3" :class="sizeClass" :type="type">
     <i 
       v-if="icon"
       class="material-icons" 
@@ -30,6 +30,12 @@ export default {
       validator: function (value) {
         return ['button', 'submit', 'reset'].indexOf(value) !== -1
       }
+    },
+    size: {
+      type: String,
+      validator: function (value) {
+        return ['small', 'large'].indexOf(value) !== -1
+      }
     }
   },
   computed: {
@@ -39,6 +45,12 @@ export default {
       return {
         "left": !isDirectionRight,
         "right": isDirectionRight
+      }
+    },
+    sizeClass: function() {
+      return {
+        "btn-large": this.size === 'large',
+        "btn-small": this.size === 'small'
       }
     }
   }
