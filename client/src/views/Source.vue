@@ -9,7 +9,5 @@ export default {
 </script>
 
 <style scoped>
-    h5 {
-        margin-top: 100px;
-    }
+    
 </style>

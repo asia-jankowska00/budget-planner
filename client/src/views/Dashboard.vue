@@ -23,5 +23,7 @@ export default {
 </script>
 
 <style style="scss" scoped>
-    
+    #dashboard {
+        padding-top: 108px;
+    }
 </style>
