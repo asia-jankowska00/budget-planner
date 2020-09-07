@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div id="login">
     <h5><em>Login</em></h5>
 
     <form @submit.prevent="submit" class="row" autocomplete="off">
@@ -39,6 +39,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+#login {
+  padding: 5%;
+}
+
 h5 {
   text-align: center;
   margin-top: 10vh;

@@ -1,5 +1,5 @@
 <template>
-  <div class="register">
+  <div id="register">
     <h5><em>Create account</em></h5>
 
     <form @submit.prevent="submit" class="row" autocomplete="off">
@@ -65,6 +65,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+#register {
+  padding: 5%;
+}
+
 h5 {
   text-align: center;
   margin-top: 10vh;

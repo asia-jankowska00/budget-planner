@@ -1,18 +1,17 @@
 <template>
   <button class="waves-effect waves-dark btn blue accent-3" :class="sizeClass" :type="type">
-    <i 
-      v-if="icon"
-      class="material-icons" 
-      v-bind:class="directionClass">
-        {{icon.name}}
-    </i>
+    <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
     {{label}}
   </button>
 </template>
 
 <script>
+import Icon from '@/components/Icon'
 export default {
   name: 'Button',
+  components: {
+    Icon
+  },
   props: {
     label: {
       type: String,
@@ -39,14 +38,6 @@ export default {
     }
   },
   computed: {
-    directionClass: function () {
-      const isDirectionRight = this.icon && this.icon.direction.toLowerCase() === "right";
-
-      return {
-        "left": !isDirectionRight,
-        "right": isDirectionRight
-      }
-    },
     sizeClass: function() {
       return {
         "btn-large": this.size === 'large',

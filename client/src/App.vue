@@ -30,6 +30,14 @@ html {
   font-family: "Poppins", sans-serif;
 }
 
+.primary {
+  color: $primary
+}
+
+.primary-bg {
+  background-color: $primary;
+}
+
 h1 {
   font-size: 2.5rem;
 }
@@ -85,8 +93,8 @@ body {
     width: 450px;
     height: 90vh;
     background: $appbackground;
-    padding: 2%;
     overflow: auto;
+    position: relative;
   }
 }
 

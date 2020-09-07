@@ -41,6 +41,7 @@ export default {
     align-items: center;
     flex-direction: column;
     height: 100%;
+    padding: 5%;
 
     h3 {
       margin: 0;
