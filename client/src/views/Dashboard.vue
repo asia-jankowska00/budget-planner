@@ -22,8 +22,15 @@ export default {
 }
 </script>
 
-<style style="scss" scoped>
+<style lang="scss" scoped>
     #dashboard {
-        padding-top: 108px;
+        height: 100%;
+        
+        > .empty-view {
+            height: calc(100% - 108px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     }
 </style>

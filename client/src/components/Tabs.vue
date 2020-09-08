@@ -24,10 +24,8 @@ export default {
 
 <style lang="scss">
     .tabs-container {
-        position: absolute;
         width: 100%;
-        top: 60px;
-        left: 0;
+        margin-bottom: 0;
 
         .s12 {
             padding: 0;

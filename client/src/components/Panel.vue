@@ -20,9 +20,6 @@ export default {
 #panel {
   height: 60px;
   width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
   padding: 0 5%;
   display: flex;
   justify-content: space-between;
