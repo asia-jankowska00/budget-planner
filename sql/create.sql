@@ -1,239 +1,281 @@
 USE "1081601";
--- TABLE CREATION
---prefCurrency foreign key = jt_user_currency
-
 
 -- creating user table
-CREATE TABLE appUser(
-    userID INT IDENTITY PRIMARY KEY,
-    userFirstName NVARCHAR (255) NOT NULL,
-    userLastName NVARCHAR (255) NOT NULL,
-    userName NVARCHAR (255) NOT NULL,
-    userEmail NVARCHAR (255) NOT NULL,
-    userPassword NVARCHAR (255) NOT NULL,
-    userIsDisabled BIT,
+CREATE TABLE bpUser( 
+    ID INT IDENTITY PRIMARY KEY,
+    firstName NVARCHAR (255) NOT NULL,
+    lastName NVARCHAR (255) NOT NULL,
+    IsDisabled BIT
+);
+
+CREATE TABLE bpCreds(
+    ID INT IDENTITY PRIMARY KEY,
+    userUsername NVARCHAR (255) NOT NULL,
+    userPassword NVARCHAR (255) NOT NULL
+)
+
+CREATE TABLE bpUserCreds(
+    FK_bpUser INT,
+    FK_bpCreds INT,
+
+    CONSTRAINT PK_bpUserCreds PRIMARY KEY(
+        FK_bpUser,
+        FK_bpCreds
+    ),
+
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpCreds) REFERENCES bpCreds(ID),
 );
 
 -- createing currency table
-CREATE TABLE currency(
-    currencyID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpCurrency( 
+    ID INT IDENTITY PRIMARY KEY,
     currencyName NVARCHAR (255),
     currencyCode NVARCHAR (50)
 );
 
 -- creating user preffered currency table
-CREATE TABLE jt_appUser_currency(
-    FK_appUserID INT,
-    FK_currencyID INT,
+CREATE TABLE bpUserCurrency( 
+    FK_bpUser INT,
+    FK_bpCurrency INT,
 
-    CONSTRAINT PK_user_currency PRIMARY KEY(
-        FK_appUserID,
-        FK_currencyID
+    CONSTRAINT PK_bpUserCurrency PRIMARY KEY(
+        FK_bpUser,
+        FK_bpCurrency
     ),
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID),
-    FOREIGN KEY(FK_currencyID) REFERENCES currency(currencyID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpCurrency) REFERENCES bpCurrency(ID)
 );
 
 -- creating source table
 -- user owns source
 -- currency can be used in source
-CREATE TABLE source(
-    sourceID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpSource(
+    ID INT IDENTITY PRIMARY KEY,
     sourceName NVARCHAR (255) NOT NULL,
-    sourceAccountDescription NVARCHAR(255),
-    sourceAmount MONEY NOT NULL, --come back, money format
-    sourceCurrency NVARCHAR (50) NOT NULL,
+    sourceDescription NVARCHAR(255),
+    amount MONEY NOT NULL, --come back, money format
+    currency NVARCHAR (50) NOT NULL,
 
-    FK_appUserID INT,
-    FK_currencyID INT
+    FK_bpUser INT,
+    FK_bpCurrency INT
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID),
-    FOREIGN KEY(FK_currencyID) REFERENCES currency(currencyID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpCurrency) REFERENCES bpCurrency(ID)
 );
 
 -- creating user can use source table
-CREATE TABLE jt_appUser_source(
-    FK_appUserID INT,
-    FK_sourceID INT,
+CREATE TABLE bpUserSource(
+    FK_bpUser INT,
+    FK_bpSource INT,
 
-    CONSTRAINT PK_appUser_source PRIMARY KEY(
-        FK_appUserID,
-        FK_sourceID
+    CONSTRAINT PK_bpUserSource PRIMARY KEY(
+        FK_bpUser,
+        FK_bpSource
     ),
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID),
-    FOREIGN KEY(FK_sourceID) REFERENCES source(sourceID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpSource) REFERENCES bpSource(ID)
 );
 
 -- creating source will have currency table
-CREATE TABLE jt_currency_source(
-    FK_currencyID INT,
-    FK_sourceID INT,
+CREATE TABLE bpCurrencySource(
+    FK_bpCurrency INT,
+    FK_bpSource INT,
 
     CONSTRAINT PK_currency_source PRIMARY KEY(
-        FK_currencyID,
-        FK_sourceID
+        FK_bpCurrency,
+        FK_bpSource
     ),
 
-    FOREIGN KEY(FK_currencyID) REFERENCES currency(currencyID),
-    FOREIGN KEY(FK_sourceID) REFERENCES source(sourceID)
+    FOREIGN KEY(FK_bpCurrency) REFERENCES bpCurrency(ID),
+    FOREIGN KEY(FK_bpSource) REFERENCES bpSource(ID)
 );
 
 --creating container table
 -- user owns container
-CREATE TABLE container(
-    containerID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpContainer(
+    ID INT IDENTITY PRIMARY KEY,
     containerName NVARCHAR (255) NOT NULL,
 
-    FK_appUserID INT,
+    FK_bpUser INT,
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID)
 );
 
 -- creating user has access to container
-CREATE TABLE jt_user_container(
-    FK_appUserID INT,
-    FK_containerID INT,
+CREATE TABLE bpUserContainer(
+    FK_bpUser INT,
+    FK_bpContainer INT,
 
-    CONSTRAINT PK_user_container PRIMARY KEY(
-        FK_appUserID,
-        FK_containerID
+    CONSTRAINT PK_bpUserContainer PRIMARY KEY(
+        FK_bpUser,
+        FK_bpContainer
     ),
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID),
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID)
 );
 
 -- creating container includes source table
-CREATE TABLE jt_container_source(
-    FK_containerID INT,
-    FK_sourceID INT,
+CREATE TABLE bpContainerSource(
+    FK_bpContainer INT,
+    FK_bpSource INT,
 
-    CONSTRAINT PK_container_source PRIMARY KEY(
-        FK_containerID,
-        FK_sourceID
+    CONSTRAINT PK_bpContainerSource PRIMARY KEY(
+        FK_bpContainer,
+        FK_bpSource
     ),
 
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID),
-    FOREIGN KEY(FK_sourceID) REFERENCES source(sourceID)
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID),
+    FOREIGN KEY(FK_bpSource) REFERENCES bpSource(ID)
 );
 
 -- create category table
 -- can be found in
-CREATE TABLE category(
-    categoryID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpCategory(
+    ID INT IDENTITY PRIMARY KEY,
     categoryName NVARCHAR (255) NOT NULL
 );
 
 -- creating container has category
-CREATE TABLE jt_container_category(
-    FK_containerID INT,
-    FK_categoryID INT
+CREATE TABLE bpContainerCategory(
+    FK_bpContainer INT,
+    FK_bpCategory INT
 
-    CONSTRAINT PK_container_category PRIMARY KEY(
-        FK_containerID,
-        FK_categoryID
+    CONSTRAINT PK_bpContainerCategory PRIMARY KEY(
+        FK_bpContainer,
+        FK_bpCategory
     ),
 
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID),
-    FOREIGN KEY(FK_categoryID) REFERENCES category(categoryID)
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID),
+    FOREIGN KEY(FK_bpCategory) REFERENCES bpCategory(ID)
 );
 
 -- creating transaction table
 -- transaction is made with source
 -- user has made a transaction
-CREATE TABLE appTransaction(
-    appTransactionID INT IDENTITY PRIMARY KEY,
-    appTransactionName NVARCHAR (255) NOT NULL,
-    appTransactionDate DATETIME,
-    appTransactionAmount MONEY,--data type for money
-    appTransactionIsExpense BIT NOT NULL,
-    appTransactionNote NVARCHAR (255),
+CREATE TABLE bpTransaction(
+    ID INT IDENTITY PRIMARY KEY,
+    transactionName NVARCHAR (255) NOT NULL,
+    transactionDate DATETIME,
+    amount MONEY,--data type for money
+    isExpense BIT NOT NULL,
+    note NVARCHAR (255),
 
-    FK_appUserID INT,
-    FK_sourceID INT,
-    FK_categoryID INT
+    FK_bpUser INT,
+    FK_bpSource INT,
+    FK_bpCategory INT,
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID),
-    FOREIGN KEY(FK_sourceID) REFERENCES source(sourceID),
-    FOREIGN KEY(FK_categoryID) REFERENCES category(categoryID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID),
+    FOREIGN KEY(FK_bpSource) REFERENCES bpSource(ID),
+    FOREIGN KEY(FK_bpCategory) REFERENCES bpCategory(ID)
 );
 
 -- creating transaction is visible in container table
-CREATE TABLE jt_container_appTransaction(
-    FK_containerID INT,
-    FK_appTransactionID INT,
+CREATE TABLE bpContainerTransaction(
+    FK_bpContainer INT,
+    FK_bpTransaction INT,
 
     CONSTRAINT PK_container_appTransaction PRIMARY KEY(
-        FK_containerID,
-        FK_appTransactionID
+        FK_bpContainer,
+        FK_bpTransaction
     ),
 
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID),
-    FOREIGN KEY(FK_appTransactionID) REFERENCES appTransaction(appTransactionID)
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID),
+    FOREIGN KEY(FK_bpTransaction) REFERENCES bpTransaction(ID)
 );
 
 -- creating transaction will have category
-CREATE TABLE jt_appTransaction_category(
-    FK_appTransactionID INT,
-    FK_categoryID INT,
+CREATE TABLE bpTransactionCategory(
+    FK_bpTransaction INT,
+    FK_bpCategory INT,
 
-    CONSTRAINT PK_appTransaction_category PRIMARY KEY(
-        FK_appTransactionID,
-        FK_categoryID
+    CONSTRAINT PK_bpTransactionCategory PRIMARY KEY(
+        FK_bpTransaction,
+        FK_bpCategory
     ),
 
-    FOREIGN KEY(FK_appTransactionID) REFERENCES appTransaction(appTransactionID),
-    FOREIGN KEY(FK_categoryID) REFERENCES category(categoryID)
+    FOREIGN KEY(FK_bpTransaction) REFERENCES bpTransaction(ID),
+    FOREIGN KEY(FK_bpCategory) REFERENCES bpCategory(ID)
 );
 
 -- creating notification table
-CREATE TABLE appNotification(
-    appNotificationID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpNotification(
+    ID INT IDENTITY PRIMARY KEY,
 
-    FK_appUserID INT,
+    FK_bpUser INT,
 
-    FOREIGN KEY(FK_appUserID) REFERENCES appUser(userID)
+    FOREIGN KEY(FK_bpUser) REFERENCES bpUser(ID)
 );
 
 --creating notification is about transaction
-CREATE TABLE jt_appTransaction_notification(
-    FK_appTransactionID INT,
-    FK_appNotificationID INT,
+CREATE TABLE bpTransactionNotification(
+    FK_bpTransaction INT,
+    FK_bpNotification INT,
 
-    CONSTRAINT PK_appTransaction_notification PRIMARY KEY(
-        FK_appTransactionID,
-        FK_appNotificationID
+    CONSTRAINT PK_bpTransactionNotification PRIMARY KEY(
+        FK_bpTransaction,
+        FK_bpNotification
     ),
 
-    FOREIGN KEY(FK_appTransactionID) REFERENCES appTransaction(appTransactionID),
-    FOREIGN KEY(FK_appNotificationID) REFERENCES appNotification(appNotificationID)
+    FOREIGN KEY(FK_bpTransaction) REFERENCES bpTransaction(ID),
+    FOREIGN KEY(FK_bpNotification) REFERENCES bpNotification(ID)
 );
 
 --create goal table
 --container has a goal
-CREATE TABLE goal(
-    goalID INT IDENTITY PRIMARY KEY,
+CREATE TABLE bpGoal(
+    ID INT IDENTITY PRIMARY KEY,
     goalName NVARCHAR (255) NOT NULL,
-    goalAmount MONEY, --come back for format for money
-    goalDeadline DATE,
+    amount MONEY, 
+    deadline DATE,
 
-    FK_containerID INT,
+    FK_bpContainer INT,
 
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID),
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID)
 );
 
 -- creating goal belongs to container
-CREATE TABLE jt_container_goal(
-    FK_containerID INT,
-    FK_goalID INT,
+CREATE TABLE bpContainerGoal(
+    FK_bpContainer INT,
+    FK_bpGoal INT,
 
-    CONSTRAINT PK_container_goal PRIMARY KEY(
-        FK_containerID,
-        FK_goalID
+    CONSTRAINT PK_bpContainerGoal PRIMARY KEY(
+        FK_bpContainer,
+        FK_bpGoal
     ),
 
-    FOREIGN KEY(FK_containerID) REFERENCES container(containerID),
-    FOREIGN KEY(FK_goalID) REFERENCES goal(goalID)
+    FOREIGN KEY(FK_bpContainer) REFERENCES bpContainer(ID),
+    FOREIGN KEY(FK_bpGoal) REFERENCES bpGoal(ID)
 );
+
+INSERT INTO bpUser(firstName,lastName,IsDisabled)
+VALUES  (@firstName, @lastName, 0);
+--#########
+INSERT INTO bpUser(firstName,lastName,IsDisabled)
+VALUES  ('Alexandru', 'Bogdan', 0),
+        ('Joanna', 'Jankowska', 0),
+        ('Nikolay', 'Rusev', 0);
+
+INSERT INTO bpCreds(userUsername,userPassword)
+VALUES  (@userUsername, @userPassword);
+-- ########
+INSERT INTO bpCreds(userUsername,userPassword)
+VALUES  ('afbogdan', 'Password123'),
+        ('joanna-00', 'Password456'),
+        ('nikolayr21', 'Password789');
+
+INSERT INTO bpCurrency(currencyName,currencyCode)
+VALUES  (@currencyName, @currencyCode);
+-- ########
+INSERT INTO bpCurrency(currencyName,currencyCode)
+VALUES  ('Danish Krone', 'DKK'),
+        ('Euro', 'EUR'),
+        ('Bulgarian Lev', 'BGN'),
+        ('Zloty', 'PLN'),
+        ('Romanian Leu', 'RON');
+
+INSERT INTO bpSource(sourceName, sourceDescription, amount, currency)
+VALUES  ()
