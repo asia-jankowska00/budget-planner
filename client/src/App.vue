@@ -102,7 +102,7 @@ body {
     width: 450px;
     height: 90vh;
     background: $appbackground;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
   }
 }

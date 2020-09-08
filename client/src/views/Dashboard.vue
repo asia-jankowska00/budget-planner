@@ -2,6 +2,7 @@
   <div id="dashboard">
       <Panel />
       <Tabs />
+      <FloatAction />
       <router-view></router-view>
   </div>
 </template>
@@ -9,6 +10,7 @@
 <script>
 import Panel from '@/components/Panel';
 import Tabs from '@/components/Tabs';
+import FloatAction from '@/components/FloatAction';
 
 const checkRoute = function() {
     const url = window.location.href;
@@ -25,7 +27,8 @@ export default {
     name: 'Dashboard',
     components: {
         Panel,
-        Tabs
+        Tabs,
+        FloatAction
     },
     watch: {
         '$route' () { checkRoute(); }
@@ -40,12 +43,19 @@ export default {
 <style lang="scss" scoped>
     #dashboard {
         height: 100%;
+        position: relative;
         
         > .empty-view {
             height: calc(100% - 108px);
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        #mainCTA {
+            position: absolute;
+            bottom: 40px;
+            right: 2px;
         }
     }
 </style>

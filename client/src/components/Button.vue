@@ -1,8 +1,23 @@
 <template>
-  <button class="waves-effect waves-dark btn blue accent-3" :class="sizeClass" :type="type">
-    <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
-    {{label}}
+  <button 
+    v-if="!isLink"
+    class="waves-effect waves-dark btn blue accent-3" 
+    :class="classObject" 
+    :type="type"
+    :id="id">
+      <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
+        {{label}}
   </button>
+
+  <a 
+    v-else
+    class="waves-effect waves-dark btn blue accent-3" 
+    :class="classObject" 
+    :type="type"
+    :id="id">
+      <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
+        {{label}}
+  </a>
 </template>
 
 <script>
@@ -13,14 +28,8 @@ export default {
     Icon
   },
   props: {
-    label: {
-      type: String,
-      required: true
-    },
-    icon: {
-      type: Object,
-      required: false
-    },
+    label: String,
+    icon: Object,
     type: {
       type: String,
       default: function () {
@@ -35,13 +44,17 @@ export default {
       validator: function (value) {
         return ['small', 'large'].indexOf(value) !== -1
       }
-    }
+    },
+    id: String,
+    isFloating: Boolean,
+    isLink: Boolean
   },
   computed: {
-    sizeClass: function() {
+    classObject: function() {
       return {
         "btn-large": this.size === 'large',
-        "btn-small": this.size === 'small'
+        "btn-small": this.size === 'small',
+        "btn-floating": this.isFloating
       }
     }
   }
@@ -49,7 +62,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.btn {
-  margin: 8px;
-}
+  .btn {
+    margin: 8px;
+  }
 </style>
