@@ -4,6 +4,7 @@
 </template>
 
 <script>
+import M from "materialize-css";
 import { mapState } from 'vuex';
 
 export default {
@@ -11,6 +12,11 @@ export default {
   computed: mapState({
     sources: state => state.sources
   }),
+  mounted() {
+    const tabs = M.Tabs.init(document.querySelector('ul.tabs'));
+    tabs.updateTabIndicator();
+    document.querySelector('.router-link-active').blur();
+  }
 }
 </script>
 
