@@ -1,10 +1,12 @@
 <template>
     <!-- hardcoded for now -->
-    <div class="col s12">
-        <ul class="tabs light-primary-bg ">
-            <li class="tab col s6 primary"><router-link to="/dashboard/sources">Sources</router-link></li>
-            <li class="tab col s6 primary"><router-link to="/dashboard/budgets">Budgets</router-link></li>
-        </ul>
+    <div class="tabs-container row">
+        <div class="col s12">
+            <ul class="tabs light-primary-bg ">
+                <li class="tab col s6 primary"><router-link to="/dashboard/sources">Sources</router-link></li>
+                <li class="tab col s6 primary"><router-link to="/dashboard/budgets">Budgets</router-link></li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -21,9 +23,18 @@ export default {
 </script>
 
 <style lang="scss">
-    .tabs {
+    .tabs-container {
+        position: absolute;
+        width: 100%;
         top: 60px;
+        left: 0;
 
+        .s12 {
+            padding: 0;
+        }
+    }
+
+    .tabs {
         .tab {
             a,
             a.active {
