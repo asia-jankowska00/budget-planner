@@ -10,6 +10,8 @@
         placeholder="Select currency"
         :options="currencies" 
         v-model="selectedCurrency"
+        displayKey="text"
+        valueKey="code"
       />
 
       <div class="actions">
@@ -40,17 +42,17 @@ export default {
       currencies: [
         {
           "id": 1,
-          "value": 'DKK',
+          "code": 'DKK',
           "text": 'Danish Krone'
         },
         {
           "id": 2,
-          "value": 'EUR',
+          "code": 'EUR',
           "text": 'Euro'
         },
         {
           "id": 3,
-          "value": 'USD',
+          "code": 'USD',
           "text": 'United States Dollar'
         }
       ]

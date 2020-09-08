@@ -1,12 +1,12 @@
 <template>
-  <div class="input-field col s12">
+  <div :id="id" class="input-field col s12">
     <select
         v-on:change="$emit('input', $event.target.value)">
             <!-- :selected might need to be updated -->
-            <option value="" disabled selected>{{placeholder}}</option>
-            <option v-for="o in options" :key="o.id" :value="o.value" :selected="value === o.value">{{o.text}}</option>
+            <option v-if="placeholder" value="" disabled selected>{{placeholder}}</option>
+            <option v-for="o in options" :key="o.id" :value="o[valueKey]" :selected="value === o[valueKey]">{{o[displayKey]}}</option>
     </select>
-    <label>{{label}}</label>
+    <label v-if="label">{{label}}</label>
   </div>
 </template>
 
@@ -16,16 +16,11 @@ import M from "materialize-css";
 export default {
     name: 'Select',
     props: {
-        label: {
-            type: String,
-            required: true
-        },
-        placeholder: {
-            type: String,
-            required: true
-        },
+        id: String,
+        label: String,
+        placeholder: String,
         value: {
-            type: String,
+            type: [String, Number],
             required: true
         },
         options: {
@@ -33,7 +28,16 @@ export default {
             default: function() {
                 return []
             }
+        },
+        displayKey: {
+            type: String,
+            required: true
+        },
+        valueKey: {
+            type: String,
+            required: true
         }
+        // implement col-size: s3, s4, s6, s12
     },
     methods: {
         updateMaterialize: function() {
