@@ -112,10 +112,3 @@ SELECT bpContainer.containerName, bpContainer.FK_bpUser, bpContainerSource.FK_bp
 FROM bpContainer
 INNER JOIN bpContainerSource
 ON bpContainerSource.FK_bpContainer = bpContainer.ID;
-
-SELECT bpCategory.categoryName, bpContainer.containerName
-FROM bpCategory
-INNER JOIN bpContainer
-ON bpContainerCategory.FK_bpContainer = bpContainer.ID;
-
-SELECT * FROM bpContainerCategory;
