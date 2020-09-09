@@ -24,7 +24,7 @@ export default {
     },
     mounted() {
         const elems = document.querySelectorAll('.fixed-action-btn');
-        M.FloatingActionButton.init(elems);
+        M.FloatingActionButton.init(elems, {hoverEnabled: false});
     }
 }
 </script>

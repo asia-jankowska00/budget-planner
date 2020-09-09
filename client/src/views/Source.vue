@@ -2,7 +2,7 @@
   <div id="sources" v-if="sources.length > 0">
     <Select 
       id="mainSource" 
-      label="Your budgets" 
+      label="Your sources"
       :options="sources" 
       v-model="selectedSource" 
       displayKey="name" 
