@@ -1,11 +1,7 @@
 <template>
-    <div class="input-field col s12">
-        <input
-            :id="id" 
-            :type="type" 
-            :value="value"
-            v-on:input="$emit('input', $event.target.value)"
-        >
+    <div class="input-field">
+        <input v-if="type && type !== 'number'" :id="id" :type="type" :value="value" v-on:input="$emit('input', $event.target.value)">
+        <input v-else-if="type && type === 'number'" :id="id" :type="type" :value="value" :min="min" :max="max" :step="step" v-on:input="$emit('input', $event.target.value)">
         <label :for="id">{{label}}</label>
     </div>
 </template>
@@ -28,9 +24,12 @@ export default {
             type: String,
             required: true,
             validator: function (value) {
-                return ['text', 'password'].indexOf(value) !== -1
+                return ['text', 'password', 'number'].indexOf(value) !== -1
             }
         },
+        min: String,
+        max: String,
+        step: String,
         value: {
             type: String,
             required: true

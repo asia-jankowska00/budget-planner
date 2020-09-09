@@ -3,6 +3,9 @@
       <Panel />
       <Tabs />
       <FloatAction />
+      <AddSource v-if="isModalOpen && modalName === 'addSource'"/>
+      <div id="mask" v-if="isModalOpen"></div>
+
       <router-view></router-view>
   </div>
 </template>
@@ -11,6 +14,8 @@
 import Panel from '@/components/Panel';
 import Tabs from '@/components/Tabs';
 import FloatAction from '@/components/FloatAction';
+import AddSource from '@/components/AddSource';
+import { mapGetters } from 'vuex';
 
 const checkRoute = function() {
     const url = window.location.href;
@@ -28,7 +33,8 @@ export default {
     components: {
         Panel,
         Tabs,
-        FloatAction
+        FloatAction,
+        AddSource
     },
     watch: {
         '$route' () { checkRoute(); }
@@ -36,6 +42,9 @@ export default {
     beforeCreate: function() {
         console.log('%c Dashboard - beforeCreate - Need to check token from now on', 'color: yellow; background-color: black');
         checkRoute();
+    },
+    computed: {
+        ...mapGetters(['isModalOpen', 'modalName']),
     }
 }
 </script>
@@ -56,6 +65,17 @@ export default {
             position: absolute;
             bottom: 40px;
             right: 2px;
+        }
+
+        #mask {
+            position: absolute;
+            background: rgba(0,0,0,0.5);
+            left: 0;
+            top: 60px;
+            width: 100%;
+            height: calc(100% - 60px);
+            pointer-events: none;
+            z-index: 1500;
         }
     }
 </style>

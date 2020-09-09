@@ -1,20 +1,22 @@
 <template>
   <button 
     v-if="!isLink"
-    class="waves-effect waves-dark btn blue accent-3" 
+    class="waves-effect waves-dark" 
     :class="classObject" 
     :type="type"
-    :id="id">
+    :id="id"
+    @click="$emit('click')">
       <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
         {{label}}
   </button>
 
   <a 
     v-else
-    class="waves-effect waves-dark btn blue accent-3" 
+    class="waves-effect waves-dark" 
     :class="classObject" 
     :type="type"
-    :id="id">
+    :id="id"
+    @click="$emit('click')">
       <Icon v-if="icon" :name="icon.name" :direction="icon.direction"/>
         {{label}}
   </a>
@@ -47,6 +49,7 @@ export default {
     },
     id: String,
     isFloating: Boolean,
+    isFlat: Boolean,
     isLink: Boolean
   },
   computed: {
@@ -54,7 +57,9 @@ export default {
       return {
         "btn-large": this.size === 'large',
         "btn-small": this.size === 'small',
-        "btn-floating": this.isFloating
+        "btn-floating": this.isFloating,
+        "btn blue accent-3": !this.isFlat,
+        "btn-flat": this.isFlat
       }
     }
   }

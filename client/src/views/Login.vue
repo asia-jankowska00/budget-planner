@@ -45,7 +45,7 @@ export default {
 
 h5 {
   text-align: center;
-  margin-top: 10vh;
+  margin: 10vh 0 5vh 0;
   color: #2979ff;
 }
 

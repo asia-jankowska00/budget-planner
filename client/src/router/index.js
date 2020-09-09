@@ -20,10 +20,12 @@ Vue.use(VueRouter)
     children: [
       {
         path: 'sources',
+        name: 'Sources',
         component: Source
       },
       {
         path: 'budgets',
+        name: 'Budgets',
         component: Budget
       }
     ]
@@ -44,6 +46,7 @@ Vue.use(VueRouter)
 ]
 
 const router = new VueRouter({
+  mode: 'history',
   routes
 })
 

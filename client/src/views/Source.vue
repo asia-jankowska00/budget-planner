@@ -46,7 +46,7 @@ export default {
 
 <style lang="scss">
   #sources {
-    height: calc(100% - 108px);
+    height: calc(100% - 116px);
     overflow-y: auto;
     overflow-x: hidden;
     margin-top: 8px;

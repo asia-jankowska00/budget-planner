@@ -5,7 +5,7 @@
         </a>
         <ul>
             <li><Button :isFloating="true" :isLink="true" label="Budget"/></li>
-            <li><Button :isFloating="true" :isLink="true" label="Source"/></li>
+            <li><Button :isFloating="true" :isLink="true" label="Source" @click="openAddSourceModal"/></li>
             <li><Button :isFloating="true" :isLink="true" label="Transaction"/></li>
         </ul>
     </div>
@@ -25,6 +25,11 @@ export default {
     mounted() {
         const elems = document.querySelectorAll('.fixed-action-btn');
         M.FloatingActionButton.init(elems, {hoverEnabled: false});
+    },
+    methods: {
+        openAddSourceModal: function() {
+            this.$store.commit('openModal', {name: 'addSource'});
+        }
     }
 }
 </script>

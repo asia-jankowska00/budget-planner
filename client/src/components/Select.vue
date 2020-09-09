@@ -1,5 +1,5 @@
 <template>
-  <div :id="id" class="input-field col s12">
+  <div :id="id" class="input-field">
     <select
         v-on:change="$emit('input', $event.target.value)">
             <!-- :selected might need to be updated -->
