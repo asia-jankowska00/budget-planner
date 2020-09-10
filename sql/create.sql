@@ -159,9 +159,11 @@ CREATE TABLE bpContainerTransaction(
 CREATE TABLE bpNotification(
     NotificationId INT IDENTITY PRIMARY KEY,
 
-    UserId INT,
+    UserId INT NOT NULL,
+    TransactionId INT NOT NULL
 
-    FOREIGN KEY(UserId) REFERENCES bpUser(UserId)
+    FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
+    FOREIGN KEY(TransactionId) REFERENCES bpTransaction(TransactionId)
 );
 
 --create goal table
