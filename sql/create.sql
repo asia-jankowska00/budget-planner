@@ -12,7 +12,7 @@ CREATE TABLE bpUser(
     ID INT IDENTITY PRIMARY KEY,
     firstName NVARCHAR (255) NOT NULL,
     lastName NVARCHAR (255) NOT NULL,
-    IsDisabled BIT,
+    isDisabled BIT,
 
     FK_bpCurrency INT,
 
