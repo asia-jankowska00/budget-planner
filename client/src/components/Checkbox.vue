@@ -1,6 +1,6 @@
 <template>
     <label :for="id" class="custom-checkbox">
-        <input type="checkbox" class="filled-in" :id="id" :value="inputValue" @change="onChange" />
+        <input type="checkbox" class="filled-in" :id="id" :value="inputValue" @change="onChange" :disabled="disabled"/>
         <span>{{ label }}</span>
     </label>
 </template>
@@ -18,7 +18,13 @@ export default {
             required: true
         },
         inputValue: String,
-        value: [Array, Boolean]
+        value: [Array, Boolean],
+        disabled: {
+            type: String,
+            validator: function (value) {
+                return ['disabled'].indexOf(value) !== -1
+            }
+        }
     },
     watch: {
         value: function (newValue) {
