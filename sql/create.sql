@@ -1,10 +1,10 @@
-USE "1081601";
+USE "1081578";
 
 -- createing currency table
 CREATE TABLE bpCurrency( 
     CurrencyId INT IDENTITY PRIMARY KEY,
-    CurrencyName NVARCHAR (255),
-    CurrencyCode NVARCHAR (50)
+    CurrencyName NVARCHAR (255) NOT NULL,
+    CurrencyCode NVARCHAR (50) NOT NULL
 );
 
 -- creating user table
@@ -14,7 +14,7 @@ CREATE TABLE bpUser(
     UserLastName NVARCHAR (255) NOT NULL,
     UserIsDisabled BIT,
 
-    CurrencyId INT,
+    CurrencyId INT  NOT NULL,
 
     FOREIGN KEY (CurrencyId) REFERENCES bpCurrency(CurrencyId)
 );
@@ -24,7 +24,7 @@ CREATE TABLE bpLogin(
     LoginUsername NVARCHAR (255) NOT NULL,
     LoginPassword NVARCHAR (255) NOT NULL,
 
-    UserId INT,
+    UserId INT NOT NULL,
 
     CONSTRAINT LoginUser FOREIGN KEY(UserId) REFERENCES bpUser(UserId)
 );
@@ -48,10 +48,10 @@ CREATE TABLE bpSource(
 
 -- creating user can use source table
 CREATE TABLE bpUserSource(
-    UserId INT,
-    SourceId INT,
+    UserId INT NOT NULL,
+    SourceId INT NOT NULL,
 
-    CONSTRAINT PK_bpUserSource PRIMARY KEY(
+    CONSTRAINT UserSource PRIMARY KEY(
         UserId,
         SourceId
     ),
@@ -66,29 +66,29 @@ CREATE TABLE bpContainer(
     ContainerId INT IDENTITY PRIMARY KEY,
     ContainerName NVARCHAR (255) NOT NULL,
 
-    UserId INT,
+    UserId INT NOT NULL,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId)
 );
 
 -- creating user has access to container
 CREATE TABLE bpUserContainer(
-    UserId INT,
-    ContainerId INT,
+    UserId INT NOT NULL,
+    ContainerId INT NOT NULL,
 
     CONSTRAINT UserContainer PRIMARY KEY(
         UserId,
         ContainerId
     ),
 
-    FOREIGN KEY(UserId) REFERENCES bpUser(ID),
-    FOREIGN KEY(ContainerId) REFERENCES bpContainer(ID)
+    FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
+    FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId)
 );
 
 -- creating container includes source table
 CREATE TABLE bpContainerSource(
-    ContainerId INT,
-    SourceId INT,
+    ContainerId INT NOT NULL,
+    SourceId INT NOT NULL,
 
     CONSTRAINT ContainerSource PRIMARY KEY(
         ContainerId,
@@ -108,8 +108,8 @@ CREATE TABLE bpCategory(
 
 -- creating container has category
 CREATE TABLE bpContainerCategory(
-    ContainerId INT,
-    CategoryId INT,
+    ContainerId INT NOT NULL,
+    CategoryId INT NOT NULL,
     CategoryEstimation INT,
 
     CONSTRAINT ContainerCategory PRIMARY KEY(
@@ -132,8 +132,8 @@ CREATE TABLE bpTransaction(
     TransactionIsExpense BIT NOT NULL,
     TransactionNote NVARCHAR (255),
 
-    UserId INT,
-    SourceId INT,
+    UserId INT NOT NULL,
+    SourceId INT NOT NULL,
     CategoryId INT,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
@@ -146,7 +146,7 @@ CREATE TABLE bpContainerTransaction(
     ContainerId INT,
     TransactionId INT,
 
-    CONSTRAINT PK_container_appTransaction PRIMARY KEY(
+    CONSTRAINT ContainerTransaction PRIMARY KEY(
         ContainerId,
         TransactionId
     ),
