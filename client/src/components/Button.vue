@@ -50,7 +50,8 @@ export default {
     id: String,
     isFloating: Boolean,
     isFlat: Boolean,
-    isLink: Boolean
+    isLink: Boolean,
+    isDisabled: Boolean
   },
   computed: {
     classObject: function() {
@@ -59,7 +60,8 @@ export default {
         "btn-small": this.size === 'small',
         "btn-floating": this.isFloating,
         "btn blue accent-3": !this.isFlat,
-        "btn-flat": this.isFlat
+        "btn-flat": this.isFlat,
+        "disabled": this.isDisabled
       }
     }
   }
