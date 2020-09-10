@@ -1,6 +1,6 @@
 -- ADD TEST DATA
 
-USE "1081601";
+USE "1081578";
 
 -- INSERT INTO bpCurrency(currencyName,currencyCode)
 -- VALUES  (@currencyName, @currencyCode);
