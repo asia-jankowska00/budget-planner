@@ -4,8 +4,8 @@
             <Icon name="add"/>
         </a>
         <ul>
-            <li><Button :isFloating="true" :isLink="true" label="Budget"/></li>
-            <li><Button :isFloating="true" :isLink="true" label="Source" @click="openAddSourceModal"/></li>
+            <li><Button :isFloating="true" :isLink="true" label="Budget" @click="openModal('addBudget')"/></li>
+            <li><Button :isFloating="true" :isLink="true" label="Source" @click="openModal('addSource')"/></li>
             <li><Button :isFloating="true" :isLink="true" label="Transaction"/></li>
         </ul>
     </div>
@@ -27,8 +27,8 @@ export default {
         M.FloatingActionButton.init(elems, {hoverEnabled: false});
     },
     methods: {
-        openAddSourceModal: function() {
-            this.$store.commit('openModal', {name: 'addSource'});
+        openModal: function(modalName) {
+            this.$store.commit('openModal', {name: modalName});
         }
     }
 }

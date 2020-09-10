@@ -4,6 +4,7 @@
       <Tabs />
       <FloatAction />
       <AddSource v-if="isModalOpen && modalName === 'addSource'"/>
+      <AddBudget v-if="isModalOpen && modalName === 'addBudget'"/>
       <div id="mask" v-if="isModalOpen"></div>
 
       <router-view></router-view>
@@ -15,6 +16,7 @@ import Panel from '@/components/Panel';
 import Tabs from '@/components/Tabs';
 import FloatAction from '@/components/FloatAction';
 import AddSource from '@/components/AddSource';
+import AddBudget from '@/components/AddBudget';
 import { mapGetters } from 'vuex';
 
 const checkRoute = function() {
@@ -34,7 +36,8 @@ export default {
         Panel,
         Tabs,
         FloatAction,
-        AddSource
+        AddSource,
+        AddBudget
     },
     watch: {
         '$route' () { checkRoute(); }

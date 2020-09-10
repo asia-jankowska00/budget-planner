@@ -17,6 +17,7 @@ export default {
 $background: #4f4f4f;
 $appbackground: #FCFDFE;
 $text-color: #455a65;
+$text-light: #90A4AE;
 $primary: #2979ff;
 $lightPrimary: #e5efff;
 
@@ -29,6 +30,10 @@ html {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
+
+  button, input, optgroup, select, textarea {
+    font-family: inherit;
+  }
 }
 
 .primary {
