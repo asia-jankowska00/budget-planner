@@ -15,6 +15,13 @@ router.post("/register", async (req, res) => {
       res.status(400).json({ message: "Failed to create user" });
     }
 
+    const token = jwt.sign(
+      JSON.stringify({ username: newUser.username, id: newUser.id }),
+      process.env.JWT_SECRET
+    );
+
+    newUser.token = token;
+
     res.json(newUser);
   }
 });
@@ -27,7 +34,7 @@ router.post("/login", async (req, res) => {
       const user = await User.readByUsername(req.body.username);
 
       const token = jwt.sign(
-        JSON.stringify({ username: user.username }),
+        JSON.stringify({ username: user.username, id: user.id }),
         process.env.JWT_SECRET
       );
 
