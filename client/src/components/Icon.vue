@@ -1,9 +1,5 @@
 <template>
-    <i 
-        class="material-icons" 
-        v-bind:class="directionClass">
-            {{name}}
-    </i>
+    <i class="material-icons" v-bind:class="directionClass">{{name}}</i>
 </template>
 
 <script>
