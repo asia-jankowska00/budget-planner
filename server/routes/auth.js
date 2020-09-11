@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
 
 router.post("/register", async (req, res) => {
   try {
@@ -24,6 +25,14 @@ router.post("/login", async (req, res) => {
 
     if (matchPassword) {
       const user = await User.readByUsername(req.body.username);
+
+      const token = jwt.sign(
+        JSON.stringify({ username: user.username }),
+        process.env.JWT_SECRET
+      );
+
+      user.token = token;
+
       res.json(user);
     }
   } catch (err) {
