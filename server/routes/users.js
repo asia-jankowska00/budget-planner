@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const auth = require("../middleware/auth");
 
-router.get("/userId/:userId", async (req, res) => {
+router.get("/userId/:userId", auth, async (req, res) => {
   try {
     const user = await User.readById(req.params.userId);
 
@@ -13,7 +14,7 @@ router.get("/userId/:userId", async (req, res) => {
   }
 });
 
-router.get("/username/:username", async (req, res) => {
+router.get("/username/:username", auth, async (req, res) => {
   try {
     const user = await User.readByUsername(req.params.username);
 
