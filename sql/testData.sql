@@ -23,10 +23,10 @@ VALUES  ('Alexandru', 'Bogdan', 0, 1),
 -- INSERT INTO bpLogin(userUsername,userPassword)
 -- VALUES  (@userUsername, @userPassword);
 -- ########
-INSERT INTO bpLogin(LoginUsername, LoginPassword, UserId)
-VALUES  ('afbogdan', 'Password123', 1),
-        ('joanna-00', 'Password456', 2),
-        ('nikolayr21', 'Password789', 3);
+-- INSERT INTO bpLogin(LoginUsername, LoginPassword, UserId)
+-- VALUES  ('afbogdan', 'Password123', 1),
+--         ('joanna-00', 'Password456', 2),
+--         ('nikolayr21', 'Password789', 3);
 
 INSERT INTO bpSource(SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
 VALUES  ('Sparnord', 'Main bank account', 14000.35, 1, 1),
@@ -81,22 +81,24 @@ SELECT * FROM bpCategory;
 SELECT * FROM bpTransaction;
 SELECT * FROM bpContainerSource;
 
-SELECT UserFirstName, UserLastName, CurrencyId
-FROM bpUser
-INNER JOIN bpLogin
-ON bpLogin.UserId = bpUser.UserId
-WHERE bpLogin.LoginUsername = 'afbogdan' AND bpLogin.LoginPassword = 'Password123' AND bpUser.UserIsDisabled = 0;
+-- SELECT UserFirstName, UserLastName, CurrencyId
+-- FROM bpUser
+-- INNER JOIN bpLogin
+-- ON bpLogin.UserId = bpUser.UserId
+-- WHERE bpLogin.LoginUsername = 'afbogdan' 
+-- AND bpLogin.LoginPassword = 'Password123' 
+-- AND bpUser.UserIsDisabled = 0;
 
-SELECT bpUser.UserId, bpUser.UserFirstName, bpUser.UserLastName, bpCurrency.CurrencyName, bpCurrency.CurrencyCode
-FROM bpUser
-INNER JOIN bpLogin
-ON bpLogin.UserId = bpUser.UserId
-INNER JOIN bpCurrency
-ON bpUser.CurrencyId = bpCurrency.CurrencyId
-WHERE bpLogin.LoginUsername = 'afbogdan'
-AND bpLogin.LoginPassword = 'Password123'
-AND bpUser.UserIsDisabled = 0
-AND bpCurrency.CurrencyId = bpUser.CurrencyId;
+-- SELECT bpUser.UserId, bpUser.UserFirstName, bpUser.UserLastName, bpCurrency.CurrencyName, bpCurrency.CurrencyCode
+-- FROM bpUser
+-- INNER JOIN bpLogin
+-- ON bpLogin.UserId = bpUser.UserId
+-- INNER JOIN bpCurrency
+-- ON bpUser.CurrencyId = bpCurrency.CurrencyId
+-- WHERE bpLogin.LoginUsername = 'afbogdan'
+-- AND bpLogin.LoginPassword = 'Password123'
+-- AND bpUser.UserIsDisabled = 0
+-- AND bpCurrency.CurrencyId = bpUser.CurrencyId;
 
 SELECT UserFirstName, UserLastName, SourceName, SourceAmount
 FROM bpUser
