@@ -110,6 +110,14 @@ body {
     overflow: hidden;
     position: relative;
   }
+
+  .sidenav-overlay {
+    position: absolute;
+    width: 450px;
+    height: calc(90vh - 60px);
+    left: calc(50% - 225px);
+    top: calc(5vh + 60px);
+  }
 }
 
 @media (max-width: 450px) {
