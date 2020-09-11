@@ -1,9 +1,5 @@
 <template>
-    <i v-if="!isSideNavTrigger" class="material-icons" v-bind:class="directionClass">{{name}}</i>
-
-    <a v-else data-target="slide-out" class="sidenav-trigger">
-        <i class="material-icons" v-bind:class="directionClass">{{name}}</i>
-    </a>
+    <i class="material-icons" v-bind:class="directionClass">{{name}}</i>
 </template>
 
 <script>
@@ -14,8 +10,7 @@ export default {
             type: String,
             required: true
         },
-        direction: String,
-        isSideNavTrigger: Boolean
+        direction: String
     },
     computed: {
         directionClass: function () {

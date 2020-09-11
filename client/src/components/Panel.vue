@@ -1,6 +1,7 @@
 <template>
   <div id="panel" class="primary-bg">
-    <Icon name="menu" :isSideNavTrigger="true"/>
+    <Icon v-if="!isSideNavOpen" name="menu" @click.native="toggleSideNav(true)"/>
+    <Icon v-else name="close" @click.native="toggleSideNav(false)"/>
     <Icon name="notifications" />
 
     <ul id="slide-out" class="sidenav">
@@ -21,10 +22,31 @@ export default {
   components: {
     Icon
   },
+  data() {
+    return {
+      isSideNavOpen: false
+    }
+  },
   mounted() {
-    var elems = document.querySelectorAll('.sidenav');
-    M.Sidenav.init(elems);
+    const elems = document.querySelector('.sidenav');
+    const self = this;
+    M.Sidenav.init(elems, {onCloseStart: function() {self.isSideNavOpen = false}});
+  },
+  methods: {
+    toggleSideNav(isOpening) {
+      let elem = document.querySelector('.sidenav');
+      let sideNav = M.Sidenav.getInstance(elem);
+
+      if (isOpening) {
+        sideNav.open();
+        this.isSideNavOpen = true;
+      } else {
+        sideNav.close();
+        this.isSideNavOpen = false;
+      }
+    }
   }
+
 }
 </script>
 
