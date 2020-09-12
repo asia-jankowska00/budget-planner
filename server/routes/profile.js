@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const auth = require("../middleware/auth");
+const profileSchema = require("./schemas/profileSchema");
 
 router.get("/", auth, async (req, res) => {
   try {
@@ -17,10 +18,21 @@ router.get("/", auth, async (req, res) => {
 router.patch("/", auth, async (req, res) => {
   // update user from JWT
   try {
-    const userToUpdate = await User.readById(req.user.id);
-    console.log(userToUpdate);
+    const { error: inputError } = profileSchema.patchProfileInput.validate(
+      req.body
+    );
+    if (inputError) throw inputError;
 
-    userToUpdate.update(req.body);
+    const userToUpdate = await User.readById(req.user.id);
+    await userToUpdate.update(req.body);
+    const updatedUser = await User.readById(req.user.id);
+
+    const { error: outputError } = profileSchema.patchProfileInput.validate(
+      req.body
+    );
+    if (outputError) throw outputError;
+
+    res.json(updatedUser);
   } catch (err) {
     res.status(400).json(err);
   }
