@@ -121,3 +121,13 @@ const getSourceContainersOutput = Joi.array().items(Joi.object({
         lastName: Joi.string().min(1).max(255).required() 
     })
 }));
+
+module.exports = {
+    postSourcesInput,
+    postSourcesOutput,
+    getSourcesOutput,
+    getSourceIdOutput,
+    patchSourceInput,
+    patchSourceOutput,
+    getSourceContainersOutput
+}
