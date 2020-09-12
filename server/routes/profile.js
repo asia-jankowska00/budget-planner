@@ -16,9 +16,14 @@ router.get("/", auth, async (req, res) => {
 
 router.patch("/", auth, async (req, res) => {
   // update user from JWT
-  const userToUpdate = User.readById(req.user.id);
+  try {
+    const userToUpdate = await User.readById(req.user.id);
+    console.log(userToUpdate);
 
-  userToUpdate.update(req.body);
+    userToUpdate.update(req.body);
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
 
 router.delete("/", auth, async (req, res) => {

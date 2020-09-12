@@ -73,10 +73,6 @@ class User {
       (async () => {
         try {
           const input = username;
-          const { error: inputError } = UserSchema.readByUsernameInput.validate(
-            input
-          );
-          if (inputError) throw inputError;
 
           const pool = await sql.connect(connection);
           const result = await pool
@@ -92,15 +88,6 @@ class User {
             throw {
               message: "Username taken",
             };
-
-          // const dbRecord = {
-          //   id: result.recordset[0].UserId,
-          // };
-
-          // const { error: outputError } = UserSchema.readOneOutput.validate(
-          //   dbRecord
-          // );
-          // if (outputError) throw outputError;
 
           resolve();
         } catch (err) {
@@ -120,11 +107,6 @@ class User {
       (async () => {
         try {
           const input = reqBody;
-
-          const { error } = UserSchema.createInput.validate(input);
-          if (error) throw error;
-
-          //hash password, append to input
 
           bcrypt.hash(input.password, 10, function (err, hash) {
             if (err)
@@ -205,9 +187,6 @@ class User {
         try {
           const input = userId;
 
-          const { error } = UserSchema.readByIdInput.validate(input);
-          if (error) throw error;
-
           const pool = await sql.connect(connection);
           const result = await pool.request().input("UserId", sql.Int, input)
             .query(`
@@ -262,10 +241,6 @@ class User {
       (async () => {
         try {
           const input = username;
-          const { error: inputError } = UserSchema.readByUsernameInput.validate(
-            input
-          );
-          if (inputError) throw inputError;
 
           const pool = await sql.connect(connection);
           const result = await pool
@@ -307,11 +282,6 @@ class User {
             },
           };
 
-          const { error: outputError } = UserSchema.readOneOutput.validate(
-            dbRecord
-          );
-          if (outputError) throw outputError;
-
           resolve(new User(dbRecord));
         } catch (err) {
           console.log(err);
@@ -329,18 +299,39 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = userId;
+          const input = reqBody;
 
           const key = Object.keys(reqBody)[0];
+          console.log(key);
+          console.log();
 
           this[key] = reqBody[key];
 
-          // key ? 'password' :
+          const updatedUser = {
+            id: this.id,
+            username: this.username,
+            firstName: this.firstName,
+            lastName: this.lastName,
+            isDisabled: this.isDisabled,
+            currency: {
+              id: this.currency.id,
+              name: this.currency.name,
+              code: this.currency.code,
+            },
+            sources: this.sources,
+            containers: this.containers,
+          };
 
-          const { error } = UserSchema.readByIdInput.validate(input);
-          if (error) throw error;
+          console.log(updatedUser);
 
-          const updated = {};
+          // switch (key) {
+          //   case value:
+
+          //     break;
+
+          //   default:
+          //     break;
+          // }
 
           // const pool = await sql.connect(connection);
           // const result = await pool

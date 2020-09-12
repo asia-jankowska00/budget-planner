@@ -3,8 +3,12 @@ const router = express.Router();
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
+const authSchema = require("./schemas/authSchema");
+
 router.post("/register", async (req, res) => {
   try {
+    authSchema.registerInput.validate(req.body);
+
     // check if user exists
     await User.canCreateUser(req.body.username);
 
@@ -18,9 +22,9 @@ router.post("/register", async (req, res) => {
       JSON.stringify({ username: newUser.username, id: newUser.id }),
       process.env.JWT_SECRET
     );
-
     newUser.token = token;
 
+    authSchema.registerOutput.validate(newUser);
     res.json(newUser);
   } catch (err) {
     // if exists, throw an error
