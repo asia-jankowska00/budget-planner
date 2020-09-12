@@ -1,10 +1,6 @@
 // initial state
 const state = () => ({
-    sources: [
-        { id: 1, name: 'Cash'},
-        { id: 2, name: 'SparNord'},
-        { id: 3, name: 'Vacation'},
-    ],
+    sources: [],
     selectedSource: { id: 2, name: 'SparNord'},
     currencies: [
         {

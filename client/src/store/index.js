@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import sources from './modules/sources'
 import budgets from './modules/budgets'
 import modals from './modules/modals'
+import user from './modules/user'
 
 Vue.use(Vuex)
 
@@ -10,6 +11,7 @@ export default new Vuex.Store({
   modules: {
     sources,
     budgets,
-    modals
+    modals,
+    user
   }
 })

@@ -1,9 +1,6 @@
 // initial state
 const state = () => ({
-    budgets: [
-        { id: 1, name: 'Private'},
-        { id: 2, name: 'Shared budget'}
-    ]
+    budgets: []
 })
 
 // getters
