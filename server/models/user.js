@@ -67,123 +67,42 @@ class User {
     });
   }
 
-  // readById
-  static readById(userId) {
-    return new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const input = userId;
-
-          const { error } = UserSchema.readByIdInput.validate(input);
-          if (error) throw error;
-
-          const pool = await sql.connect(connection);
-          const result = await pool.request().input("UserId", sql.Int, input)
-            .query(`
-          SELECT bpUser.UserId, 
-              bpLogin.LoginUsername,
-              bpUser.UserFirstName, 
-              bpUser.UserLastName,
-              bpUser.UserIsDisabled,
-              bpUser.CurrencyId,
-              bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode
-              FROM bpUser
-              INNER JOIN bpLogin 
-              ON bpUser.UserId = bpLogin.UserId  
-              INNER JOIN bpCurrency 
-              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpUser.UserId = @UserId; 
-          `);
-          console.log(result);
-
-          if (!result.recordset[0])
-            throw {
-              message: "User not found",
-            };
-
-          const dbRecord = {
-            id: result.recordset[0].UserId,
-            username: result.recordset[0].LoginUsername,
-            firstName: result.recordset[0].UserFirstName,
-            lastName: result.recordset[0].UserLastName,
-            isDisabled: result.recordset[0].UserIsDisabled,
-            currency: {
-              id: result.recordset[0].CurrencyId,
-              name: result.recordset[0].CurrencyName,
-              code: result.recordset[0].CurrencyCode,
-            },
-          };
-
-          resolve(new User(dbRecord));
-        } catch (err) {
-          console.log(err);
-          reject(err);
-        }
-        sql.close();
-      })();
-    });
-  }
-
-  // readByUsername
-  static readByUsername(username) {
+  // canCreateUser
+  static canCreateUser(username) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const input = username;
-
           const { error: inputError } = UserSchema.readByUsernameInput.validate(
             input
           );
-
           if (inputError) throw inputError;
 
           const pool = await sql.connect(connection);
           const result = await pool
             .request()
             .input("LoginUsername", sql.NVarChar, input).query(`
-          SELECT 
-              bpLogin.LoginUsername,
-              bpUser.UserId, 
-              bpUser.UserFirstName, 
-              bpUser.UserLastName,
-              bpUser.UserIsDisabled,
-              bpUser.CurrencyId,
-              bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode
+              SELECT UserId
               FROM bpLogin
-              INNER JOIN bpUser 
-              ON bpLogin.UserId = bpUser.UserId  
-              INNER JOIN bpCurrency 
-              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpLogin.LoginUsername = @LoginUsername; 
+              WHERE LoginUsername = @LoginUsername; 
           `);
           console.log(result);
 
-          if (!result.recordset[0])
+          if (result.recordset[0])
             throw {
-              message: "User not found",
+              message: "Username taken",
             };
 
-          const dbRecord = {
-            id: result.recordset[0].UserId,
-            username: result.recordset[0].LoginUsername,
-            firstName: result.recordset[0].UserFirstName,
-            lastName: result.recordset[0].UserLastName,
-            isDisabled: result.recordset[0].UserIsDisabled,
-            currency: {
-              id: result.recordset[0].CurrencyId,
-              name: result.recordset[0].CurrencyName,
-              code: result.recordset[0].CurrencyCode,
-            },
-          };
+          // const dbRecord = {
+          //   id: result.recordset[0].UserId,
+          // };
 
-          const { error: outputError } = UserSchema.readOneOutput.validate(
-            dbRecord
-          );
-          if (outputError) throw outputError;
+          // const { error: outputError } = UserSchema.readOneOutput.validate(
+          //   dbRecord
+          // );
+          // if (outputError) throw outputError;
 
-          resolve(new User(dbRecord));
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);
@@ -193,7 +112,7 @@ class User {
     });
   }
 
-  // readAll
+  // search
 
   // create
   static create(reqBody) {
@@ -279,7 +198,201 @@ class User {
     });
   }
 
+  // readById
+  static readById(userId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const input = userId;
+
+          const { error } = UserSchema.readByIdInput.validate(input);
+          if (error) throw error;
+
+          const pool = await sql.connect(connection);
+          const result = await pool.request().input("UserId", sql.Int, input)
+            .query(`
+          SELECT bpUser.UserId, 
+              bpLogin.LoginUsername,
+              bpUser.UserFirstName, 
+              bpUser.UserLastName,
+              bpUser.UserIsDisabled,
+              bpUser.CurrencyId,
+              bpCurrency.CurrencyName,
+              bpCurrency.CurrencyCode
+              FROM bpUser
+              INNER JOIN bpLogin 
+              ON bpUser.UserId = bpLogin.UserId  
+              INNER JOIN bpCurrency 
+              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
+              WHERE bpUser.UserId = @UserId; 
+          `);
+          console.log(result);
+
+          if (!result.recordset[0])
+            throw {
+              message: "User not found",
+            };
+
+          const dbRecord = {
+            id: result.recordset[0].UserId,
+            username: result.recordset[0].LoginUsername,
+            firstName: result.recordset[0].UserFirstName,
+            lastName: result.recordset[0].UserLastName,
+            isDisabled: result.recordset[0].UserIsDisabled,
+            currency: {
+              id: result.recordset[0].CurrencyId,
+              name: result.recordset[0].CurrencyName,
+              code: result.recordset[0].CurrencyCode,
+            },
+          };
+
+          resolve(new User(dbRecord));
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
+
+  // readByUsername
+  static readByUsername(username) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const input = username;
+          const { error: inputError } = UserSchema.readByUsernameInput.validate(
+            input
+          );
+          if (inputError) throw inputError;
+
+          const pool = await sql.connect(connection);
+          const result = await pool
+            .request()
+            .input("LoginUsername", sql.NVarChar, input).query(`
+          SELECT 
+              bpLogin.LoginUsername,
+              bpUser.UserId, 
+              bpUser.UserFirstName, 
+              bpUser.UserLastName,
+              bpUser.UserIsDisabled,
+              bpUser.CurrencyId,
+              bpCurrency.CurrencyName,
+              bpCurrency.CurrencyCode
+              FROM bpLogin
+              INNER JOIN bpUser 
+              ON bpLogin.UserId = bpUser.UserId  
+              INNER JOIN bpCurrency 
+              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
+              WHERE bpLogin.LoginUsername = @LoginUsername; 
+          `);
+          console.log(result);
+
+          if (!result.recordset[0])
+            throw {
+              message: "User not found",
+            };
+
+          const dbRecord = {
+            id: result.recordset[0].UserId,
+            username: result.recordset[0].LoginUsername,
+            firstName: result.recordset[0].UserFirstName,
+            lastName: result.recordset[0].UserLastName,
+            isDisabled: result.recordset[0].UserIsDisabled,
+            currency: {
+              id: result.recordset[0].CurrencyId,
+              name: result.recordset[0].CurrencyName,
+              code: result.recordset[0].CurrencyCode,
+            },
+          };
+
+          const { error: outputError } = UserSchema.readOneOutput.validate(
+            dbRecord
+          );
+          if (outputError) throw outputError;
+
+          resolve(new User(dbRecord));
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
+
+  // readAll
+
+  // update
+  update(reqBody) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const input = userId;
+
+          const key = Object.keys(reqBody)[0];
+
+          this[key] = reqBody[key];
+
+          // key ? 'password' :
+
+          const { error } = UserSchema.readByIdInput.validate(input);
+          if (error) throw error;
+
+          const updated = {};
+
+          // const pool = await sql.connect(connection);
+          // const result = await pool
+          //   .request()
+          //   .input("UserId", sql.Int, input)
+          //   .input("UserIsDisabled", sql.Bit, true).query(`
+          // UPDATE bpUser
+          // SET UserIsDisabled = @UserIsDisabled
+          // WHERE UserId = @UserId;
+          // `);
+          // console.log(result);
+
+          resolve();
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
+
   // delete
+  static delete(userId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const input = userId;
+
+          const { error } = UserSchema.readByIdInput.validate(input);
+          if (error) throw error;
+
+          const pool = await sql.connect(connection);
+          const result = await pool
+            .request()
+            .input("UserId", sql.Int, input)
+            .input("UserIsDisabled", sql.Bit, true).query(`
+          UPDATE bpUser
+          SET UserIsDisabled = @UserIsDisabled
+          WHERE UserId = @UserId;
+          `);
+          console.log(result);
+
+          resolve();
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
 }
 
 module.exports = User;

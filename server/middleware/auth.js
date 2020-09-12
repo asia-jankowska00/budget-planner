@@ -7,8 +7,8 @@ function auth(req, res, next) {
     return res.status(401).json({ message: "You need to be logged in" });
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = user;
+    const decodedUser = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decodedUser;
     next();
   } catch (err) {
     res.status(400);

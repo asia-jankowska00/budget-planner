@@ -5,14 +5,13 @@ const jwt = require("jsonwebtoken");
 
 router.post("/register", async (req, res) => {
   try {
-    const userExists = await User.readByUsername(req.body.username);
-    if (userExists) {
-      res.status(400).json({ message: "Username taken" });
-    }
-  } catch (err) {
+    // check if user exists
+    await User.canCreateUser(req.body.username);
+
+    // if not, create user
     const newUser = await User.create(req.body);
     if (!newUser) {
-      res.status(400).json({ message: "Failed to create user" });
+      return res.status(400).json({ message: "Failed to create user" });
     }
 
     const token = jwt.sign(
@@ -23,6 +22,9 @@ router.post("/register", async (req, res) => {
     newUser.token = token;
 
     res.json(newUser);
+  } catch (err) {
+    // if exists, throw an error
+    res.status(409).json(err);
   }
 });
 
