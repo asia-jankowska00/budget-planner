@@ -290,11 +290,9 @@ class User {
         try {
           const input = reqBody;
 
-          const key = Object.keys(reqBody)[0];
-          console.log(key);
-          console.log();
+          const key = Object.keys(input)[0];
 
-          this[key] = reqBody[key];
+          this[key] = input[key];
 
           const updatedUser = {
             id: this.id,
@@ -310,8 +308,6 @@ class User {
             sources: this.sources,
             containers: this.containers,
           };
-
-          console.log(updatedUser);
 
           // switch (key) {
           //   case value:
@@ -350,9 +346,6 @@ class User {
         try {
           const input = userId;
 
-          const { error } = UserSchema.readByIdInput.validate(input);
-          if (error) throw error;
-
           const pool = await sql.connect(connection);
           const result = await pool
             .request()
@@ -362,7 +355,6 @@ class User {
           SET UserIsDisabled = @UserIsDisabled
           WHERE UserId = @UserId;
           `);
-          console.log(result);
 
           resolve();
         } catch (err) {
