@@ -1,7 +1,6 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Joi = require("joi");
-const UserSchema = require("./schemas/user");
 const bcrypt = require("bcryptjs");
 
 class User {
@@ -27,9 +26,6 @@ class User {
       (async () => {
         try {
           const input = reqBody;
-
-          const { error } = UserSchema.loginInput.validate(input);
-          if (error) throw error;
 
           const pool = await sql.connect(connection);
           const result = await pool

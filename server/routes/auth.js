@@ -34,6 +34,8 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
+    authSchema.loginInput.validate(req.body);
+
     const matchPassword = await User.matchPassword(req.body);
 
     if (matchPassword) {
@@ -46,6 +48,7 @@ router.post("/login", async (req, res) => {
 
       user.token = token;
 
+      authSchema.loginOutput.validate(req.body);
       res.json(user);
     }
   } catch (err) {
