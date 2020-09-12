@@ -50,7 +50,7 @@ router.post("/login", async (req, res) => {
 
       user.token = token;
 
-      await authSchema.loginOutput.validateAsync(req.body);
+      await authSchema.loginOutput.validateAsync(user);
       res.json(user);
     }
   } catch (err) {
