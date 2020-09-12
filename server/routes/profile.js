@@ -18,21 +18,14 @@ router.get("/", auth, async (req, res) => {
 router.patch("/", auth, async (req, res) => {
   // update user from JWT
   try {
-    const { error: inputError } = profileSchema.patchProfileInput.validate(
-      req.body
-    );
-    if (inputError) throw inputError;
+    await profileSchema.patchProfileInput.validateAsync(req.body);
 
-    const userToUpdate = await User.readById(req.user.id);
-    await userToUpdate.update(req.body);
-    const updatedUser = await User.readById(req.user.id);
+    const user = await User.readById(req.user.id);
+    await user.update(req.body);
 
-    const { error: outputError } = profileSchema.patchProfileInput.validate(
-      req.body
-    );
-    if (outputError) throw outputError;
+    await profileSchema.patchProfileOutput.validateAsync(user);
 
-    res.json(updatedUser);
+    res.json(user);
   } catch (err) {
     res.status(400).json(err);
   }

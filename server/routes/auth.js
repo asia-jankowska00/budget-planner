@@ -7,7 +7,7 @@ const authSchema = require("./schemas/authSchema");
 
 router.post("/register", async (req, res) => {
   try {
-    authSchema.registerInput.validate(req.body);
+    await authSchema.registerInput.validateAsync(req.body);
 
     // check if user exists
     await User.canCreateUser(req.body.username);
@@ -24,7 +24,8 @@ router.post("/register", async (req, res) => {
     );
     newUser.token = token;
 
-    authSchema.registerOutput.validate(newUser);
+    await authSchema.registerOutput.validateAsync(newUser);
+  
     res.status(201).json(newUser);
   } catch (err) {
     // if exists, throw an error
@@ -35,7 +36,7 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    authSchema.loginInput.validate(req.body);
+    await authSchema.loginInput.validateAsync(req.body);
 
     const matchPassword = await User.matchPassword(req.body);
 
@@ -49,7 +50,7 @@ router.post("/login", async (req, res) => {
 
       user.token = token;
 
-      authSchema.loginOutput.validate(req.body);
+      await authSchema.loginOutput.validateAsync(req.body);
       res.json(user);
     }
   } catch (err) {

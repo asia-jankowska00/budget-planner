@@ -16,8 +16,6 @@ class User {
       this.currency.name = user.currency.name;
       this.currency.code = user.currency.code;
     }
-    this.sources = user.sources;
-    this.containers = user.containers;
   }
 
   // matchPassword
@@ -289,64 +287,49 @@ class User {
       (async () => {
         try {
           const input = reqBody;
-          const userId = this.id;
-
           const key = Object.keys(input)[0];
-          this[key] = input[key];
 
           const pool = await sql.connect(connection);
 
           if (key === "password") {
-            bcrypt.hash(input.password, 10, function (err, hash) {
-              if (err)
-                throw {
-                  message: "Failed to save password.",
-                };
-              else {
-                const newPassword = hash;
-                // save new file to DB
+            const newPassword = await bcrypt.hash(input[key], 10);
+            if (!newPassword) throw { message: 'Something went wrong' }
 
-                pool
-                  .request()
-                  .input("UserId", sql.NVarChar, userId)
-                  .input("LoginPassword", sql.NVarChar, newPassword).query(`
-                UPDATE bpLogin
-                SET 
-                LoginPassword = @LoginPassword
+            await pool
+              .request()
+              .input("UserId", sql.NVarChar, this.id)
+              .input("LoginPassword", sql.NVarChar, newPassword)
+              .query(`
+                    UPDATE bpLogin
+                    SET 
+                    LoginPassword = @LoginPassword
+                    WHERE UserId = @UserId;
+                  `);
+          } else {
+            this[key] = input[key];
+
+            await pool
+              .request()
+              .input("UserId", sql.Int, this.id)
+              .input("LoginUsername", sql.NVarChar, this.username)
+              .input("UserFirstName", sql.NVarChar, this.firstName)
+              .input("UserLastName", sql.NVarChar, this.lastName)
+              .input("UserIsDisabled", sql.NVarChar, this.isDisabled)
+              .input("CurrencyId", sql.Int, this.currency.id)
+              .query(`
+                UPDATE bpUser
+                SET UserFirstName = @UserFirstName,
+                UserLastName = @UserLastName,
+                UserIsDisabled = @UserIsDisabled,
+                CurrencyId = @CurrencyId
                 WHERE UserId = @UserId;
-                `);
-              }
-            });
+  
+                UPDATE bpLogin
+                SET LoginUsername = @LoginUsername
+                WHERE UserId = @UserId;
+              `);
           }
 
-          const updatedUser = {
-            id: this.id,
-
-            username: this.username,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            currencyId: this.currency.id,
-          };
-
-          const result = await pool
-            .request()
-            .input("UserId", sql.Int, updatedUser.id)
-            .input("LoginUsername", sql.NVarChar, updatedUser.username)
-            .input("UserFirstName", sql.NVarChar, updatedUser.firstName)
-            .input("UserLastName", sql.NVarChar, updatedUser.lastName)
-            .input("CurrencyId", sql.Int, updatedUser.currencyId).query(`
-          UPDATE bpUser
-          SET UserFirstName = @UserFirstName,
-          UserLastName = @UserLastName,
-          CurrencyId = @CurrencyId
-          WHERE UserId = @UserId;
-
-          UPDATE bpLogin
-          SET LoginUsername = @LoginUsername
-          WHERE UserId = @UserId;
-          `);
-
-          console.log(result);
           resolve();
         } catch (err) {
           console.log(err);

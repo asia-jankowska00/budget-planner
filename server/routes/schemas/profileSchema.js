@@ -28,6 +28,7 @@ const patchProfileOutput = Joi.object({
   username: Joi.string().min(1).max(255).required(),
   firstName: Joi.string().min(1).max(255).required(),
   lastName: Joi.string().min(1).max(255).required(),
+  isDisabled: Joi.boolean().required(),
   currency: Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).required(),
