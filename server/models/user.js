@@ -35,7 +35,6 @@ class User {
             FROM bpLogin
             WHERE LoginUsername = @LoginUsername
             `);
-          console.log(result);
 
           if (!result.recordset[0])
             throw {
@@ -45,7 +44,6 @@ class User {
           const dbRecord = {
             username: result.recordset[0].LoginUsername,
           };
-          console.log(input);
 
           const match = await bcrypt.compare(
             input.password,
@@ -78,7 +76,6 @@ class User {
               FROM bpLogin
               WHERE LoginUsername = @LoginUsername; 
           `);
-          console.log(result);
 
           if (result.recordset[0])
             throw {
@@ -122,7 +119,7 @@ class User {
             .input("UserFirstName", sql.NVarChar, input.firstName)
             .input("UserLastName", sql.NVarChar, input.lastName)
             .input("UserIsDisabled", sql.Bit, false)
-            .input("CurrencyId", sql.Int, input.currency.id)
+            .input("CurrencyId", sql.Int, input.currency)
             .query(
               `INSERT INTO bpUser (UserFirstName, UserLastName, UserIsDisabled, CurrencyId) 
               VALUES (@UserFirstName, @UserLastName, @UserIsDisabled, @CurrencyId);
@@ -145,8 +142,6 @@ class User {
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
               WHERE bpUser.UserId = IDENT_CURRENT('bpUser');`
             );
-
-          console.log(result);
 
           if (!result.recordset[0])
             throw {
@@ -201,7 +196,6 @@ class User {
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
               WHERE bpUser.UserId = @UserId; 
           `);
-          console.log(result);
 
           if (!result.recordset[0])
             throw {
@@ -258,7 +252,6 @@ class User {
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
               WHERE bpLogin.LoginUsername = @LoginUsername; 
           `);
-          console.log(result);
 
           if (!result.recordset[0])
             throw {

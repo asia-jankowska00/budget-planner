@@ -25,9 +25,10 @@ router.post("/register", async (req, res) => {
     newUser.token = token;
 
     authSchema.registerOutput.validate(newUser);
-    res.json(newUser);
+    res.status(201).json(newUser);
   } catch (err) {
     // if exists, throw an error
+    console.log(err);
     res.status(409).json(err);
   }
 });
