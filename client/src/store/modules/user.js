@@ -6,6 +6,7 @@ const state = () => ({
 
 // getters
 const getters = {
+    user: store => store.user
 }
 
 // actions

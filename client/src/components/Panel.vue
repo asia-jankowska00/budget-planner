@@ -5,7 +5,9 @@
     <Icon name="notifications" />
 
     <ul id="slide-out" class="sidenav">
-      <li class="user"><span class="circle">AB</span><span class="username">afbogdan</span></li>
+      <li class="user">
+        <span class="circle">{{user.firstName[0].toUpperCase()}}{{user.lastName[0].toUpperCase()}}</span>
+        <span class="username">{{user.username}}</span></li>
       <li><a class="waves-effect" href="#!">Profile</a></li>
       <li><div class="divider"></div></li>
       <li><a class="waves-effect" href="#!">Logout</a></li>
@@ -16,16 +18,26 @@
 <script>
 import Icon from '@/components/Icon';
 import M from 'materialize-css';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Panel',
   components: {
     Icon
   },
+  props: {
+    user: {
+      type: Object,
+      required: true
+    }
+  },
   data() {
     return {
       isSideNavOpen: false
     }
+  },
+  computed: {
+    ...mapGetters(['username', 'firstName', 'lastName'])
   },
   mounted() {
     const elems = document.querySelector('.sidenav');
@@ -67,12 +79,18 @@ export default {
     .user {
       padding: 0 32px;
       margin: 5vh 0;
+      display: flex;
+      align-items: center;
 
       .circle {
-        overflow: hidden;
-        padding: 6px 8px;
         background: cyan;
         font-size: 1.2rem;
+        width: 44px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 44px;
+        overflow: hidden;
       }
 
       .username {
