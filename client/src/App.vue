@@ -118,6 +118,18 @@ body {
     left: calc(50% - 225px);
     top: calc(5vh + 60px);
   }
+
+  #toast-container {
+    width: 400px;
+    left: calc(50% - 200px);
+    top: unset;
+    bottom: 8vh;
+
+    .toast {
+      background: #cb4848;
+      width: inherit;
+    }
+  }
 }
 
 @media (max-width: 450px) {
