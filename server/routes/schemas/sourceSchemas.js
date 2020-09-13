@@ -4,9 +4,8 @@ const Joi = require("joi");
 
 const postSourcesInput = Joi.object({
     name: Joi.string().min(1).max(255).required(),
-    description: Joi.string().min(1).max(255).required(),
-    amount: Joi.number().precision(2).required(),
-    userId: Joi.number().integer().min(1).required(),
+    description: Joi.string().max(255).empty(''),
+    amount: Joi.number().precision(4).required(),
     currencyId: Joi.number().integer().min(1).required()
 });
 
@@ -15,13 +14,13 @@ const postSourcesInput = Joi.object({
 const postSourcesOutput = Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).max(255).required(),
-    description: Joi.string().min(1).max(255).required(),
-    amount: Joi.number().precision(2).required(),
-    userId: Joi.number().integer().min(1).required(),
+    description: Joi.string().max(255).empty(''),
+    amount: Joi.number().precision(4).required(),
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
         code: Joi.string().min(1).required(),
+        symbol: Joi.string().min(1).max(3).required()
     })
 });
 
@@ -31,9 +30,8 @@ const postSourcesOutput = Joi.object({
 const getSourcesOutput = Joi.array().items(Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).max(255).required(),
-    description: Joi.string().min(1).max(255).required(),
+    description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2).required(),
-    userId: Joi.number().integer().min(1).required(),
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
@@ -46,9 +44,8 @@ const getSourcesOutput = Joi.array().items(Joi.object({
 const getSourceIdOutput = Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).max(255).required(),
-    description: Joi.string().min(1).max(255).required(),
+    description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2).required(),
-    userId: Joi.number().integer().min(1).required(),
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
@@ -76,37 +73,36 @@ const getSourceIdOutput = Joi.object({
 
 const patchSourceInput = Joi.object({
     name: Joi.string().min(1).max(255),
-    description: Joi.string().min(1).max(255),
+    description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2)
 });
 
 const patchSourceOutput = Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).max(255).required(),
-    description: Joi.string().min(1).max(255).required(),
+    description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2).required(),
-    userId: Joi.number().integer().min(1).required(),
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
         code: Joi.string().min(1).required(),
-    }),
-    lastTransactions: Joi.array().length(5).items(Joi.object({
-        id: Joi.number().integer().min(1).required(),
-        name: Joi.string().min(1).max(255).required(),
-        date: Joi.date().required(),
-        amount: Joi.number().precision(2).required(),
-        isExpense: Joi.bool().required(),
-        note: Joi.string().min(1).max(255),
-        categoryName: Joi.string().min(1).max(255),
-        user: Joi.object({
-            id: Joi.number().integer().min(1).required(),
-            username: Joi.string().min(1).max(255).required(),
-            firstName: Joi.string().min(1).max(255).required(),
-            lastName: Joi.string().min(1).max(255).required() 
-        }),
+     })//,
+    // lastTransactions: Joi.array().length(5).items(Joi.object({
+    //     id: Joi.number().integer().min(1).required(),
+    //     name: Joi.string().min(1).max(255).required(),
+    //     date: Joi.date().required(),
+    //     amount: Joi.number().precision(2).required(),
+    //     isExpense: Joi.bool().required(),
+    //     note: Joi.string().min(1).max(255),
+    //     categoryName: Joi.string().min(1).max(255),
+    //     user: Joi.object({
+    //         id: Joi.number().integer().min(1).required(),
+    //         username: Joi.string().min(1).max(255).required(),
+    //         firstName: Joi.string().min(1).max(255).required(),
+    //         lastName: Joi.string().min(1).max(255).required() 
+    //     })
         
-    }))
+    //   }))
 });
 
 // GET /source/:sourceId/containers

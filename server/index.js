@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
+const auth = require("./middleware/auth");
 
 const port = process.env.PORT || 3000;
 
@@ -12,7 +13,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/currencies", require("./routes/currencies"));
-app.use("/api/sources", require("./routes/sources"));
+app.use("/api/sources", [auth], require("./routes/sources"));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

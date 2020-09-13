@@ -14,6 +14,8 @@ class User {
     this.currency.id = user.currency.id;
     this.currency.name = user.currency.name;
     this.currency.code = user.currency.code;
+    this.currency.symbol = user.currency.symbol;
+
   }
 
   // matchPassword
