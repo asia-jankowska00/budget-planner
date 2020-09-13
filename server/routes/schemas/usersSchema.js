@@ -11,4 +11,4 @@ const searchUsersOutput = Joi.array().items(
   })
 );
 
-module.exports = {};
+module.exports = { searchUsersOutput };

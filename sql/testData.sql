@@ -15,10 +15,10 @@ VALUES  ('Danish Krone', 'DKK'),
 -- INSERT INTO bpUser(firstName,lastName,IsDisabled)
 -- VALUES  (@firstName, @lastName, 0);
 --#########
-INSERT INTO bpUser(UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
-VALUES  ('Alexandru', 'Bogdan', 0, 1),
-        ('Joanna', 'Jankowska', 0, 4),
-        ('Nikolay', 'Rusev', 0, 2);
+-- INSERT INTO bpUser(UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
+-- VALUES  ('Alexandru', 'Bogdan', 0, 1),
+--         ('Joanna', 'Jankowska', 0, 4),
+--         ('Nikolay', 'Rusev', 0, 2);
 
 -- INSERT INTO bpLogin(userUsername,userPassword)
 -- VALUES  (@userUsername, @userPassword);

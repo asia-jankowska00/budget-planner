@@ -91,6 +91,61 @@ class User {
   }
 
   // search
+  static search(query) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const input = query;
+
+          const pool = await sql.connect(connection);
+          const result = await pool
+            .request()
+            .input("Query", sql.NVarChar, input).query(`
+              SELECT 
+              bpLogin.UserId,
+              bpLogin.LoginUsername,
+              bpUser.UserFirstName,
+              bpUser.UserLastName
+              FROM bpLogin 
+              INNER JOIN bpUser 
+              ON bpLogin.UserId = bpUser.UserId
+              WHERE 
+              bpLogin.LoginUsername LIKE '%' + @Query + '%' 
+              OR 
+              bpUser.UserFirstName LIKE '%' + @Query + '%'
+              OR 
+              bpUser.UserLastName LIKE '%' + @Query + '%';
+          `);
+
+          console.log(result);
+
+          if (!result.recordset[0])
+            throw {
+              message: "User not found",
+            };
+
+          const dbRecord = [];
+
+          result.recordset.forEach((record) => {
+            const user = {
+              id: record.UserId,
+              username: record.LoginUsername,
+              firstName: record.UserFirstName,
+              lastName: record.UserLastName,
+            };
+
+            dbRecord.push(user);
+          });
+
+          resolve(dbRecord);
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
 
   // create
   static create(reqBody) {
@@ -234,7 +289,7 @@ class User {
           const result = await pool
             .request()
             .input("LoginUsername", sql.NVarChar, input).query(`
-          SELECT 
+              SELECT 
               bpLogin.LoginUsername,
               bpUser.UserId, 
               bpUser.UserFirstName, 
@@ -279,8 +334,6 @@ class User {
     });
   }
 
-  // readAll
-
   // update
   update(reqBody) {
     return new Promise((resolve, reject) => {
@@ -293,13 +346,12 @@ class User {
 
           if (key === "password") {
             const newPassword = await bcrypt.hash(input[key], 10);
-            if (!newPassword) throw { message: 'Something went wrong' }
+            if (!newPassword) throw { message: "Something went wrong" };
 
             await pool
               .request()
               .input("UserId", sql.NVarChar, this.id)
-              .input("LoginPassword", sql.NVarChar, newPassword)
-              .query(`
+              .input("LoginPassword", sql.NVarChar, newPassword).query(`
                     UPDATE bpLogin
                     SET 
                     LoginPassword = @LoginPassword
@@ -315,8 +367,7 @@ class User {
               .input("UserFirstName", sql.NVarChar, this.firstName)
               .input("UserLastName", sql.NVarChar, this.lastName)
               .input("UserIsDisabled", sql.NVarChar, this.isDisabled)
-              .input("CurrencyId", sql.Int, this.currency.id)
-              .query(`
+              .input("CurrencyId", sql.Int, this.currency.id).query(`
                 UPDATE bpUser
                 SET UserFirstName = @UserFirstName,
                 UserLastName = @UserLastName,

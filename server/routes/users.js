@@ -2,14 +2,16 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const auth = require("../middleware/auth");
+const usersSchema = require("./schemas/usersSchema");
 
-router.get("/", auth, async (req, res) => {
+router.get("", auth, async (req, res) => {
   try {
-    const user = await User.search(req.query);
+    const users = await User.search(req.query.q);
 
-    if (!user) throw { message: "Failed to find user" };
+    if (!users) throw { message: "Failed to find user" };
 
-    res.json(user);
+    await usersSchema.searchUsersOutput.validateAsync(users);
+    res.json(users);
   } catch (err) {
     res.status(400).json(err);
   }
