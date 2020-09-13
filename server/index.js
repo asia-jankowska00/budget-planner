@@ -12,6 +12,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/currencies", require("./routes/currencies"));
+app.use("/api/sources", require("./routes/sources"));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
