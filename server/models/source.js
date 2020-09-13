@@ -76,11 +76,15 @@ class Source {
       })();
     })
   };
+
+  static readAllOwner(userObj) {
+    
+  };
 };
 
 
 
-//create source
+//create source \\
 //readAll -- has access to
 //readAll -- is owner of
 //readById

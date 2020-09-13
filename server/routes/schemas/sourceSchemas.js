@@ -32,6 +32,7 @@ const getSourcesOutput = Joi.array().items(Joi.object({
     name: Joi.string().min(1).max(255).required(),
     description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2).required(),
+    convertedAmount: Joi.number().precision(2),
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),

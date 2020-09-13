@@ -26,7 +26,13 @@ router.post('/', async (req,res) =>{
 });
 
 router.get('/', async (req,res) => {
-
+// get the user
+// get users pref currency from req.user
+// get this by using const user = User.readByUsername(req.user.username)
+// get all source from DB *return an array of sources object
+// if source.currency != user.currency use the third-party API
+// const {data} = await axios.get(`https://api.exchangeratesapi.io/latest?base=${userObj.currency.code}`)
+// convertedAmount = data.rates[source.currency.code] * source.amount
 });
 
 router.get('/owner', async (req,res) => {
