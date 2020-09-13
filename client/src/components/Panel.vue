@@ -18,7 +18,6 @@
 <script>
 import Icon from '@/components/Icon';
 import M from 'materialize-css';
-import { mapGetters } from 'vuex';
 
 export default {
   name: 'Panel',
@@ -35,9 +34,6 @@ export default {
     return {
       isSideNavOpen: false
     }
-  },
-  computed: {
-    ...mapGetters(['username', 'firstName', 'lastName'])
   },
   mounted() {
     const elems = document.querySelector('.sidenav');
