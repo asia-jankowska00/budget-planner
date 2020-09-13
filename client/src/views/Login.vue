@@ -3,39 +3,73 @@
     <h5><em>Login</em></h5>
 
     <form @submit.prevent="submit" class="row" autocomplete="off">
-      <TextInput id="username" label="Username" type="text" v-model="username"/>
-      <TextInput id="password" label="Password" type="password" v-model="password"/>
+      <TextInput
+        id="username"
+        label="Username"
+        type="text"
+        v-model="username"
+      />
+      <TextInput
+        id="password"
+        label="Password"
+        type="password"
+        v-model="password"
+      />
 
       <div class="actions">
-        <Button label="Login" size="large" type="submit"/>
-        <router-link to="/register" class="link">Don't have an account?</router-link>
+        <Button
+          label="Login"
+          size="large"
+          type="submit"
+          :isDisabled="!canSubmit"
+        />
+        <router-link to="/register" class="link"
+          >Don't have an account?</router-link
+        >
       </div>
     </form>
   </div>
 </template>
 
 <script>
-import TextInput from '@/components/TextInput'
-import Button from '@/components/Button'
+import TextInput from "@/components/TextInput";
+import Button from "@/components/Button";
+import M from 'materialize-css';
 
 export default {
-  name: 'Login',
+  name: "Login",
   components: {
     TextInput,
-    Button
+    Button,
+  },
+  computed: {
+    canSubmit: function() {
+      return this.username.length > 4 && this.password.length > 6;
+    },
   },
   data() {
     return {
-      username: '',
-      password: ''
-    }
+      username: "",
+      password: "",
+    };
   },
   methods: {
-    submit: function(){
-      alert('submitted');
-    }
-  }
-}
+    submit: function() {
+      this.$store
+        .dispatch("login", { username: this.username, password: this.password})
+        .then(() => {
+          this.$router.push({ path: "dashboard/sources" });
+        })
+        .catch((err) => {
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>

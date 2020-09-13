@@ -38,20 +38,18 @@ router.post("/login", async (req, res) => {
   try {
     await authSchema.loginInput.validateAsync(req.body);
 
-    const matchPassword = await User.matchPassword(req.body);
+    const user = await User.readByUsername(req.body.username);
+    await User.matchPassword(req.body);
 
-    if (matchPassword) {
-      const user = await User.readByUsername(req.body.username);
+    const token = jwt.sign(
+      JSON.stringify({ username: user.username, id: user.id }),
+      process.env.JWT_SECRET
+    );
+    user.token = token;
 
-      const token = jwt.sign(
-        JSON.stringify({ username: user.username, id: user.id }),
-        process.env.JWT_SECRET
-      );
-      user.token = token;
+    await authSchema.loginOutput.validateAsync(user);
+    res.json(user);
 
-      await authSchema.loginOutput.validateAsync(user);
-      res.json(user);
-    }
   } catch (err) {
     res.status(err.status || 400).json(err);
   }
