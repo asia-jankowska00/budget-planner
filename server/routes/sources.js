@@ -1,6 +1,5 @@
 const express = require("express");
 const Source = require("../models/source");
-const authSchema = require("./schemas/authSchema");
 const router = express.Router();
 
 const sourceSchemas = require('./schemas/sourceSchemas');

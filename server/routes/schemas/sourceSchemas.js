@@ -19,8 +19,8 @@ const postSourcesOutput = Joi.object({
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
-        code: Joi.string().min(1).required(),
-        symbol: Joi.string().min(1).max(3).required()
+        code: Joi.string().min(1).max(3).required(),
+        symbol: Joi.string().min(1).max(50).required()
     })
 });
 
@@ -36,7 +36,8 @@ const getSourcesOutput = Joi.array().items(Joi.object({
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
-        code: Joi.string().min(1).required(),
+        code: Joi.string().min(1).max(3).required(),
+        symbol: Joi.string().min(1).max(50).required()
     })
 }));
 
@@ -50,7 +51,8 @@ const getSourceIdOutput = Joi.object({
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
-        code: Joi.string().min(1).required(),
+        code: Joi.string().min(1).max(3).required(),
+        symbol: Joi.string().min(1).max(50).required()
     }),
     lastTransactions: Joi.array().length(5).items(Joi.object({
         id: Joi.number().integer().min(1).required(),
@@ -86,7 +88,8 @@ const patchSourceOutput = Joi.object({
     currency: Joi.object({
         id: Joi.number().integer().min(1).required(),
         name: Joi.string().min(1).required(),
-        code: Joi.string().min(1).required(),
+        code: Joi.string().min(1).max(3).required(),
+        symbol: Joi.string().min(1).max(50).required()
      })//,
     // lastTransactions: Joi.array().length(5).items(Joi.object({
     //     id: Joi.number().integer().min(1).required(),

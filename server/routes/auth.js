@@ -3,11 +3,11 @@ const router = express.Router();
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
-const authSchema = require("./schemas/authSchema");
+const authSchemas = require("./schemas/authSchemas");
 
 router.post("/register", async (req, res) => {
   try {
-    await authSchema.registerInput.validateAsync(req.body);
+    await authSchemas.registerInput.validateAsync(req.body);
 
     // check if user exists
     await User.canCreateUser(req.body.username);
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
     );
     newUser.token = token;
 
-    await authSchema.registerOutput.validateAsync(newUser);
+    await authSchemas.registerOutput.validateAsync(newUser);
 
     res.status(201).json(newUser);
   } catch (err) {
@@ -36,7 +36,7 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    await authSchema.loginInput.validateAsync(req.body);
+    await authSchemas.loginInput.validateAsync(req.body);
 
     const user = await User.readByUsername(req.body.username);
     await User.matchPassword(req.body);
@@ -47,7 +47,7 @@ router.post("/login", async (req, res) => {
     );
     user.token = token;
 
-    await authSchema.loginOutput.validateAsync(user);
+    await authSchemas.loginOutput.validateAsync(user);
     res.json(user);
 
   } catch (err) {

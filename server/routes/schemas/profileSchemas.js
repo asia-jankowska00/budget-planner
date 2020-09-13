@@ -9,7 +9,8 @@ const getProfileOutput = Joi.object({
   currency: Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).required(),
-    code: Joi.string().min(1).required(),
+    code: Joi.string().min(1).max(3).required(),
+    symbol: Joi.string().min(1).max(50).required()
   }),
 });
 
@@ -19,7 +20,7 @@ const patchProfileInput = Joi.object({
   password: Joi.string().min(1),
   firstName: Joi.string().min(1).max(255),
   lastName: Joi.string().min(1).max(255),
-  currency: Joi.number().integer().min(1),
+  currencyId: Joi.number().integer().min(1)
 });
 
 // PATCH /profile
@@ -31,7 +32,8 @@ const patchProfileOutput = Joi.object({
   currency: Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).required(),
-    code: Joi.string().min(1).required(),
+    code: Joi.string().min(1).max(3).required(),
+    symbol: Joi.string().min(1).max(50).required()
   }),
 });
 

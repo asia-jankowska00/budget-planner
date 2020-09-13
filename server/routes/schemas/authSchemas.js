@@ -15,11 +15,11 @@ const registerOutput = Joi.object({
   username: Joi.string().min(1).required(),
   firstName: Joi.string().min(1).required(),
   lastName: Joi.string().min(1).required(),
-  isDisabled: Joi.boolean().required(),
   currency: Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).required(),
-    code: Joi.string().min(1).required(),
+    code: Joi.string().min(1).max(3).required(),
+    symbol: Joi.string().min(1).max(50).required() 
   }),
   token: Joi.string().min(1).required(),
 });
@@ -36,11 +36,11 @@ const loginOutput = Joi.object({
   username: Joi.string().min(1).required(),
   firstName: Joi.string().min(1).required(),
   lastName: Joi.string().min(1).required(),
-  isDisabled: Joi.boolean().required(),
   currency: Joi.object({
     id: Joi.number().integer().min(1).required(),
     name: Joi.string().min(1).required(),
     code: Joi.string().min(1).required(),
+    symbol: Joi.string().min(1).max(50).required() 
   }),
   token: Joi.string().min(1).required(),
 });

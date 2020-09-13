@@ -1,6 +1,7 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const bcrypt = require("bcryptjs");
+const Currency = require('./currency');
 
 class User {
   constructor(user) {
@@ -8,14 +9,18 @@ class User {
     this.username = user.username;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
-    this.isDisabled = user.isDisabled;
 
-    this.currency = {};
-    this.currency.id = user.currency.id;
-    this.currency.name = user.currency.name;
-    this.currency.code = user.currency.code;
-    this.currency.symbol = user.currency.symbol;
+    if (user.isDisabled !== undefined && user.isDisabled !== null) {
+      this.isDisabled = user.isDisabled;
+    }
 
+    if (user.currency) {
+      this.currency = {};
+      this.currency.id = user.currency.id;
+      this.currency.name = user.currency.name;
+      this.currency.code = user.currency.code;
+      this.currency.symbol = user.currency.symbol;
+    }
   }
 
   // matchPassword
@@ -89,7 +94,7 @@ class User {
               message: "Username taken",
             };
 
-          resolve(true);
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);
@@ -133,20 +138,18 @@ class User {
               message: "User not found",
             };
 
-          const dbRecord = [];
+          const dbRecords = [];
 
           result.recordset.forEach((record) => {
-            const user = {
+            dbRecords.push(new User({
               id: record.UserId,
               username: record.LoginUsername,
               firstName: record.UserFirstName,
               lastName: record.UserLastName,
-            };
-
-            dbRecord.push(user);
+            }))
           });
 
-          resolve(dbRecord);
+          resolve(dbRecords);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -196,7 +199,8 @@ class User {
               bpUser.UserIsDisabled,
               bpUser.CurrencyId,
               bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode
+              bpCurrency.CurrencyCode,
+              bpCurrency.CurrencySymbol
               FROM bpUser
               INNER JOIN bpLogin 
               ON bpUser.UserId = bpLogin.UserId  
@@ -211,20 +215,21 @@ class User {
               message: "Failed to save User to database.",
             };
 
+          const record = result.recordset[0];
           const dbRecord = {
-            id: result.recordset[0].UserId,
-            username: result.recordset[0].LoginUsername,
-            firstName: result.recordset[0].UserFirstName,
-            lastName: result.recordset[0].UserLastName,
-            isDisabled: result.recordset[0].UserIsDisabled,
+            id: record.UserId,
+            username: record.LoginUsername,
+            firstName: record.UserFirstName,
+            lastName: record.UserLastName,
             currency: {
-              id: result.recordset[0].CurrencyId,
-              name: result.recordset[0].CurrencyName,
-              code: result.recordset[0].CurrencyCode,
+              id: record.CurrencyId,
+              name: record.CurrencyName,
+              code: record.CurrencyCode,
+              symbol: record.CurrencySymbol
             },
           };
 
-          resolve(dbRecord);
+          resolve(new User(dbRecord));
         } catch (err) {
           console.log(err);
           reject(err);
@@ -250,7 +255,8 @@ class User {
               bpUser.UserLastName,
               bpUser.CurrencyId,
               bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode
+              bpCurrency.CurrencyCode,
+              bpCurrency.CurrencySymbol
               FROM bpUser
               INNER JOIN bpLogin 
               ON bpUser.UserId = bpLogin.UserId  
@@ -266,15 +272,17 @@ class User {
               message: "User not found",
             };
 
+          const record = result.recordset[0];
           const dbRecord = {
-            id: result.recordset[0].UserId,
-            username: result.recordset[0].LoginUsername,
-            firstName: result.recordset[0].UserFirstName,
-            lastName: result.recordset[0].UserLastName,
+            id: record.UserId,
+            username: record.LoginUsername,
+            firstName: record.UserFirstName,
+            lastName: record.UserLastName,
             currency: {
-              id: result.recordset[0].CurrencyId,
-              name: result.recordset[0].CurrencyName,
-              code: result.recordset[0].CurrencyCode,
+              id: record.CurrencyId,
+              name: record.CurrencyName,
+              code: record.CurrencyCode,
+              symbol: record.CurrencySymbol
             },
           };
 
@@ -307,7 +315,8 @@ class User {
               bpUser.UserIsDisabled,
               bpUser.CurrencyId,
               bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode
+              bpCurrency.CurrencyCode,
+              bpCurrency.CurrencySymbol
               FROM bpLogin
               INNER JOIN bpUser 
               ON bpLogin.UserId = bpUser.UserId  
@@ -322,17 +331,18 @@ class User {
               status: 404,
               message: "User not found",
             };
-          
+
+          const record = result.recordset[0];
           const dbRecord = {
-            id: result.recordset[0].UserId,
-            username: result.recordset[0].LoginUsername,
-            firstName: result.recordset[0].UserFirstName,
-            lastName: result.recordset[0].UserLastName,
-            isDisabled: result.recordset[0].UserIsDisabled,
+            id: record.UserId,
+            username: record.LoginUsername,
+            firstName: record.UserFirstName,
+            lastName: record.UserLastName,
             currency: {
-              id: result.recordset[0].CurrencyId,
-              name: result.recordset[0].CurrencyName,
-              code: result.recordset[0].CurrencyCode,
+              id: record.CurrencyId,
+              name: record.CurrencyName,
+              code: record.CurrencyCode,
+              symbol: record.CurrencySymbol
             },
           };
 
@@ -354,8 +364,6 @@ class User {
           const input = reqBody;
           const key = Object.keys(input)[0];
 
-          const pool = await sql.connect(connection);
-
           if (key === "password") {
             const newPassword = await bcrypt.hash(input[key], 10);
             if (!newPassword)
@@ -364,6 +372,7 @@ class User {
                 message: "Something went wrong",
               };
 
+            const pool = await sql.connect(connection);
             await pool
               .request()
               .input("UserId", sql.NVarChar, this.id)
@@ -373,39 +382,63 @@ class User {
                     LoginPassword = @LoginPassword
                     WHERE UserId = @UserId;
                   `);
-          } else {
-            this[key] = input[key];
 
-            if (key === "currency") {
+            resolve();
+            sql.close();
+          } else if (key === "currencyId") {
+            const currency = await Currency.readById(input[key]);
+            if (!currency) {
+              throw {
+                status: 400,
+                message: 'Invalid data'
+              }
             }
 
+            this.currency = currency;
+
+            const pool = await sql.connect(connection);
             await pool
               .request()
+              .input("CurrencyId", sql.Int, this.currency.id)
               .input("UserId", sql.Int, this.id)
-              .input("LoginUsername", sql.NVarChar, this.username)
-              .input("UserFirstName", sql.NVarChar, this.firstName)
-              .input("UserLastName", sql.NVarChar, this.lastName)
-              .input("UserIsDisabled", sql.NVarChar, false)
-              .input("CurrencyId", sql.Int, this.currency.id).query(`
-                UPDATE bpUser
-                SET UserFirstName = @UserFirstName,
-                UserLastName = @UserLastName,
-                UserIsDisabled = @UserIsDisabled,
-                CurrencyId = @CurrencyId
-                WHERE UserId = @UserId;
-  
-                UPDATE bpLogin
-                SET LoginUsername = @LoginUsername
-                WHERE UserId = @UserId;
-              `);
-          }
+              .query(`UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`);
 
+            sql.close();
+          } else {
+            if (this[key] !== undefined && this[key] !== null) {
+              this[key] = input[key];
+
+              const pool = await sql.connect(connection);
+              await pool
+                .request()
+                .input("UserId", sql.Int, this.id)
+                .input("UserFirstName", sql.NVarChar, this.firstName)
+                .input("UserLastName", sql.NVarChar, this.lastName)
+                .input("LoginUsername", sql.NVarChar, this.username)
+                .query(`
+                    UPDATE bpUser
+                    SET UserFirstName = @UserFirstName,
+                    UserLastName = @UserLastName
+                    WHERE UserId = @UserId;
+
+                    UPDATE bpLogin
+                    SET LoginUsername = @LoginUsername
+                    WHERE UserId = @UserId;
+                  `);
+  
+              sql.close();
+            } else {
+              throw {
+                status: 400,
+                message: 'Invalid data'
+              }
+            }
+          }
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        sql.close();
       })();
     });
   }
@@ -428,8 +461,6 @@ class User {
 
              SELECT * FROM bpUser WHERE UserId = @UserId;
           `);
-
-          console.log(result.recordset[0]);
 
           resolve();
         } catch (err) {

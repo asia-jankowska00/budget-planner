@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const auth = require("../middleware/auth");
-const usersSchema = require("./schemas/usersSchema");
+const userSchemas = require("./schemas/userSchemas");
 
 router.get("", auth, async (req, res) => {
   try {
@@ -10,7 +10,7 @@ router.get("", auth, async (req, res) => {
 
     if (!users) throw { message: "Failed to find user" };
 
-    await usersSchema.searchUsersOutput.validateAsync(users);
+    await userSchemas.searchUsersOutput.validateAsync(users);
     res.json(users);
   } catch (err) {
     res.status(err.status || 400).json(err);
