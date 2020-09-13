@@ -5,7 +5,7 @@
     <form @submit.prevent="submit" class="row" autocomplete="off">
         <TextInput id="firstName" label="First name" type="text" v-model="firstName" />
         <TextInput id="lastName" label="Last name" type="text" v-model="lastName" />
-        <Select label="Prefered currency" placeholder="Select currency" :options="currencies" v-model="selectedCurrency" displayKey="text" valueKey="id" />
+        <Select label="Prefered currency" placeholder="Select currency" :options="currencies" v-model="selectedCurrency" displayKey="name" valueKey="id" />
 
         <TextInput id="username" label="Username" type="text" v-model="username" />
         <TextInput id="password" label="Password" type="password" v-model="password" />
@@ -23,6 +23,7 @@ import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
 import Select from "@/components/Select";
 import M from 'materialize-css';
+import { mapGetters } from 'vuex';
 
 export default {
     name: "Register",
@@ -38,26 +39,11 @@ export default {
             lastName: "",
             username: "",
             password: "",
-            selectedCurrency: "",
-            currencies: [{
-                    id: 1,
-                    code: "DKK",
-                    text: "Danish Krone",
-                },
-                {
-                    id: 2,
-                    code: "EUR",
-                    text: "Euro",
-                },
-                {
-                    id: 3,
-                    code: "USD",
-                    text: "United States Dollar",
-                },
-            ],
+            selectedCurrency: ""
         };
     },
     computed: {
+        ...mapGetters(['currencies']),
         canSubmit: function () {
             return (
                 this.username.length > 4 &&
@@ -83,6 +69,12 @@ export default {
                 M.toast({html: err.response.data.message ? err.response.data.message : 'Something went wrong'})
             })
         }
+    },
+    created() {
+        this.$store.dispatch('getCurrencies')
+        .catch((err) => {
+            M.toast({html: err.response.data.message ? err.response.data.message : 'Something went wrong'})
+        })
     }
 };
 </script>

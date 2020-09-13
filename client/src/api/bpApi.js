@@ -13,5 +13,10 @@ export default {
             register: (userObj) => axios.post(`${baseUrl}/auth/register`, userObj),
             login: (userObj) => axios.post(`${baseUrl}/auth/login`, userObj) 
         }
+    },
+    currencies() {
+        return {
+            getAll: () => axios.get(`${baseUrl}/currencies`)
+        }
     }
 }

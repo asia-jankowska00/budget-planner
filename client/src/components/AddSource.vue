@@ -4,7 +4,7 @@
             <h5>Add source</h5>
             <TextInput v-model="name" label="Name" type="text" id="sourceName"/>
             <TextInput v-model="amount" label="Initial amount" type="number" id="sourceAmount" min="0" step="0.01"/>
-            <Select v-model="currency" :options="currencies" label="Currency" placeholder="Select currency" valueKey="code" displayKey="text"/>
+            <Select v-model="currency" :options="currencies" label="Currency" placeholder="Select currency" valueKey="code" displayKey="name"/>
             <div class="actions">
                 <Button label="Close" :isFlat="true" @click="closeModal"/>
                 <Button label="Save" type="submit"/>
