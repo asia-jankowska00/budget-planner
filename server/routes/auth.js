@@ -15,7 +15,7 @@ router.post("/register", async (req, res) => {
     // if not, create user
     const newUser = await User.create(req.body);
     if (!newUser) {
-      return res.status(400).json({ message: "Failed to create user" });
+      return res.status(500).json({ message: "Failed to create user" });
     }
 
     const token = jwt.sign(
@@ -25,12 +25,12 @@ router.post("/register", async (req, res) => {
     newUser.token = token;
 
     await authSchema.registerOutput.validateAsync(newUser);
-  
+
     res.status(201).json(newUser);
   } catch (err) {
     // if exists, throw an error
     console.log(err);
-    res.status(409).json(err);
+    res.status(err.status || 409).json(err);
   }
 });
 
@@ -47,14 +47,13 @@ router.post("/login", async (req, res) => {
         JSON.stringify({ username: user.username, id: user.id }),
         process.env.JWT_SECRET
       );
-
       user.token = token;
 
       await authSchema.loginOutput.validateAsync(user);
       res.json(user);
     }
   } catch (err) {
-    res.status(400).json(err);
+    res.status(err.status || 400).json(err);
   }
 });
 

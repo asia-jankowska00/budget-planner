@@ -1,6 +1,5 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
-const Joi = require("joi");
 const bcrypt = require("bcryptjs");
 
 class User {
@@ -9,7 +8,10 @@ class User {
     this.username = user.username;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
-    this.isDisabled = user.isDisabled;
+    if (user.isDisabled) {
+      this.isDisabled = user.isDisabled;
+    }
+
     if (user.currency) {
       this.currency = {};
       this.currency.id = user.currency.id;
@@ -29,13 +31,21 @@ class User {
           const result = await pool
             .request()
             .input("LoginUsername", sql.NVarChar, input.username).query(`
-            SELECT LoginUsername, LoginPassword
+            SELECT 
+            bpLogin.LoginUsername, 
+            bpLogin.LoginPassword,
+            bpUser.UserIsDisabled
             FROM bpLogin
-            WHERE LoginUsername = @LoginUsername
+            INNER JOIN bpUser
+            ON bpUser.UserId = bpLogin.UserId
+            WHERE bpLogin.LoginUsername = @LoginUsername
+            AND
+            NOT bpUser.UserIsDisabled = 1;
             `);
 
           if (!result.recordset[0])
             throw {
+              status: 404,
               message: "User not found",
             };
 
@@ -70,17 +80,21 @@ class User {
           const result = await pool
             .request()
             .input("LoginUsername", sql.NVarChar, input).query(`
-              SELECT UserId
+              SELECT bpLogin.UserId
               FROM bpLogin
-              WHERE LoginUsername = @LoginUsername; 
+              INNER JOIN bpUser
+              ON bpUser.UserId = bpLogin.UserId
+              WHERE bpLogin.LoginUsername = @LoginUsername
+              AND NOT bpUser.UserIsDisabled = 1;
           `);
 
           if (result.recordset[0])
             throw {
+              status: 409,
               message: "Username taken",
             };
 
-          resolve();
+          resolve(true);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -114,13 +128,13 @@ class User {
               OR 
               bpUser.UserFirstName LIKE '%' + @Query + '%'
               OR 
-              bpUser.UserLastName LIKE '%' + @Query + '%';
+              bpUser.UserLastName LIKE '%' + @Query + '%'
+              AND NOT bpUser.UserIsDisabled = 1;
           `);
-
-          console.log(result);
 
           if (!result.recordset[0])
             throw {
+              status: 404,
               message: "User not found",
             };
 
@@ -154,15 +168,15 @@ class User {
         try {
           const input = reqBody;
 
-          bcrypt.hash(input.password, 10, function (err, hash) {
-            if (err)
-              throw {
-                message: "Failed to save password.",
-              };
-            else {
-              input.password = hash;
-            }
-          });
+          const hash = await bcrypt.hash(input.password, 10);
+          if (!hash) {
+            throw {
+              status: 500,
+              message: "Something went wrong",
+            };
+          } else {
+            input.password = hash;
+          }
 
           const pool = await sql.connect(connection);
           const result = await pool
@@ -198,6 +212,7 @@ class User {
 
           if (!result.recordset[0])
             throw {
+              status: 500,
               message: "Failed to save User to database.",
             };
 
@@ -214,7 +229,7 @@ class User {
             },
           };
 
-          resolve(new User(dbRecord));
+          resolve(dbRecord);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -234,11 +249,10 @@ class User {
           const pool = await sql.connect(connection);
           const result = await pool.request().input("UserId", sql.Int, input)
             .query(`
-          SELECT bpUser.UserId, 
+              SELECT bpUser.UserId, 
               bpLogin.LoginUsername,
               bpUser.UserFirstName, 
               bpUser.UserLastName,
-              bpUser.UserIsDisabled,
               bpUser.CurrencyId,
               bpCurrency.CurrencyName,
               bpCurrency.CurrencyCode
@@ -247,11 +261,13 @@ class User {
               ON bpUser.UserId = bpLogin.UserId  
               INNER JOIN bpCurrency 
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpUser.UserId = @UserId; 
+              WHERE bpUser.UserId = @UserId
+              AND NOT bpUser.UserIsDisabled = 1; 
           `);
 
-          if (!result.recordset[0])
+          if (!result.recordset[0] || result.recordset[0].UserIsDisabled)
             throw {
+              status: 404,
               message: "User not found",
             };
 
@@ -260,7 +276,6 @@ class User {
             username: result.recordset[0].LoginUsername,
             firstName: result.recordset[0].UserFirstName,
             lastName: result.recordset[0].UserLastName,
-            isDisabled: result.recordset[0].UserIsDisabled,
             currency: {
               id: result.recordset[0].CurrencyId,
               name: result.recordset[0].CurrencyName,
@@ -303,11 +318,13 @@ class User {
               ON bpLogin.UserId = bpUser.UserId  
               INNER JOIN bpCurrency 
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpLogin.LoginUsername = @LoginUsername; 
+              WHERE bpLogin.LoginUsername = @LoginUsername
+              AND NOT bpUser.UserIsDisabled = 1; 
           `);
 
-          if (!result.recordset[0])
+          if (!result.recordset[0] || result.recordset[0].UserIsDisabled)
             throw {
+              status: 404,
               message: "User not found",
             };
 
@@ -346,7 +363,11 @@ class User {
 
           if (key === "password") {
             const newPassword = await bcrypt.hash(input[key], 10);
-            if (!newPassword) throw { message: "Something went wrong" };
+            if (!newPassword)
+              throw {
+                status: 500,
+                message: "Something went wrong",
+              };
 
             await pool
               .request()
@@ -360,13 +381,16 @@ class User {
           } else {
             this[key] = input[key];
 
+            if (key === "currency") {
+            }
+
             await pool
               .request()
               .input("UserId", sql.Int, this.id)
               .input("LoginUsername", sql.NVarChar, this.username)
               .input("UserFirstName", sql.NVarChar, this.firstName)
               .input("UserLastName", sql.NVarChar, this.lastName)
-              .input("UserIsDisabled", sql.NVarChar, this.isDisabled)
+              .input("UserIsDisabled", sql.NVarChar, false)
               .input("CurrencyId", sql.Int, this.currency.id).query(`
                 UPDATE bpUser
                 SET UserFirstName = @UserFirstName,
@@ -403,10 +427,14 @@ class User {
             .request()
             .input("UserId", sql.Int, input)
             .input("UserIsDisabled", sql.Bit, true).query(`
-          UPDATE bpUser
-          SET UserIsDisabled = @UserIsDisabled
-          WHERE UserId = @UserId;
+              UPDATE bpUser
+              SET UserIsDisabled = @UserIsDisabled
+              WHERE UserId = @UserId;
+
+             SELECT * FROM bpUser WHERE UserId = @UserId;
           `);
+
+          console.log(result.recordset[0]);
 
           resolve();
         } catch (err) {

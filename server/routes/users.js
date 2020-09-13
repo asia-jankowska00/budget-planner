@@ -13,7 +13,7 @@ router.get("", auth, async (req, res) => {
     await usersSchema.searchUsersOutput.validateAsync(users);
     res.json(users);
   } catch (err) {
-    res.status(400).json(err);
+    res.status(err.status || 400).json(err);
   }
 });
 
