@@ -10,7 +10,8 @@ axios.defaults.headers.post['x-auth-token'] = token;
 export default {
     auth() {
         return {
-            register: (userObj) => axios.post(`${baseUrl}/auth/register`, userObj) 
+            register: (userObj) => axios.post(`${baseUrl}/auth/register`, userObj),
+            login: (userObj) => axios.post(`${baseUrl}/auth/login`, userObj) 
         }
     }
 }

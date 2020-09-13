@@ -22,6 +22,7 @@
 import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
 import Select from "@/components/Select";
+import M from 'materialize-css';
 
 export default {
     name: "Register",
@@ -63,7 +64,8 @@ export default {
                 this.password.length > 6 &&
                 this.firstName.length > 1 &&
                 this.lastName.length > 1 &&
-                this.selectedCurrency !== 0
+                this.selectedCurrency !== 0 &&
+                this.selectedCurrency !== ""
             );
         },
     },
@@ -78,8 +80,7 @@ export default {
             }).then(() => {
                 this.$router.push({ path: 'dashboard/sources' })
             }).catch((err) => {
-                console.log(err);
-                // add error component
+                M.toast({html: err.response.data.message ? err.response.data.message : 'Something went wrong'})
             })
         }
     }

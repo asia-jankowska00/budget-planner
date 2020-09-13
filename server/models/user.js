@@ -8,16 +8,12 @@ class User {
     this.username = user.username;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
-    if (user.isDisabled) {
-      this.isDisabled = user.isDisabled;
-    }
+    this.isDisabled = user.isDisabled;
 
-    if (user.currency) {
-      this.currency = {};
-      this.currency.id = user.currency.id;
-      this.currency.name = user.currency.name;
-      this.currency.code = user.currency.code;
-    }
+    this.currency = {};
+    this.currency.id = user.currency.id;
+    this.currency.name = user.currency.name;
+    this.currency.code = user.currency.code;
   }
 
   // matchPassword
@@ -49,17 +45,14 @@ class User {
               message: "User not found",
             };
 
-          const dbRecord = {
-            username: result.recordset[0].LoginUsername,
-          };
-
           const match = await bcrypt.compare(
             input.password,
             result.recordset[0].LoginPassword
           );
-          if (!match) throw { statusCode: 400, message: "Incorrect password" };
 
-          resolve(new User(dbRecord));
+          if (!match) throw { statusCode: 400, message: "Wrong credentials" };
+
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);
@@ -327,7 +320,7 @@ class User {
               status: 404,
               message: "User not found",
             };
-
+          
           const dbRecord = {
             id: result.recordset[0].UserId,
             username: result.recordset[0].LoginUsername,
