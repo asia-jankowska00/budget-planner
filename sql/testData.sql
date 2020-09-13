@@ -5,12 +5,12 @@ USE "1081578";
 -- INSERT INTO bpCurrency(currencyName,currencyCode)
 -- VALUES  (@currencyName, @currencyCode);
 -- ########
-INSERT INTO bpCurrency(CurrencyName, CurrencyCode)
-VALUES  ('Danish Krone', 'DKK'),
-        ('Euro', 'EUR'),
-        ('Bulgarian Lev', 'BGN'),
-        ('Zloty', 'PLN'),
-        ('Romanian Leu', 'RON');
+-- INSERT INTO bpCurrency(CurrencyName, CurrencyCode)
+-- VALUES  ('Danish Krone', 'DKK'),
+--         ('Euro', 'EUR'),
+--         ('Bulgarian Lev', 'BGN'),
+--         ('Zloty', 'PLN'),
+--         ('Romanian Leu', 'RON');
 
 -- INSERT INTO bpUser(firstName,lastName,IsDisabled)
 -- VALUES  (@firstName, @lastName, 0);
