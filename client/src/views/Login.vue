@@ -55,18 +55,23 @@ export default {
   },
   methods: {
     submit: function() {
-      this.$store
-        .dispatch("login", { username: this.username, password: this.password })
-        .then(() => {
-          this.$router.push({ path: "dashboard/sources" });
-        })
-        .catch((err) => {
-          M.toast({
-            html: err.response.data.message
-              ? err.response.data.message
-              : "Something went wrong",
+      if (this.canSubmit) {
+        this.$store
+          .dispatch("login", {
+            username: this.username,
+            password: this.password,
+          })
+          .then(() => {
+            this.$router.push({ path: "dashboard/sources" });
+          })
+          .catch((err) => {
+            M.toast({
+              html: err.response.data.message
+                ? err.response.data.message
+                : "Something went wrong",
+            });
           });
-        });
+      }
     },
   },
   created() {
