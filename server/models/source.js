@@ -8,10 +8,13 @@ class Source {
   constructor(source) {
     this.id = source.id;
     this.name = source.sourceName;
-    if(source.sourceDescription !== undefined && source.sourceDescription !== null){
+    if (source.sourceDescription !== undefined && source.sourceDescription !== null) {
       this.description = source.sourceDescription
     } else {
       this.description = "";
+    }
+    if (source.convertedAmount) {
+      this.convertedAmount = source.source.convertedAmount
     }
     this.amount = source.sourceAmount;
     this.currency = {};
@@ -54,11 +57,11 @@ class Source {
 
           const record = result.recordset[0];
           const newSource = new Source({
-            id : record.SourceId,
-            sourceName : record.SourceName,
-            sourceDescription : record.SourceDescription,
-            sourceAmount : record.SourceAmount,
-            currency : {
+            id: record.SourceId,
+            sourceName: record.SourceName,
+            sourceDescription: record.SourceDescription,
+            sourceAmount: record.SourceAmount,
+            currency: {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
@@ -67,7 +70,7 @@ class Source {
           })
 
           resolve(newSource);
-          
+
         } catch (err) {
           console.log(err);
           reject(err);
@@ -78,7 +81,7 @@ class Source {
   };
 
   static readAllOwner(userObj) {
-    
+
   };
 };
 

@@ -1,5 +1,3 @@
-USE "1081578";
-
 -- createing currency table
 CREATE TABLE bpCurrency( 
     CurrencyId INT IDENTITY PRIMARY KEY,
