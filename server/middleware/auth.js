@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 
 function auth(req, res, next) {
-  const token = req.header("x-auth-token");
+  const authHeader = req.header("Authorization");
+  const token = authHeader ? authHeader.split(' ')[1] : undefined;
 
   if (!token)
     return res.status(401).json({ message: "You need to be logged in" });

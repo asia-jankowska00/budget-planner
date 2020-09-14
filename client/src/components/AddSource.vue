@@ -3,6 +3,7 @@
         <form @submit.prevent="submit" class="row" autocomplete="off">
             <h5>Add source</h5>
             <TextInput v-model="name" label="Name" type="text" id="sourceName"/>
+            <TextInput v-model="description" label="Description" type="text" id="sourceDescription"/>
             <TextInput v-model="amount" label="Initial amount" type="number" id="sourceAmount" min="0" step="0.01"/>
             <Select v-model="currency" :options="currencies" label="Currency" placeholder="Select currency" valueKey="code" displayKey="name"/>
             <div class="actions">
@@ -18,6 +19,7 @@ import TextInput from '@/components/TextInput';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
 import { mapGetters } from 'vuex';
+import M from 'materialize-css';
 
 export default {
     name: 'AddSource',
@@ -25,7 +27,8 @@ export default {
         return {
             name: '',
             amount: '',
-            currency: ''
+            currency: '',
+            description: ''
         }
     },
     components: {
@@ -43,11 +46,19 @@ export default {
         closeModal: function() {
             this.$store.commit('closeModal');
         }
+    },
+    created() {
+        if (this.currencies) {
+            this.$store.dispatch('getCurrencies')
+            .catch((err) => {
+                M.toast({html: err.response.data.message ? err.response.data.message : 'Something went wrong'})
+            })
+        }
     }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
     #addSourcePopup {
         padding: 7.5%;
         position: absolute;
@@ -70,6 +81,10 @@ export default {
             > *:last-child {
                 margin-right: 0;
             }
+        }
+
+        .dropdown-content {
+            height: 260px;
         }
     }
 </style>

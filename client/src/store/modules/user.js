@@ -38,6 +38,19 @@ const actions = {
                 }
             })()
         })
+    },
+    getProfile({commit}) {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                try {
+                    const { data } = await bpApi.users().getProfile();
+                    commit('updateUser', data);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            })()
+        })
     }
 }
 

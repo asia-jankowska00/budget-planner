@@ -4,8 +4,8 @@ const PORT = 8550;
 const baseUrl = `http://localhost:${PORT}/api`;
 const token = localStorage.getItem('bpToken');
 
-axios.defaults.headers.post['Content-Type'] = 'application/json-patch+json';
-axios.defaults.headers.post['x-auth-token'] = token;
+axios.defaults.headers.common['Content-Type'] = 'application/json-patch+json';
+axios.defaults.headers.common['Authorization'] = "Bearer " + token;
 
 export default {
     auth() {
@@ -17,6 +17,11 @@ export default {
     currencies() {
         return {
             getAll: () => axios.get(`${baseUrl}/currencies`)
+        }
+    },
+    users() {
+        return {
+            getProfile: () => axios.get(`${baseUrl}/profile`)
         }
     }
 }

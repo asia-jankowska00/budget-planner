@@ -21,9 +21,10 @@ import Tabs from "@/components/Tabs";
 import FloatAction from "@/components/FloatAction";
 import AddSource from "@/components/AddSource";
 import AddBudget from "@/components/AddBudget";
+import M from "materialize-css";
 import { mapGetters } from "vuex";
 
-const checkRoute = function (context) {
+const checkRoute = function(context) {
   const url = window.location.href;
   const hasSlash = url[url.length - 1] === "/" ? true : false;
   const dashboardPath = hasSlash ? "/dashboard/" : "/dashboard";
@@ -51,7 +52,7 @@ export default {
       checkRoute();
     },
   },
-  beforeCreate: function () {
+  beforeCreate: function() {
     console.log(
       "%c Dashboard - beforeCreate - Need to check token from now on",
       "color: yellow; background-color: black"
@@ -65,6 +66,17 @@ export default {
     goToLogin() {
       this.$router.push("/login");
     },
+  },
+  created() {
+    if (!this.user) {
+      this.$store.dispatch("getProfile").catch((err) => {
+        M.toast({
+          html: err.response.data.message
+            ? err.response.data.message
+            : "Something went wrong",
+        });
+      });
+    }
   },
 };
 </script>
