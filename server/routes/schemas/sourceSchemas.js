@@ -53,23 +53,7 @@ const getSourceIdOutput = Joi.object({
         name: Joi.string().min(1).required(),
         code: Joi.string().min(1).max(3).required(),
         symbol: Joi.string().min(1).max(50).required()
-    }),
-    lastTransactions: Joi.array().length(5).items(Joi.object({
-        id: Joi.number().integer().min(1).required(),
-        name: Joi.string().min(1).max(255).required(),
-        date: Joi.date().required(),
-        amount: Joi.number().precision(2).required(),
-        isExpense: Joi.bool().required(),
-        note: Joi.string().min(1).max(255),
-        categoryName: Joi.string().min(1).max(255),
-        user: Joi.object({
-            id: Joi.number().integer().min(1).required(),
-            username: Joi.string().min(1).max(255).required(),
-            firstName: Joi.string().min(1).max(255).required(),
-            lastName: Joi.string().min(1).max(255).required() 
-        }),
-        
-    }))
+    })
 });
 
 // PATCH /source/:sourceId
@@ -77,7 +61,8 @@ const getSourceIdOutput = Joi.object({
 const patchSourceInput = Joi.object({
     name: Joi.string().min(1).max(255),
     description: Joi.string().max(255).empty(''),
-    amount: Joi.number().precision(2)
+    amount: Joi.number().precision(2),
+    currencyId: Joi.number().integer().min(1)
 });
 
 const patchSourceOutput = Joi.object({

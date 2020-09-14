@@ -39,15 +39,40 @@ router.get('/owner', async (req,res) => {
 });
 
 router.get('/:sourceId', async (req,res) => {
-
+    try {
+        const source = await Source.readById(req.params.sourceId, req.user);
+    
+        await sourceSchemas.getSourceIdOutput.validateAsync(source);
+    
+        res.json(source);
+      } catch (err) {
+        res.status(err.status || 400).json(err);
+      }
 });
 
-router.put('/:sourceId', async (req,res) => {
+router.patch('/:sourceId', async (req,res) => {
+    try {
+        await sourceSchemas.patchSourceInput.validateAsync(req.body);
 
+        const source = await Source.readById(req.params.sourceId, req.user);
+        await source.update(req.body, req.user);
+    
+        await sourceSchemas.patchSourceOutput.validateAsync(source);
+    
+        res.json(source);
+      } catch (err) {
+        res.status(err.status || 400).json(err);
+      }
 });
 
-router.get('/:sourceId/containers' , async(req,res) => {
-
+router.delete('/:sourceId', async (req,res) => {
+    try{
+        await Source.delete(req.params.sourceId, req.user);
+        res.status(200).json({"message":"Source deleted"});
+    } catch (err){
+        console.log(err);
+        res.status(err.status || 400).json(err);
+    }
 });
 
 module.exports = router;
