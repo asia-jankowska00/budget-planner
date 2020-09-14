@@ -1,5 +1,3 @@
-USE "1081578" /*DatabaseName */
-
 /* Drop all non-system stored procs */
 DECLARE @name VARCHAR(128)
 DECLARE @SQL VARCHAR(254)

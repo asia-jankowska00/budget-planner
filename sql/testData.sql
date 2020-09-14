@@ -1,37 +1,62 @@
 -- ADD TEST DATA
 
-USE "1081578";
-
 -- INSERT INTO bpCurrency(currencyName,currencyCode)
--- VALUES  (@currencyName, @currencyCode);
+-- VALUES  (@currencyCode, @currencyName, @currencySymbol);
 -- ########
--- INSERT INTO bpCurrency(CurrencyName, CurrencyCode)
--- VALUES  ('Danish Krone', 'DKK'),
---         ('Euro', 'EUR'),
---         ('Bulgarian Lev', 'BGN'),
---         ('Zloty', 'PLN'),
---         ('Romanian Leu', 'RON');
+INSERT INTO bpCurrency (CurrencyCode, CurrencyName, CurrencySymbol)
+  VALUES
+  ('EUR', 'Euro', N'€'),
+    ('ALL', 'Albanian lek', N'L'),
+    ('BYN', 'New Belarusian ruble', N'Br'),
+    ('BAM', 'Bosnia and Herzegovina convertible mark', N'null'),
+    ('BGN', 'Bulgarian lev', N'лв'),
+    ('HRK', 'Croatian kuna', N'kn'),
+    ('CZK', 'Czech koruna', N'Kč'),
+    ('DKK', 'Danish krone', N'kr'),
+    ('GIP', 'Gibraltar pound', N'£'),
+    ('GBP', 'British pound', N'£'),
+    ('HUF', 'Hungarian forint', N'Ft'),
+    ('ISK', 'Icelandic króna', N'kr'),
+    ('CHF', 'Swiss franc', N'Fr'),
+    ('MKD', 'Macedonian denar', N'ден'),
+    ('MDL', 'Moldovan leu', N'L'),
+    ('NOK', 'Norwegian krone', N'kr'),
+    ('PLN', 'Polish złoty', N'zł'),
+    ('RON', 'Romanian leu', N'lei'),
+    ('RUB', 'Russian ruble', N'₽'),
+    ('RSD', 'Serbian dinar', N'дин.'),
+    ('SEK', 'Swedish krona', N'kr'),
+    ('UAH', 'Ukrainian hryvnia', N'₴'),
+    ('CAD', 'Canadian dollar', N'$'),
+    ('MXN', 'Mexican peso', N'$'),
+    ('USD', 'United States dollar', N'$')
 
 -- INSERT INTO bpUser(firstName,lastName,IsDisabled)
 -- VALUES  (@firstName, @lastName, 0);
 --#########
--- INSERT INTO bpUser(UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
--- VALUES  ('Alexandru', 'Bogdan', 0, 1),
---         ('Joanna', 'Jankowska', 0, 4),
---         ('Nikolay', 'Rusev', 0, 2);
+INSERT INTO bpUser(UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
+VALUES  ('Alexandru', 'Bogdan', 0, 18),
+        ('Joanna', 'Jankowska', 0, 17),
+        ('Nikolay', 'Rusev', 0, 5),
+        ('Test', 'User', 0, 10),
+        ('User', 'Test', 0, 1);
 
 -- INSERT INTO bpLogin(userUsername,userPassword)
 -- VALUES  (@userUsername, @userPassword);
 -- ########
--- INSERT INTO bpLogin(LoginUsername, LoginPassword, UserId)
--- VALUES  ('afbogdan', 'Password123', 1),
---         ('joanna-00', 'Password456', 2),
---         ('nikolayr21', 'Password789', 3);
+INSERT INTO bpLogin(LoginUsername, LoginPassword, UserId)
+VALUES  ('alex', '$2a$10$QtsXlM1igWbBpjBezZwM.OGpk6qeLcFd.vEqRCxz8JPGKwswSffLS', 1),
+        ('asia', '$2a$10$liEg46hB2l8SRVlp8qCQ/eKwNr5sMJ9nhpehG/wokQtecFvNicj7W', 2),
+        ('nick', '$2a$10$uIX7uKd8Ni.nUprBzaUMeeu/EvEVDXxqx/pQcnbma5NQF4AqqRKhC', 3),
+        ('test', '$2a$10$iy5TWgwEx1TtZfegDABfqeUIY6i1nKeMkMuThio9HBZK9hXQu6JPe', 4),
+        ('user', '$2a$10$cO/9M4qQD6dX41uwiGwd4udnbqqzfJpnPakVFVhTm47N4eDLd/VOG', 5);
 
 INSERT INTO bpSource(SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
-VALUES  ('Sparnord', 'Main bank account', 14000.35, 1, 1),
-        ('Cash', 'Emergency on-hand money', 10000, 2, 4),
-        ('Savings', 'For trips', 16000, 3, 2);
+VALUES  ('Sparnord', 'Main bank account', 14000.35, 1, 18),
+        ('Cash', 'Emergency on-hand money', 10000, 2, 17),
+        ('Savings', 'For trips', 16000, 3, 5),
+        ('Cash', 'Emergency on-hand money', 10000, 4, 10),
+        ('Cash', 'Emergency on-hand money', 10000, 5, 1);
 
 INSERT INTO bpContainer(ContainerName, UserId)
 VALUES  ('Private budget', 1),
@@ -39,7 +64,11 @@ VALUES  ('Private budget', 1),
         ('Private budget', 2),
         ('Shared budget', 2),
         ('Private budget', 3),
-        ('Shared budget', 3);
+        ('Shared budget', 3),
+        ('Private budget', 4),
+        ('Shared budget', 4),
+        ('Private budget', 5),
+        ('Shared budget', 5);
 
 INSERT INTO bpCategory(CategoryName)
 VALUES  ('Groceries'),
