@@ -9,7 +9,10 @@
 
     <router-view></router-view>
   </div>
-  <div class="no-data" v-else>
+
+  <Loader v-else-if="!user && isLoading"/>
+
+  <div class="no-data" v-else-if="!user && !isLoading">
     <p>Something went wrong :(</p>
     <a href @click.prevent="goToLogin">Please login again.</a>
   </div>
@@ -21,6 +24,7 @@ import Tabs from "@/components/Tabs";
 import FloatAction from "@/components/FloatAction";
 import AddSource from "@/components/AddSource";
 import AddBudget from "@/components/AddBudget";
+import Loader from '@/components/Loader';
 import M from "materialize-css";
 import { mapGetters } from "vuex";
 
@@ -46,6 +50,12 @@ export default {
     FloatAction,
     AddSource,
     AddBudget,
+    Loader
+  },
+  data() {
+    return {
+      isLoading: true
+    }
   },
   watch: {
     $route() {
@@ -69,7 +79,10 @@ export default {
   },
   created() {
     if (!this.user) {
-      this.$store.dispatch("getProfile").catch((err) => {
+      this.$store.dispatch("getProfile")
+      .then(() => this.isLoading = false)
+      .catch((err) => {
+        this.isLoading = false
         M.toast({
           html: err.response.data.message
             ? err.response.data.message
