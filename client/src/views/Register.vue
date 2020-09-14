@@ -46,8 +46,8 @@ export default {
         ...mapGetters(['currencies']),
         canSubmit: function () {
             return (
-                this.username.length > 4 &&
-                this.password.length > 6 &&
+                this.username.length > 1 &&
+                this.password.length > 1 &&
                 this.firstName.length > 1 &&
                 this.lastName.length > 1 &&
                 this.selectedCurrency !== 0 &&

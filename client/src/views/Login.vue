@@ -44,7 +44,7 @@ export default {
   },
   computed: {
     canSubmit: function() {
-      return this.username.length > 4 && this.password.length > 6;
+      return this.username.length > 1 && this.password.length > 1;
     },
   },
   data() {
