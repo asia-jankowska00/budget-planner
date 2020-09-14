@@ -1,7 +1,7 @@
 -- createing currency table
 CREATE TABLE bpCurrency( 
     CurrencyId INT IDENTITY PRIMARY KEY,
-    CurrencyCode NVARCHAR (50) NOT NULL,
+    CurrencyCode NVARCHAR (3) NOT NULL,
     CurrencyName NVARCHAR (255) NOT NULL,
     CurrencySymbol NVARCHAR (50) NOT NULL
 );
