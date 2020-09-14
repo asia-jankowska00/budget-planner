@@ -62,4 +62,8 @@ export default {
 .dropdown-content li:not(.disabled) > a, .dropdown-content li:not(.disabled) > span {
     color: #2979ff !important;
 }
+
+.dropdown-content {
+    height: 350px;
+}
 </style>

@@ -34,7 +34,7 @@
 <script>
 import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
-import M from 'materialize-css';
+import M from "materialize-css";
 
 export default {
   name: "Login",
@@ -56,7 +56,7 @@ export default {
   methods: {
     submit: function() {
       this.$store
-        .dispatch("login", { username: this.username, password: this.password})
+        .dispatch("login", { username: this.username, password: this.password })
         .then(() => {
           this.$router.push({ path: "dashboard/sources" });
         })
@@ -68,6 +68,15 @@ export default {
           });
         });
     },
+  },
+  created() {
+    this.$store.dispatch("getCurrencies").catch((err) => {
+      M.toast({
+        html: err.response.data.message
+          ? err.response.data.message
+          : "Something went wrong",
+      });
+    });
   },
 };
 </script>
