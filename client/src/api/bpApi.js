@@ -23,5 +23,10 @@ export default {
         return {
             getProfile: () => axios.get(`${baseUrl}/profile`)
         }
+    },
+    sources() {
+        return {
+            add: (source) => axios.post(`${baseUrl}/sources`, source) 
+        }
     }
 }
