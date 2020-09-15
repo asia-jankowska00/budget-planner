@@ -153,7 +153,7 @@ class Source {
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
             WHERE bpSource.SourceId = @SourceId AND bpSource.UserId = @UserId;
             `)
-          console.log(result)
+            
           if (!result.recordset[0]) {
             throw {
               status: 500,

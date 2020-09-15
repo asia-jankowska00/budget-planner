@@ -124,11 +124,11 @@ class User {
               INNER JOIN bpUser 
               ON bpLogin.UserId = bpUser.UserId
               WHERE 
-              bpLogin.LoginUsername LIKE '%' + @Query + '%' 
+              bpLogin.LoginUsername LIKE @Query + '%' 
               OR 
-              bpUser.UserFirstName LIKE '%' + @Query + '%'
+              bpUser.UserFirstName LIKE @Query + '%'
               OR 
-              bpUser.UserLastName LIKE '%' + @Query + '%'
+              bpUser.UserLastName LIKE @Query + '%'
               AND NOT bpUser.UserIsDisabled = 1;
           `);
 
