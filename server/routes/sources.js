@@ -34,8 +34,15 @@ router.get('/', async (req,res) => {
 // convertedAmount = data.rates[source.currency.code] * source.amount
 });
 
-router.get('/owner', async (req,res) => {
+router.get('/', async (req,res) => {
+    try {    
+        const sources = await Source.readAllOwner();
 
+        await sourceSchemas.getSourcesOutput.validateAsync(sources);
+        res.json(sources);
+    } catch (err) {
+        res.status(err.status || 400).json(err);
+      }
 });
 
 router.get('/:sourceId', async (req,res) => {
