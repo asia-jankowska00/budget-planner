@@ -18,7 +18,7 @@ router.get("/:currencyId", async (req, res) => {
   try {
     const currency = await Currency.readById(req.params.currencyId);
 
-    await currencySchemas.getCurrencyIdOutput.validateAsync(currency);
+    await currencySchemas.defaultCurrencyOutput.validateAsync(currency);
     res.json(currency);
   } catch (err) {
     res.status(err.status || 400).json(err);
