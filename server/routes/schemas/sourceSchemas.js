@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { defaultCurrency } = require('./currencySchemas');
+const { defaultProfileOutput } = require('./profileSchemas');
 
 const defaultSource = {
     id: Joi.number().integer().min(1).required(),
@@ -7,7 +8,8 @@ const defaultSource = {
     description: Joi.string().max(255).empty(''),
     amount: Joi.number().precision(2).required(),
     convertedAmount: Joi.number().precision(2),
-    currency: Joi.object(defaultCurrency)
+    currency: Joi.object(defaultCurrency),
+    owner: defaultProfileOutput
 }
 
 const defaultSourceOutput = Joi.object(defaultSource)

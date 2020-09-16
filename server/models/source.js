@@ -1,6 +1,9 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Currency = require("./currency");
+const User = require('./user');
+const axios = require('axios');
+const { database } = require("../config/connection");
 
 class Source {
   constructor(source) {
@@ -14,8 +17,8 @@ class Source {
     } else {
       this.description = "";
     }
-    if (source.convertedAmount) {
-      this.convertedAmount = source.source.convertedAmount;
+    if (source.sourceConvertedAmount) {
+      this.convertedAmount = source.sourceConvertedAmount;
     }
     this.amount = source.sourceAmount;
     this.currency = {};
@@ -23,6 +26,19 @@ class Source {
     this.currency.name = source.currency.name;
     this.currency.code = source.currency.code;
     this.currency.symbol = source.currency.symbol;
+
+    this.owner = {};
+    this.owner.id = source.owner.id;
+    this.owner.firstName = source.owner.firstName;
+    this.owner.lastName = source.owner.lastName;
+    this.owner.username = source.owner.username;
+
+    this.owner.currency = {};
+    this.owner.currency.id = source.owner.currency.id;
+    this.owner.currency.name = source.owner.currency.name;
+    this.owner.currency.code = source.owner.currency.code;
+    this.owner.currency.symbol = source.owner.currency.symbol;
+
   }
 
   static create(sourceObj, userObj) {
@@ -55,6 +71,8 @@ class Source {
               message: "Failed to save Source to database.",
             };
 
+           const owner = await User.readById(userObj.id);
+
           const record = result.recordset[0];
           const newSource = new Source({
             id: record.SourceId,
@@ -67,6 +85,7 @@ class Source {
               code: record.CurrencyCode,
               symbol: record.CurrencySymbol,
             },
+            owner: owner
           });
 
           resolve(newSource);
@@ -109,6 +128,10 @@ class Source {
               message: "No sources found",
             };
 
+          const owner = await User.readById(userObj.id);
+
+          const { data } = await axios.get(`https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`)
+
           const sources = [];
           result.recordset.forEach((record) => {
             const sourceObj = {
@@ -116,19 +139,21 @@ class Source {
               sourceName: record.SourceName,
               sourceDescription: record.SourceDescription,
               sourceAmount: record.SourceAmount,
+              sourceConvertedAmount: Number(parseFloat(record.SourceAmount / data.rates[record.CurrencyCode.toUpperCase()]).toFixed(4)),
               currency: {
                 id: record.CurrencyId,
                 name: record.CurrencyName,
                 code: record.CurrencyCode,
                 symbol: record.CurrencySymbol
-              }
+              },
+              owner: owner
             };
 
             sources.push(new Source(sourceObj));
           })
 
           resolve(sources);
-          
+
         } catch (err) {
           console.log(err);
           reject(err);
@@ -160,18 +185,25 @@ class Source {
               message: "Failed to get source",
             };
           }
+
+          const owner = await User.readById(userObj.id);
+
+          const { data } = await axios.get(`https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`)
+
           const record = result.recordset[0];
           const source = new Source({
             id: record.SourceId,
             sourceName: record.SourceName,
             sourceDescription: record.SourceDescription,
             sourceAmount: record.SourceAmount,
+            sourceConvertedAmount: Number(parseFloat(record.SourceAmount / data.rates[record.CurrencyCode.toUpperCase()]).toFixed(4)),
             currency: {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
               symbol: record.CurrencySymbol,
             },
+            owner: owner
           });
 
           resolve(source);
@@ -209,9 +241,7 @@ class Source {
               .input("SourceId", sql.Int, this.id)
               .input("CurrencyId", sql.Int, this.currency.id)
               .input("UserId", sql.Int, userObj.id)
-              .query(
-                `UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`
-              );
+              .query(`UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`);
           } else {
             this[key] = input[key];
             const pool = await sql.connect(connection);
