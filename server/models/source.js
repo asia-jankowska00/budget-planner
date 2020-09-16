@@ -78,40 +78,38 @@ class Source {
     })
   };
 
-  static readAllAccess(userObj) {
-    return new Promise((resolve, reject) => {
-      (async () => {
-        try {
-
-        } catch (err) {
-          console.log(err);
-          reject(err);
-        }
-        sql.close();
-      })();
-    });
-  };
-
   static readAllOwner(userObj) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const pool = await sql.connect(connection);
           const result = await pool
-          .request()
-          .input("UserId", sql.Int, userObj.id)
-          .query(`
-          SELECT * FROM bpSource WHERE bpSource.UserId = @UserId;
+            .request()
+            .input("UserId", sql.Int, userObj.id)
+            .query(`
+          SELECT 
+          bpSource.SourceId,
+          bpSource.SourceName,
+          bpSource.SourceDescription,
+          bpSource.SourceAmount,
+          bpSource.CurrencyId,
+          bpCurrency.CurrencyCode,
+          bpCurrency.CurrencyName,
+          bpCurrency.CurrencySymbol 
+          FROM bpSource 
+          INNER JOIN bpCurrency
+          ON bpCurrency.CurrencyId = bpSource.CurrencyId
+          WHERE bpSource.UserId = @UserId;
           `);
 
-          if(result.recordset.length <= 0)
-          throw {
-            status: 404,
-            message: "No sources found",
-          }
+          if (result.recordset.length <= 0)
+            throw {
+              status: 404,
+              message: "No sources found",
+            }
 
           const sources = [];
-           result.recordset.forEach((record) => {
+          result.recordset.forEach((record) => {
             const sourceObj = {
               id: record.SourceId,
               sourceName: record.SourceName,
@@ -122,11 +120,13 @@ class Source {
                 name: record.CurrencyName,
                 code: record.CurrencyCode,
                 symbol: record.CurrencySymbol
-            }
-             };
+              }
+            };
 
-             sources.push(new Source(sourceObj));
-           })
+            sources.push(new Source(sourceObj));
+          })
+
+          resolve(sources);
 
         } catch (err) {
           console.log(err);
@@ -153,7 +153,7 @@ class Source {
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
             WHERE bpSource.SourceId = @SourceId AND bpSource.UserId = @UserId;
             `)
-            
+
           if (!result.recordset[0]) {
             throw {
               status: 500,

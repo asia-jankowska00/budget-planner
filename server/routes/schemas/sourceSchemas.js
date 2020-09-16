@@ -22,7 +22,7 @@ const postSourcesInput = Joi.object({
 
 // GET /sources -- get * where user has access to from DB & send to client
 // GET /sources/owner
-const getSourcesOutput = Joi.array().items(Joi.object({...defaultSource}));
+const getSourcesOutput = Joi.array().items(Joi.object(defaultSource));
 
 // PATCH /source/:sourceId
 const patchSourceInput = Joi.object({
