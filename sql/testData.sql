@@ -103,12 +103,17 @@ INSERT INTO bpContainerSource(ContainerId, SourceId) VALUES
 
 SELECT * FROM bpUser;
 SELECT * FROM bpLogin;
+
 SELECT * FROM bpCurrency;
+
 SELECT * FROM bpSource;
-SELECT * FROM bpContainer;
-SELECT * FROM bpCategory;
 SELECT * FROM bpTransaction;
+SELECT * FROM bpCategory;
+
+SELECT * FROM bpContainer;
 SELECT * FROM bpContainerSource;
+SELECT * FROM bpUserContainer;
+SELECT * FROM bpContainerCategory;
 
 -- SELECT UserFirstName, UserLastName, CurrencyId
 -- FROM bpUser

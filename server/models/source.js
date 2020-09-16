@@ -1,18 +1,21 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
-const Currency = require('./currency')
+const Currency = require("./currency");
 
 class Source {
   constructor(source) {
     this.id = source.id;
     this.name = source.sourceName;
-    if (source.sourceDescription !== undefined && source.sourceDescription !== null) {
-      this.description = source.sourceDescription
+    if (
+      source.sourceDescription !== undefined &&
+      source.sourceDescription !== null
+    ) {
+      this.description = source.sourceDescription;
     } else {
       this.description = "";
     }
     if (source.convertedAmount) {
-      this.convertedAmount = source.source.convertedAmount
+      this.convertedAmount = source.source.convertedAmount;
     }
     this.amount = source.sourceAmount;
     this.currency = {};
@@ -33,8 +36,7 @@ class Source {
             .input("SourceDescription", sql.NVarChar, sourceObj.description)
             .input("SourceAmount", sql.Money, sourceObj.amount)
             .input("UserId", sql.Int, userObj.id)
-            .input("CurrencyId", sql.Int, sourceObj.currencyId)
-            .query(`
+            .input("CurrencyId", sql.Int, sourceObj.currencyId).query(`
                   INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
                   VALUES (@SourceName, @SourceDescription, @SourceAmount, @UserId, @CurrencyId);
 
@@ -63,20 +65,19 @@ class Source {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
-              symbol: record.CurrencySymbol
-            }
-          })
+              symbol: record.CurrencySymbol,
+            },
+          });
 
           resolve(newSource);
-
         } catch (err) {
           console.log(err);
           reject(err);
         }
         sql.close();
       })();
-    })
-  };
+    });
+  }
 
   static readAllOwner(userObj) {
     return new Promise((resolve, reject) => {
@@ -106,7 +107,7 @@ class Source {
             throw {
               status: 404,
               message: "No sources found",
-            }
+            };
 
           const sources = [];
           result.recordset.forEach((record) => {
@@ -127,7 +128,7 @@ class Source {
           })
 
           resolve(sources);
-
+          
         } catch (err) {
           console.log(err);
           reject(err);
@@ -135,7 +136,7 @@ class Source {
         sql.close();
       })();
     });
-  };
+  }
 
   static readById(sourceId, userObj) {
     return new Promise((resolve, reject) => {
@@ -146,8 +147,7 @@ class Source {
           const result = await pool
             .request()
             .input("SourceId", sql.Int, sourceId)
-            .input("UserId", sql.Int, userObj.id)
-            .query(`
+            .input("UserId", sql.Int, userObj.id).query(`
             SELECT SourceId, SourceName, SourceDescription, SourceAmount, bpSource.CurrencyId, CurrencyName, CurrencyCode, CurrencySymbol FROM bpSource
             INNER JOIN bpCurrency
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
@@ -157,7 +157,7 @@ class Source {
           if (!result.recordset[0]) {
             throw {
               status: 500,
-              message: "Failed to get source"
+              message: "Failed to get source",
             };
           }
           const record = result.recordset[0];
@@ -170,9 +170,9 @@ class Source {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
-              symbol: record.CurrencySymbol
-            }
-          })
+              symbol: record.CurrencySymbol,
+            },
+          });
 
           resolve(source);
         } catch (err) {
@@ -183,13 +183,12 @@ class Source {
         sql.close();
       })();
     });
-  };
+  }
 
   update(input, userObj) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-
           const key = Object.keys(input)[0];
 
           let result;
@@ -200,8 +199,8 @@ class Source {
             if (!currency) {
               throw {
                 status: 400,
-                message: 'Invalid data'
-              }
+                message: "Invalid data",
+              };
             }
             this.currency = currency;
             const pool = await sql.connect(connection);
@@ -210,8 +209,9 @@ class Source {
               .input("SourceId", sql.Int, this.id)
               .input("CurrencyId", sql.Int, this.currency.id)
               .input("UserId", sql.Int, userObj.id)
-              .query(`UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`);
-
+              .query(
+                `UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`
+              );
           } else {
             this[key] = input[key];
             const pool = await sql.connect(connection);
@@ -222,8 +222,7 @@ class Source {
               .input("SourceDescription", sql.NVarChar, this.description)
               .input("SourceAmount", sql.Money, this.amount)
               .input("CurrencyId", sql.Int, this.currency.id)
-              .input("UserId", sql.Int, userObj.id)
-              .query(`
+              .input("UserId", sql.Int, userObj.id).query(`
                   UPDATE bpSource
                   SET SourceName = @SourceName, SourceDescription = @SourceDescription,
                   SourceAmount = @SourceAmount,
@@ -235,14 +234,14 @@ class Source {
           if (!result.rowsAffected[0]) {
             throw {
               status: 500,
-              message: "Failed to update source"
+              message: "Failed to update source",
             };
           }
 
           if (result.rowsAffected.length != 1) {
             throw {
               status: 500,
-              message: "Database is corrupt"
+              message: "Database is corrupt",
             };
           }
 
@@ -254,18 +253,32 @@ class Source {
         sql.close();
       })();
     });
-  };
+  }
 
   static delete(sourceId, userObj) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool
+
+          const resultOwner = await pool
             .request()
             .input("SourceId", sql.Int, sourceId)
-            .input("UserId", sql.Int, userObj.id)
-            .query(`
+            .input("UserId", sql.Int, userObj.id).query(`
+          SELECT UserId FROM bpSource
+          WHERE SourceId = @SourceId AND UserId = @UserId;
+          `);
+
+          if (!resultOwner.recordset[0]) {
+            throw {
+              status: 401,
+              message: "You are not authorized to delete this source",
+            };
+          }
+
+          const result = await pool
+            .request()
+            .input("SourceId", sql.Int, sourceId).query(`
           DELETE FROM bpTransaction
           WHERE SourceId = @SourceId;
 
@@ -273,14 +286,13 @@ class Source {
           WHERE SourceId = @SourceId;
           
           DELETE FROM bpUserSource
-          WHERE SourceId = @SourceId AND UserId = @UserId;
+          WHERE SourceId = @SourceId;
 
           DELETE FROM bpSource 
-          WHERE SourceId = @SourceId AND UserId = @UserId;
+          WHERE SourceId = @SourceId;
             `);
 
           resolve();
-
         } catch (err) {
           console.log(err);
           reject(err);
@@ -288,8 +300,7 @@ class Source {
         sql.close();
       })();
     });
-  };
-
-};
+  }
+}
 
 module.exports = Source;
