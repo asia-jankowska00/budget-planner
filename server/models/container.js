@@ -108,7 +108,7 @@ class Container {
 
           const container = new Container({
             id: record.ContainerId,
-            containerName: record.ContainerName,
+            name: record.ContainerName,
           });
 
           resolve(container);
@@ -146,7 +146,7 @@ class Container {
               name: record.ContainerName,
             };
 
-            containers.push(new Source(containerObj));
+            containers.push(new Container(containerObj));
           });
           resolve(containers);
         } catch (err) {
@@ -179,6 +179,7 @@ class Container {
                   WHERE ContainerId = @ContainerId AND UserId = @UserId;
               `);
 
+          // below might happen if user is unauthorized, should we take that into account?
           if (!result.rowsAffected[0]) {
             throw {
               status: 500,

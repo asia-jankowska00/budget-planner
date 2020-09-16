@@ -4,16 +4,54 @@ const Container = require("../models/container");
 const containerSchemas = require("./schemas/containerSchemas");
 
 router.post("/", async (req, res) => {
-  const newContainer = await Container.create(req.body, req.user);
-  res.status(201).json(newContainer);
+  try {
+    const newContainer = await Container.create(req.body, req.user);
+    res.status(201).json(newContainer);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
 });
 
-router.get("/", async (req, res) => {});
+router.get("/", async (req, res) => {
+  try {
+    const containers = await Container.readAll(req.user);
+    res.json(containers);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
 
-router.get("/:containerId", async (req, res) => {});
+router.get("/:containerId", async (req, res) => {
+  try {
+    const container = await Container.readById(
+      req.params.containerId,
+      req.user
+    );
+    res.json(container);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
 
-router.patch("/:containerId", async (req, res) => {});
+router.patch("/:containerId", async (req, res) => {
+  try {
+    const container = await Container.readById(req.params.containerId);
+    console.log(container);
+    await container.update(req.body, req.user);
 
-router.delete("/:containerId", async (req, res) => {});
+    res.json(container);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
+
+router.delete("/:containerId", async (req, res) => {
+  try {
+    const container = await Container.delete(req.params.containerId, req.user);
+    res.json({ message: "Container deleted" });
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
 
 module.exports = router;
