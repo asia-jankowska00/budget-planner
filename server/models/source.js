@@ -262,7 +262,7 @@ class Source {
             .request()
             .input("SourceId", sql.Int, sourceId)
             .input("UserId", sql.Int, userObj.id).query(`
-          SELECT UserId FROM bpTransaction
+          SELECT UserId FROM bpSource
           WHERE SourceId = @SourceId AND UserId = @UserId;
           `);
 
