@@ -12,7 +12,7 @@ router.post('/', async (req,res) =>{
         // if everything is fine, procceed create
         const newSource = await Source.create(req.body, req.user);
        
-        await sourceSchemas.postSourcesOutput.validateAsync(newSource);
+        await sourceSchemas.defaultSourceOutput.validateAsync(newSource);
 
         res.status(201).json(newSource);
 
@@ -34,15 +34,22 @@ router.get('/', async (req,res) => {
 // convertedAmount = data.rates[source.currency.code] * source.amount
 });
 
-router.get('/owner', async (req,res) => {
+router.get('/', async (req,res) => {
+    try {    
+        const sources = await Source.readAllOwner();
 
+        await sourceSchemas.getSourcesOutput.validateAsync(sources);
+        res.json(sources);
+    } catch (err) {
+        res.status(err.status || 400).json(err);
+      }
 });
 
 router.get('/:sourceId', async (req,res) => {
     try {
         const source = await Source.readById(req.params.sourceId, req.user);
     
-        await sourceSchemas.getSourceIdOutput.validateAsync(source);
+        await sourceSchemas.defaultSourceOutput.validateAsync(source);
     
         res.json(source);
       } catch (err) {
@@ -57,7 +64,7 @@ router.patch('/:sourceId', async (req,res) => {
         const source = await Source.readById(req.params.sourceId, req.user);
         await source.update(req.body, req.user);
     
-        await sourceSchemas.patchSourceOutput.validateAsync(source);
+        await sourceSchemas.defaultSourceOutput.validateAsync(source);
     
         res.json(source);
       } catch (err) {

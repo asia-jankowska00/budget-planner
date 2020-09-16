@@ -9,7 +9,7 @@ router.get("/", auth, async (req, res) => {
   try {
     const user = await User.readById(req.user.id);
 
-    await profileSchemas.getProfileOutput.validateAsync(user);
+    await profileSchemas.defaultProfileOutput.validateAsync(user);
     res.json(user);
   } catch (err) {
     res.status(err.status || 400).json(err);
@@ -24,7 +24,7 @@ router.patch("/", auth, async (req, res) => {
     const user = await User.readById(req.user.id);
     await user.update(req.body);
 
-    await profileSchemas.patchProfileOutput.validateAsync(user);
+    await profileSchemas.defaultProfileOutput.validateAsync(user);
 
     res.json(user);
   } catch (err) {

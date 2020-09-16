@@ -96,6 +96,37 @@ class Source {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
+          const pool = await sql.connect(connection);
+          const result = await pool
+          .request()
+          .input("UserId", sql.Int, userObj.id)
+          .query(`
+          SELECT * FROM bpSource WHERE bpSource.UserId = @UserId;
+          `);
+
+          if(result.recordset.length <= 0)
+          throw {
+            status: 404,
+            message: "No sources found",
+          }
+
+          const sources = [];
+           result.recordset.forEach((record) => {
+            const sourceObj = {
+              id: record.SourceId,
+              sourceName: record.SourceName,
+              sourceDescription: record.SourceDescription,
+              sourceAmount: record.SourceAmount,
+              currency: {
+                id: record.CurrencyId,
+                name: record.CurrencyName,
+                code: record.CurrencyCode,
+                symbol: record.CurrencySymbol
+            }
+             };
+
+             sources.push(new Source(sourceObj));
+           })
 
         } catch (err) {
           console.log(err);
@@ -122,7 +153,7 @@ class Source {
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
             WHERE bpSource.SourceId = @SourceId AND bpSource.UserId = @UserId;
             `)
-          console.log(result)
+            
           if (!result.recordset[0]) {
             throw {
               status: 500,
