@@ -3,7 +3,6 @@ const sql = require("mssql");
 const Currency = require("./currency");
 const User = require('./user');
 const axios = require('axios');
-const { database } = require("../config/connection");
 
 class Source {
   constructor(source) {
