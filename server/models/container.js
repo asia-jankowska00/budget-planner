@@ -1,7 +1,6 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Source = require("./source");
-const asyncForEach = require("async-foreach").forEach;
 
 class Container {
   constructor(container) {
@@ -78,9 +77,12 @@ class Container {
                 INSERT INTO bpContainer (ContainerName, UserId)
                 VALUES (@ContainerName, @UserId);
 
+                INSERT INTO bpUserContainer (UserId, ContainerId)
+                VALUES (@UserId, IDENT_CURRENT('bpContainer'));
+
                 SELECT ContainerId
                 FROM bpContainer
-                WHERE ContainerId = SCOPE_IDENTITY();
+                WHERE ContainerId = IDENT_CURRENT('bpContainer');
             `);
 
           if (!result.recordset[0])
@@ -102,17 +104,7 @@ class Container {
             }
           });
           console.log("after foreach");
-          // let sourceQuery =
-          //   "INSERT INTO bpContainerSource (ContainerId, SourceId) VALUES ";
 
-          // input.sources.forEach((sourceId) => {
-          //   sourceQuery += `(${containerId}, ${sourceId}), `;
-          // });
-
-          // sourceQuery = sourceQuery.slice(0, -2);
-          // sourceQuery += ";";
-
-          // await pool.request().query(sourceQuery);
           const pool2 = await sql.connect(connection);
           const finalResult = await pool2
             .request()
@@ -126,45 +118,8 @@ class Container {
                 FROM bpContainerSource
                 WHERE ContainerId = @ContainerId;
             `);
+
           sql.close();
-
-          // let sourceArray = [];
-
-          // example
-          // asyncForEach(["a", "b", "c"], function (item, index, arr) {
-          //   console.log("each", item, index, arr);
-          // });
-
-          // ["a", "b", "c"].forEach((item) => console.log(item));
-
-          // asyncForEach(finalResult.recordsets[1], (record) => {
-          //   (async () => {
-          //     const fullSource = await Source.readById(record.SourceId, user);
-          //     sourceArray.push(fullSource);
-          //     console.log("111");
-          //   })();
-          // });
-
-          // async function asyncForEach(array, callback) {
-          //   for (let index = 0; index < array.length; index++) {
-          //     await callback(array[index], index, array);
-          //   }
-          // }
-
-          // finalResult.recordsets[1].asyncForEach(async (recordset) => {
-          //   const fullSource = await Source.readById(recordset.SourceId, user);
-          //   sourceArray.push(fullSource);
-          //   console.log("111");
-          // });
-
-          // asyncForEach(finalResult.recordsets[1], async (recordset) => {
-          //   const fullSource = await Source.readById(recordset.SourceId, user);
-          //   sourceArray.push(fullSource);
-          //   console.log("111");
-          // });
-
-          // console.log("222");
-          // return recordset.SourceId;
 
           const newContainer = new Container({
             id: finalResult.recordsets[0][0].ContainerId,
@@ -196,11 +151,27 @@ class Container {
     });
   }
 
-  static readById(containerId) {
+  static readById(containerId, userObj) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const pool = await sql.connect(connection);
+
+          const resultOwner = await pool
+            .request()
+            .input("ContainerId", sql.Int, containerId)
+            .input("UserId", sql.Int, userObj.id).query(`
+          SELECT UserId FROM bpContainer
+          WHERE ContainerId = @ContainerId AND UserId = @UserId;
+          `);
+
+          if (!resultOwner.recordset[0]) {
+            throw {
+              status: 401,
+              message: "You are not authorized to access this container",
+            };
+          }
+
           const result = await pool
             .request()
             .input("ContainerId", sql.Int, containerId).query(`
@@ -241,11 +212,12 @@ class Container {
           const result = await pool
             .request()
             .input("UserId", sql.Int, userObj.id).query(`
-          SELECT * FROM bpContainer
+          SELECT bpContainer.ContainerId, bpContainer.ContainerName 
+          FROM bpContainer
           INNER JOIN
           bpUserContainer
           ON bpContainer.ContainerId = bpUserContainer.ContainerId
-          WHERE UserId = @UserId;
+          WHERE bpContainer.UserId = @UserId;
           `);
 
           if (result.recordset.length <= 0)
@@ -329,14 +301,14 @@ class Container {
             .request()
             .input("ContainerId", sql.Int, containerId)
             .input("UserId", sql.Int, userObj.id).query(`
-          SELECT UserId FROM bpContainer
-          WHERE ContainerId = @ContainerId AND UserId = @UserId;
+            SELECT UserId FROM bpContainer
+            WHERE ContainerId = @ContainerId AND UserId = @UserId;
           `);
 
           if (!resultOwner.recordset[0]) {
             throw {
               status: 401,
-              message: "You are not authorized to delete this source",
+              message: "You are not authorized to delete this container",
             };
           }
 
