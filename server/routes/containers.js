@@ -65,4 +65,23 @@ router.delete("/:containerId", async (req, res) => {
   }
 });
 
+router.post("/:containerId/sources", async (req, res) => {
+  try {
+    const container = await Container.readById(
+      req.params.containerId,
+      req.user
+    );
+    console.log(container);
+
+    const containerWithNewSource = await container.addSource(
+      req.body.sourceId,
+      req.user
+    );
+
+    res.json(containerWithNewSource);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
+
 module.exports = router;

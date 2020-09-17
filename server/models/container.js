@@ -62,6 +62,45 @@ class Container {
     });
   }
 
+  readAllSources() {}
+
+  addSource(sourceId, userObj) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const sourceToAdd = Source.readById(sourceId, userObj);
+
+          // check if the container already has the source attached!
+
+          const pool = await sql.connect(connection);
+          pool
+            .request()
+            .input("ContainerId", sql.Int, this.id)
+            .input("SourceId", sql.Int, sourceId)
+            .query(
+              `
+              INSERT INTO bpContainerSource (ContainerId, SourceId)
+              VALUES (@ContainerId, @SourceId);
+              `
+            );
+
+          const containerWithNewSource = this;
+          console.log(this);
+          // containerWithNewSource.push(sourceId);
+
+          resolve(new Container(containerWithNewSource));
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+
+        sql.close();
+      })();
+    });
+  }
+
+  removeSource() {}
+
   static create(containerObj, userObj) {
     return new Promise((resolve, reject) => {
       (async () => {
@@ -73,7 +112,7 @@ class Container {
           const result = await pool
             .request()
             .input("ContainerName", sql.NVarChar, input.name)
-            .input("UserId", sql.NVarChar, user.id).query(`
+            .input("UserId", sql.Int, user.id).query(`
                 INSERT INTO bpContainer (ContainerName, UserId)
                 VALUES (@ContainerName, @UserId);
 
