@@ -1,12 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const Container = require("../models/container");
+const Source = require("../models/source");
 const containerSchemas = require("./schemas/containerSchemas");
 
 router.post("/", async (req, res) => {
   try {
     const newContainer = await Container.create(req.body, req.user);
+
+    // const sourcesPromises = newContainer.sources.map((sourceId) => {
+    //   return Source.readById(sourceId, req.user);
+    // });
+
+    // Promise.all(sourcesPromises).then((values) => {
+    //   newContainer.sources = values;
+    //   console.log(newContainer);
+
     res.status(201).json(newContainer);
+    // });
   } catch (err) {
     res.status(err.status || 400).json(err);
   }

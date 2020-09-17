@@ -1,10 +1,10 @@
 const Joi = require("joi");
-const { defaultSource } = require("./sourceSchemas");
+const { defaultSource, defaultSourceOutput } = require("./sourceSchemas");
 
 const defaultContainer = {
   id: Joi.number().integer().min(1).required(),
   name: Joi.string().min(1).max(255).required(),
-  sources: Joi.array().items(Joi.object(defaultSource)),
+  sources: Joi.array().items(defaultSourceOutput),
   // categories: Joi.array().items(
   //   Joi.object({
   //     id: Joi.number().integer().min(1).required(),
@@ -29,23 +29,24 @@ const defaultContainer = {
   //   }))
 };
 
+const defaultContainerOutput = Joi.object(defaultContainer);
+
 // POST /containers
 
 const postContainersInput = Joi.object({
-  id: Joi.number().integer().min(1).required(),
   name: Joi.string().min(1).max(255).required(),
-  sources: Joi.array().items(Joi.number().integer().min(1).required()),
+  sources: Joi.array().items(defaultSourceOutput),
 });
 
-const postContainersOutput = Joi.object(defaultContainer);
+const postContainersOutput = defaultContainerOutput;
 
 // GET /containers
 
-const getContainersOutput = Joi.array().items(Joi.object(defaultContainer));
+const getContainersOutput = Joi.array().items(defaultContainerOutput);
 
 // GET /container/:containerId
 
-const getContainerIdOutput = Joi.object(defaultContainer);
+const getContainerIdOutput = defaultContainerOutput;
 
 // PATCH /container/:containerId
 
@@ -58,6 +59,7 @@ const patchContainerIdOutput = Joi.object(defaultContainer);
 
 module.exports = {
   defaultContainer,
+  defaultContainerOutput,
   postContainersInput,
   postContainersOutput,
   getContainersOutput,
