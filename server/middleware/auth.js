@@ -5,7 +5,7 @@ function auth(req, res, next) {
     const authHeader = req.header("Authorization");
     const token = authHeader ? authHeader.split(' ')[1] : undefined;
 
-    if (!token) {
+    if (!token || token === 'null' || token === 'undefined') {
       return res.status(401).json({ message: "You need to be logged in" });
     }
   
