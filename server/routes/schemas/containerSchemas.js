@@ -1,10 +1,12 @@
 const Joi = require("joi");
 const { defaultSourceOutput } = require("./sourceSchemas");
+const { defaultUserWithCurrency } = require("./userSchemas");
 
 const defaultContainer = {
   id: Joi.number().integer().min(1).required(),
   name: Joi.string().min(1).max(255).required(),
   sources: Joi.array().items(defaultSourceOutput),
+  owner: defaultUserWithCurrency,
   // categories: Joi.array().items(
   //   Joi.object({
   //     id: Joi.number().integer().min(1).required(),
@@ -55,7 +57,7 @@ const patchContainerInput = Joi.object({
   collaborators: Joi.array(),
 });
 
-const patchContainerIdOutput = Joi.object(defaultContainer);
+const patchContainerOutput = Joi.object(defaultContainer);
 
 module.exports = {
   defaultContainer,
@@ -65,5 +67,5 @@ module.exports = {
   getContainersOutput,
   getContainerIdOutput,
   patchContainerInput,
-  patchContainerIdOutput,
+  patchContainerOutput,
 };

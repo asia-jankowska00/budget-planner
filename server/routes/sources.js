@@ -74,7 +74,9 @@ router.patch("/:sourceId", async (req, res) => {
       await Currency.readById(req.body.currencyId);
     }
 
-    const source = await Source.readById(req.params.sourceId, req.user);
+    const owner = await User.readById(req.user.id);
+
+    const source = await Source.readById(req.params.sourceId, owner);
     await source.update(req.body, req.user);
 
     await sourceSchemas.defaultSourceOutput.validateAsync(source);

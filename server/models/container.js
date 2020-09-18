@@ -173,7 +173,12 @@ class Container {
           const result = await pool
             .request()
             .input("ContainerId", sql.Int, containerId).query(`
-            SELECT ContainerId, ContainerName FROM bpContainer
+            SELECT ContainerId, ContainerName 
+            FROM bpContainer
+            WHERE ContainerId = @ContainerId;
+
+            SELECT SourceId
+            FROM bpContainerSource
             WHERE ContainerId = @ContainerId;
             `);
 
@@ -188,6 +193,9 @@ class Container {
           const container = new Container({
             id: record.ContainerId,
             name: record.ContainerName,
+            sources: result.recordsets[1].map((source) => {
+              return source.SourceId;
+            }),
           });
 
           resolve(container);
@@ -252,7 +260,7 @@ class Container {
           // check if user is the owner of the container
           const resultOwner = await pool
             .request()
-            .input("ContainerId", sql.Int, containerId)
+            .input("ContainerId", sql.Int, this.id)
             .input("UserId", sql.Int, userObj.id).query(`
             SELECT UserId FROM bpContainer
             WHERE ContainerId = @ContainerId AND UserId = @UserId;
@@ -261,7 +269,7 @@ class Container {
           if (!resultOwner.recordset[0]) {
             throw {
               status: 401,
-              message: "You are not authorized to delete this container",
+              message: "You are not authorized to update this container",
             };
           }
 

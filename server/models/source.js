@@ -181,7 +181,7 @@ class Source {
           if (!resultOwner.recordset[0]) {
             throw {
               status: 401,
-              message: "You are not authorized to delete this source",
+              message: "You are not authorized to access this source",
             };
           }
 
