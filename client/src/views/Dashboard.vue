@@ -110,8 +110,10 @@ export default {
   },
   updated() {
     const tabs = M.Tabs.init(document.querySelector("ul.tabs"));
-    tabs.updateTabIndicator();
-    document.querySelector(".router-link-active").blur();
+    if (tabs) {
+      tabs.updateTabIndicator();
+      document.querySelector(".router-link-active").blur();
+    }
   },
 };
 </script>
