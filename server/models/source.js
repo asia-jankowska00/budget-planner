@@ -1,8 +1,8 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Currency = require("./currency");
-const User = require('./user');
-const axios = require('axios');
+const User = require("./user");
+const axios = require("axios");
 
 class Source {
   constructor(source) {
@@ -26,18 +26,19 @@ class Source {
     this.currency.code = source.currency.code;
     this.currency.symbol = source.currency.symbol;
 
-    this.owner = {};
-    this.owner.id = source.owner.id;
-    this.owner.firstName = source.owner.firstName;
-    this.owner.lastName = source.owner.lastName;
-    this.owner.username = source.owner.username;
+    if (source.owner) {
+      this.owner = {};
+      this.owner.id = source.owner.id;
+      this.owner.firstName = source.owner.firstName;
+      this.owner.lastName = source.owner.lastName;
+      this.owner.username = source.owner.username;
 
-    this.owner.currency = {};
-    this.owner.currency.id = source.owner.currency.id;
-    this.owner.currency.name = source.owner.currency.name;
-    this.owner.currency.code = source.owner.currency.code;
-    this.owner.currency.symbol = source.owner.currency.symbol;
-
+      this.owner.currency = {};
+      this.owner.currency.id = source.owner.currency.id;
+      this.owner.currency.name = source.owner.currency.name;
+      this.owner.currency.code = source.owner.currency.code;
+      this.owner.currency.symbol = source.owner.currency.symbol;
+    }
   }
 
   static create(sourceObj, userObj) {
@@ -70,7 +71,7 @@ class Source {
               message: "Failed to save Source to database.",
             };
 
-           const owner = await User.readById(userObj.id);
+          const owner = await User.readById(userObj.id);
 
           const record = result.recordset[0];
           const newSource = new Source({
@@ -84,7 +85,7 @@ class Source {
               code: record.CurrencyCode,
               symbol: record.CurrencySymbol,
             },
-            owner: owner
+            owner: owner,
           });
 
           resolve(newSource);
@@ -104,8 +105,7 @@ class Source {
           const pool = await sql.connect(connection);
           const result = await pool
             .request()
-            .input("UserId", sql.Int, userObj.id)
-            .query(`
+            .input("UserId", sql.Int, userObj.id).query(`
           SELECT 
           bpSource.SourceId,
           bpSource.SourceName,
@@ -127,9 +127,9 @@ class Source {
               message: "No sources found",
             };
 
-          const owner = await User.readById(userObj.id);
-
-          const { data } = await axios.get(`https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`)
+          const { data } = await axios.get(
+            `https://api.exchangeratesapi.io/latest?base=${userObj.currency.code.toUpperCase()}`
+          );
 
           const sources = [];
           result.recordset.forEach((record) => {
@@ -138,21 +138,25 @@ class Source {
               sourceName: record.SourceName,
               sourceDescription: record.SourceDescription,
               sourceAmount: record.SourceAmount,
-              sourceConvertedAmount: Number(parseFloat(record.SourceAmount / data.rates[record.CurrencyCode.toUpperCase()]).toFixed(4)),
+              sourceConvertedAmount: Number(
+                parseFloat(
+                  record.SourceAmount /
+                    data.rates[record.CurrencyCode.toUpperCase()]
+                ).toFixed(4)
+              ),
               currency: {
                 id: record.CurrencyId,
                 name: record.CurrencyName,
                 code: record.CurrencyCode,
-                symbol: record.CurrencySymbol
+                symbol: record.CurrencySymbol,
               },
-              owner: owner
+              owner: userObj,
             };
 
             sources.push(new Source(sourceObj));
-          })
+          });
 
           resolve(sources);
-
         } catch (err) {
           console.log(err);
           reject(err);
@@ -168,6 +172,21 @@ class Source {
         try {
           //throw 401 Unauthorized if the source exists and you are not the owner
           const pool = await sql.connect(connection);
+          const resultOwner = await pool
+            .request()
+            .input("SourceId", sql.Int, sourceId)
+            .input("UserId", sql.Int, userObj.id).query(`
+            SELECT UserId FROM bpSource
+            WHERE SourceId = @SourceId AND UserId = @UserId;
+        `);
+
+          if (!resultOwner.recordset[0]) {
+            throw {
+              status: 401,
+              message: "You are not authorized to delete this source",
+            };
+          }
+
           const result = await pool
             .request()
             .input("SourceId", sql.Int, sourceId)
@@ -176,7 +195,7 @@ class Source {
             INNER JOIN bpCurrency
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
             WHERE bpSource.SourceId = @SourceId AND bpSource.UserId = @UserId;
-            `)
+            `);
 
           if (!result.recordset[0]) {
             throw {
@@ -185,9 +204,9 @@ class Source {
             };
           }
 
-          const owner = await User.readById(userObj.id);
-
-          const { data } = await axios.get(`https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`)
+          const { data } = await axios.get(
+            `https://api.exchangeratesapi.io/latest?base=${userObj.currency.code.toUpperCase()}`
+          );
 
           const record = result.recordset[0];
           const source = new Source({
@@ -195,14 +214,19 @@ class Source {
             sourceName: record.SourceName,
             sourceDescription: record.SourceDescription,
             sourceAmount: record.SourceAmount,
-            sourceConvertedAmount: Number(parseFloat(record.SourceAmount / data.rates[record.CurrencyCode.toUpperCase()]).toFixed(4)),
+            sourceConvertedAmount: Number(
+              parseFloat(
+                record.SourceAmount /
+                  data.rates[record.CurrencyCode.toUpperCase()]
+              ).toFixed(4)
+            ),
             currency: {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
               symbol: record.CurrencySymbol,
             },
-            owner: owner
+            owner: userObj,
           });
 
           resolve(source);
@@ -220,30 +244,41 @@ class Source {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
+          //throw 401 Unauthorized if the source exists and you are not the owner
+          const pool = await sql.connect(connection);
+          const resultOwner = await pool
+            .request()
+            .input("SourceId", sql.Int, this.id)
+            .input("UserId", sql.Int, userObj.id).query(`
+            SELECT UserId FROM bpSource
+            WHERE SourceId = @SourceId AND UserId = @UserId;
+        `);
+
+          if (!resultOwner.recordset[0]) {
+            throw {
+              status: 401,
+              message: "You are not authorized to edit this source",
+            };
+          }
+
           const key = Object.keys(input)[0];
 
           let result;
 
           if (key === "currencyId") {
-            const currency = await Currency.readById(input[key]);
+            this.currency.id = input.currencyId;
 
-            if (!currency) {
-              throw {
-                status: 400,
-                message: "Invalid data",
-              };
-            }
-            this.currency = currency;
-            const pool = await sql.connect(connection);
             result = await pool
               .request()
               .input("SourceId", sql.Int, this.id)
               .input("CurrencyId", sql.Int, this.currency.id)
               .input("UserId", sql.Int, userObj.id)
-              .query(`UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`);
+              .query(
+                `UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`
+              );
           } else {
             this[key] = input[key];
-            const pool = await sql.connect(connection);
+            // const pool = await sql.connect(connection);
             result = await pool
               .request()
               .input("SourceId", sql.Int, this.id)
@@ -305,9 +340,7 @@ class Source {
             };
           }
 
-          const result = await pool
-            .request()
-            .input("SourceId", sql.Int, sourceId).query(`
+          await pool.request().input("SourceId", sql.Int, sourceId).query(`
           DELETE FROM bpTransaction
           WHERE SourceId = @SourceId;
 

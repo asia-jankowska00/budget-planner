@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const Currency = require("../models/currency");
 const auth = require("../middleware/auth");
 const profileSchemas = require("./schemas/profileSchemas");
 
@@ -22,6 +23,12 @@ router.patch("/", auth, async (req, res) => {
     await profileSchemas.patchProfileInput.validateAsync(req.body);
 
     const user = await User.readById(req.user.id);
+
+    // check if currency exists
+    if (req.body.currencyId) {
+      await Currency.readById(req.body.currencyId);
+    }
+
     await user.update(req.body);
 
     await profileSchemas.defaultProfileOutput.validateAsync(user);
@@ -35,6 +42,9 @@ router.patch("/", auth, async (req, res) => {
 router.delete("/", auth, async (req, res) => {
   // set user from JWT isDisabled to true
   try {
+    // check if user exists
+    await User.readById(req.user.id);
+
     await User.delete(req.user.id);
 
     res.json({ message: "User deleted" });

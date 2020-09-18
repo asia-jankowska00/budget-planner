@@ -1,7 +1,7 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const bcrypt = require("bcryptjs");
-const Currency = require('./currency');
+const Currency = require("./currency");
 
 class User {
   constructor(user) {
@@ -141,12 +141,14 @@ class User {
           const dbRecords = [];
 
           result.recordset.forEach((record) => {
-            dbRecords.push(new User({
-              id: record.UserId,
-              username: record.LoginUsername,
-              firstName: record.UserFirstName,
-              lastName: record.UserLastName,
-            }))
+            dbRecords.push(
+              new User({
+                id: record.UserId,
+                username: record.LoginUsername,
+                firstName: record.UserFirstName,
+                lastName: record.UserLastName,
+              })
+            );
           });
 
           resolve(dbRecords);
@@ -225,7 +227,7 @@ class User {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
-              symbol: record.CurrencySymbol
+              symbol: record.CurrencySymbol,
             },
           };
 
@@ -282,7 +284,7 @@ class User {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
-              symbol: record.CurrencySymbol
+              symbol: record.CurrencySymbol,
             },
           };
 
@@ -342,7 +344,7 @@ class User {
               id: record.CurrencyId,
               name: record.CurrencyName,
               code: record.CurrencyCode,
-              symbol: record.CurrencySymbol
+              symbol: record.CurrencySymbol,
             },
           };
 
@@ -386,22 +388,16 @@ class User {
             resolve();
             sql.close();
           } else if (key === "currencyId") {
-            const currency = await Currency.readById(input[key]);
-            if (!currency) {
-              throw {
-                status: 400,
-                message: 'Invalid data'
-              }
-            }
-
-            this.currency = currency;
+            this.currency.id = input.currencyId;
 
             const pool = await sql.connect(connection);
             await pool
               .request()
               .input("CurrencyId", sql.Int, this.currency.id)
               .input("UserId", sql.Int, this.id)
-              .query(`UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`);
+              .query(
+                `UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`
+              );
 
             sql.close();
           } else {
@@ -414,8 +410,7 @@ class User {
                 .input("UserId", sql.Int, this.id)
                 .input("UserFirstName", sql.NVarChar, this.firstName)
                 .input("UserLastName", sql.NVarChar, this.lastName)
-                .input("LoginUsername", sql.NVarChar, this.username)
-                .query(`
+                .input("LoginUsername", sql.NVarChar, this.username).query(`
                     UPDATE bpUser
                     SET UserFirstName = @UserFirstName,
                     UserLastName = @UserLastName
@@ -425,13 +420,12 @@ class User {
                     SET LoginUsername = @LoginUsername
                     WHERE UserId = @UserId;
                   `);
-  
               sql.close();
             } else {
               throw {
                 status: 400,
-                message: 'Invalid data'
-              }
+                message: "Invalid data",
+              };
             }
           }
           resolve();
@@ -439,6 +433,7 @@ class User {
           console.log(err);
           reject(err);
         }
+        sql.close();
       })();
     });
   }
@@ -451,7 +446,7 @@ class User {
           const input = userId;
 
           const pool = await sql.connect(connection);
-          const result = await pool
+          await pool
             .request()
             .input("UserId", sql.Int, input)
             .input("UserIsDisabled", sql.Bit, true).query(`
@@ -459,7 +454,7 @@ class User {
               SET UserIsDisabled = @UserIsDisabled
               WHERE UserId = @UserId;
 
-             SELECT * FROM bpUser WHERE UserId = @UserId;
+              SELECT * FROM bpUser WHERE UserId = @UserId;
           `);
 
           resolve();
