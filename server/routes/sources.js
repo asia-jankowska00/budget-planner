@@ -11,7 +11,7 @@ router.post("/", async (req, res) => {
     // get the user from middleware (req.user)
     await sourceSchemas.postSourcesInput.validateAsync(req.body);
 
-    const owner = await User.readById(userObj.id);
+    const owner = await User.readById(req.user.id);
 
     // if everything is fine, procceed create
     const newSource = await Source.create(req.body, owner);
@@ -45,7 +45,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:sourceId", async (req, res) => {
   try {
-    const owner = await User.readById(userObj.id);
+    const owner = await User.readById(req.user.id);
 
     const source = await Source.readById(req.params.sourceId, owner);
 

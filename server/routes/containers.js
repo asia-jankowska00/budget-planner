@@ -6,9 +6,29 @@ const containerSchemas = require("./schemas/containerSchemas");
 
 router.post("/", async (req, res) => {
   try {
-    const newContainer = await Container.create(req.body, req.user);
+    // const get whole owner obejct from current user
+    const owner = await User.readById(req.user.id);
 
-    // validate with Joy the newContainer
+    // check if the sources from req exist and are owned by current user
+    const sources = await Promise.all(
+      req.body.sources.map((sourceId) => Source.readById(sourceId, owner))
+    );
+
+    //create new container and get its name and id
+    const newContainer = await Container.create(req.body, owner);
+
+    // bind the sources to the container
+    await Promise.all(
+      req.body.sources.map((sourceId) =>
+        Container.insertContainerSource(newContainer.id, sourceId)
+      )
+    );
+
+    // attach owner and sources to newContainer
+    newContainer.owner = owner;
+    newContainer.sources = sources;
+
+    // validate with Joi the newContainer
 
     res.status(201).json(newContainer);
     // });

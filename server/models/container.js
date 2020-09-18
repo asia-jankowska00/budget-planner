@@ -1,7 +1,6 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Source = require("./source");
-const User = require("./user");
 
 class Container {
   constructor(container) {
@@ -67,7 +66,7 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const sourceToAdd = await Source.readById(sourceId, userObj);
+          // const sourceToAdd = await Source.readById(sourceId, userObj);
 
           // check if the container already has the source attached!
 
@@ -107,12 +106,6 @@ class Container {
           const input = containerObj;
           const user = userObj;
 
-          // get fullSource objects
-          // this will fail if the user doesn't have access to the requested sources
-          const sources = await Promise.all(
-            input.sources.map((source) => Source.readById(source, user))
-          );
-
           // create the container
           const insertPool = await sql.connect(connection);
           const containerQuery = await insertPool
@@ -137,33 +130,20 @@ class Container {
             };
 
           const containerRecord = containerQuery.recordset[0];
-          const containerId = containerRecord.ContainerId;
 
-          sql.close(); // close connection to allow other methods
-
-          // bind the sources to the container
-          await Promise.all(
-            input.sources.map((sourceId) =>
-              Container.insertContainerSource(containerId, sourceId)
-            )
-          );
-
-          // get owner full object
-          const owner = await User.readById(user.id);
+          // close connection to allow other methods
 
           const newContainer = new Container({
             id: containerRecord.ContainerId,
             name: containerRecord.ContainerName,
-            owner,
-            sources,
           });
 
           resolve(newContainer);
         } catch (err) {
           console.log(err);
           reject(err);
-          sql.close();
         }
+        sql.close();
       })();
     });
   }
@@ -174,11 +154,12 @@ class Container {
         try {
           const pool = await sql.connect(connection);
 
+          // check if user has access to the container
           const resultOwner = await pool
             .request()
             .input("ContainerId", sql.Int, containerId)
             .input("UserId", sql.Int, userObj.id).query(`
-          SELECT UserId FROM bpContainer
+          SELECT UserId FROM bpUserContainer
           WHERE ContainerId = @ContainerId AND UserId = @UserId;
           `);
 
@@ -196,7 +177,6 @@ class Container {
             WHERE ContainerId = @ContainerId;
             `);
 
-          console.log(result);
           if (!result.recordset[0]) {
             throw {
               status: 500,
@@ -226,15 +206,16 @@ class Container {
       (async () => {
         try {
           const pool = await sql.connect(connection);
+
           const result = await pool
             .request()
             .input("UserId", sql.Int, userObj.id).query(`
-          SELECT bpContainer.ContainerId, bpContainer.ContainerName 
-          FROM bpContainer
-          INNER JOIN
-          bpUserContainer
-          ON bpContainer.ContainerId = bpUserContainer.ContainerId
-          WHERE bpContainer.UserId = @UserId;
+            SELECT bpContainer.ContainerId, bpContainer.ContainerName 
+            FROM bpContainer
+            INNER JOIN
+            bpUserContainer
+            ON bpContainer.ContainerId = bpUserContainer.ContainerId
+            WHERE bpContainer.UserId = @UserId;
           `);
 
           if (result.recordset.length <= 0)
@@ -266,13 +247,30 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
+          const pool = await sql.connect(connection);
+
+          // check if user is the owner of the container
+          const resultOwner = await pool
+            .request()
+            .input("ContainerId", sql.Int, containerId)
+            .input("UserId", sql.Int, userObj.id).query(`
+            SELECT UserId FROM bpContainer
+            WHERE ContainerId = @ContainerId AND UserId = @UserId;
+          `);
+
+          if (!resultOwner.recordset[0]) {
+            throw {
+              status: 401,
+              message: "You are not authorized to delete this container",
+            };
+          }
+
           const input = containerObj;
 
           const key = Object.keys(input)[0];
 
           this[key] = input[key];
 
-          const pool = await sql.connect(connection);
           const result = await pool
             .request()
             .input("ContainerId", sql.Int, this.id)
@@ -283,7 +281,6 @@ class Container {
                   WHERE ContainerId = @ContainerId AND UserId = @UserId;
               `);
 
-          // below might happen if user is unauthorized, should we take that into account?
           if (!result.rowsAffected[0]) {
             throw {
               status: 500,
@@ -314,6 +311,7 @@ class Container {
         try {
           const pool = await sql.connect(connection);
 
+          // check if user is the owner of the container
           const resultOwner = await pool
             .request()
             .input("ContainerId", sql.Int, containerId)
