@@ -1,6 +1,7 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 const Source = require("./source");
+const User = require("./user");
 
 class Container {
   constructor(container) {
@@ -50,9 +51,7 @@ class Container {
               message: "Failed to save source to database.",
             };
 
-          const source = result.recordset[0].SourceId;
-
-          resolve(source);
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);
@@ -68,7 +67,7 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const sourceToAdd = Source.readById(sourceId, userObj);
+          const sourceToAdd = await Source.readById(sourceId, userObj);
 
           // check if the container already has the source attached!
 
@@ -108,8 +107,15 @@ class Container {
           const input = containerObj;
           const user = userObj;
 
-          const pool = await sql.connect(connection);
-          const result = await pool
+          // get fullSource objects
+          // this will fail if the user doesn't have access to the requested sources
+          const sources = await Promise.all(
+            input.sources.map((source) => Source.readById(source, user))
+          );
+
+          // create the container
+          const insertPool = await sql.connect(connection);
+          const containerQuery = await insertPool
             .request()
             .input("ContainerName", sql.NVarChar, input.name)
             .input("UserId", sql.Int, user.id).query(`
@@ -118,74 +124,46 @@ class Container {
 
                 INSERT INTO bpUserContainer (UserId, ContainerId)
                 VALUES (@UserId, IDENT_CURRENT('bpContainer'));
-
-                SELECT ContainerId
+                
+                SELECT *
                 FROM bpContainer
                 WHERE ContainerId = IDENT_CURRENT('bpContainer');
             `);
 
-          if (!result.recordset[0])
+          if (!containerQuery.recordset[0])
             throw {
               status: 500,
               message: "Failed to save Container to database.",
             };
 
-          const containerId = result.recordset[0].ContainerId;
+          const containerRecord = containerQuery.recordset[0];
+          const containerId = containerRecord.ContainerId;
 
-          sql.close();
+          sql.close(); // close connection to allow other methods
 
-          input.sources.forEach(async (sourceId) => {
-            try {
-              await Container.insertContainerSource(containerId, sourceId);
-            } catch (err) {
-              console.log(err);
-              reject(err);
-            }
-          });
-          console.log("after foreach");
+          // bind the sources to the container
+          await Promise.all(
+            input.sources.map((sourceId) =>
+              Container.insertContainerSource(containerId, sourceId)
+            )
+          );
 
-          const pool2 = await sql.connect(connection);
-          const finalResult = await pool2
-            .request()
-            .input("ContainerId", sql.NVarChar, containerId)
-            .input("UserId", sql.NVarChar, user.id).query(`
-                SELECT *
-                FROM bpContainer
-                WHERE ContainerId = @ContainerId;
-
-                SELECT SourceId
-                FROM bpContainerSource
-                WHERE ContainerId = @ContainerId;
-            `);
-
-          sql.close();
+          // get owner full object
+          const owner = await User.readById(user.id);
 
           const newContainer = new Container({
-            id: finalResult.recordsets[0][0].ContainerId,
-            name: finalResult.recordsets[0][0].ContainerName,
-            owner: {
-              id: finalResult.recordsets[0][0].UserId,
-            },
-
-            sources: finalResult.recordsets[1].map((recordset) => {
-              return recordset.SourceId;
-            }),
+            id: containerRecord.ContainerId,
+            name: containerRecord.ContainerName,
+            owner,
+            sources,
           });
 
-          const sourcesPromises = newContainer.sources.map((sourceId) => {
-            return Source.readById(sourceId, user);
-          });
-
-          Promise.all(sourcesPromises).then((values) => {
-            newContainer.sources = values;
-            console.log(newContainer);
-            resolve(newContainer);
-          });
+          resolve(newContainer);
         } catch (err) {
           console.log(err);
           reject(err);
+          sql.close();
         }
-        sql.close();
       })();
     });
   }

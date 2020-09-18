@@ -8,13 +8,7 @@ router.post("/", async (req, res) => {
   try {
     const newContainer = await Container.create(req.body, req.user);
 
-    // const sourcesPromises = newContainer.sources.map((sourceId) => {
-    //   return Source.readById(sourceId, req.user);
-    // });
-
-    // Promise.all(sourcesPromises).then((values) => {
-    //   newContainer.sources = values;
-    //   console.log(newContainer);
+    // validate with Joy the newContainer
 
     res.status(201).json(newContainer);
     // });
