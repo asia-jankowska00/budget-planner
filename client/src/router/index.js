@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Source from '../views/Source.vue';
 import Budget from '../views/Budget.vue';
+import Profile from '../views/Profile.vue';
 
 Vue.use(VueRouter)
 
@@ -27,6 +28,11 @@ Vue.use(VueRouter)
         path: 'budgets',
         name: 'Budgets',
         component: Budget
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: Profile,
       }
     ]
   },

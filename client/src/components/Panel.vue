@@ -8,7 +8,7 @@
       <li class="user">
         <span class="circle">{{user.firstName[0].toUpperCase()}}{{user.lastName[0].toUpperCase()}}</span>
         <span class="username">{{user.username}}</span></li>
-      <li><a class="waves-effect" href="#!">Profile</a></li>
+      <li><router-link :to="{name: 'Profile'}" @click.native="toggleSideNav(false)">Profile</router-link></li>
       <li><div class="divider"></div></li>
       <li><a class="waves-effect" href="#!">Logout</a></li>
     </ul>

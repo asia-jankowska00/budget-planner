@@ -1,5 +1,5 @@
 <template>
-  <div id="sources" v-if="sources.length > 0">
+  <div id="sources" class="content-wrapper" v-if="sources.length > 0">
     <Select 
       id="mainSource" 
       label="Your sources"
@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import M from "materialize-css";
 import Select from '@/components/Select';
 import { mapGetters, mapActions } from 'vuex';
 
@@ -35,17 +34,12 @@ export default {
         this.$store.commit('updateSelectedSource', this.sources.find(s => s.id.toString() === value))
       }
     }
-  },
-  mounted() {
-    const tabs = M.Tabs.init(document.querySelector('ul.tabs'));
-    tabs.updateTabIndicator();
-    document.querySelector('.router-link-active').blur();
   }
 }
 </script>
 
 <style lang="scss">
-  #sources {
+  .content-wrapper {
     height: calc(100% - 116px);
     overflow-y: auto;
     overflow-x: hidden;

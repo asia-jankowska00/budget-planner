@@ -21,7 +21,8 @@ export default {
     },
     users() {
         return {
-            getProfile: () => axios.get(`${baseUrl}/profile`)
+            getProfile: () => axios.get(`${baseUrl}/profile`),
+            updateProfile: (userObj) => axios.patch(`${baseUrl}/profile`, userObj)
         }
     },
     sources() {

@@ -35,7 +35,10 @@ export default {
             required: true
         }
     },
-    updated: function() {
+    mounted() {
+        M.updateTextFields();
+    },
+    updated() {
         M.updateTextFields();
     }
 }

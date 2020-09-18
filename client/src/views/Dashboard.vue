@@ -1,13 +1,13 @@
 <template>
   <div id="dashboard" v-if="user">
     <Panel :user="user" />
-    <Tabs />
-    <FloatAction />
+    <Tabs :canGoBack="canGoBack" />
+    <FloatAction v-if="!canGoBack" />
     <AddSource v-if="isModalOpen && modalName === 'addSource'" />
     <AddBudget v-if="isModalOpen && modalName === 'addBudget'" />
     <div id="mask" v-if="isModalOpen"></div>
 
-    <router-view></router-view>
+    <router-view :user="user"></router-view>
   </div>
 
   <Loader v-else-if="!user && isLoading"/>
@@ -24,7 +24,7 @@ import Tabs from "@/components/Tabs";
 import FloatAction from "@/components/FloatAction";
 import AddSource from "@/components/AddSource";
 import AddBudget from "@/components/AddBudget";
-import Loader from '@/components/Loader';
+import Loader from "@/components/Loader";
 import M from "materialize-css";
 import { mapGetters } from "vuex";
 
@@ -50,12 +50,12 @@ export default {
     FloatAction,
     AddSource,
     AddBudget,
-    Loader
+    Loader,
   },
   data() {
     return {
-      isLoading: true
-    }
+      isLoading: true,
+    };
   },
   watch: {
     $route() {
@@ -70,7 +70,13 @@ export default {
     checkRoute(this);
   },
   computed: {
-    ...mapGetters(["isModalOpen", "modalName", "user"]),
+    ...mapGetters(["isModalOpen", "modalName", "user", "currencies"]),
+    canGoBack: function() {
+      const lastMatch = this.$route.matched[
+        this.$route.matched.length - 1
+      ].name.toLowerCase();
+      return lastMatch !== "sources" && lastMatch !== "budgets";
+    },
   },
   methods: {
     goToLogin() {
@@ -79,10 +85,21 @@ export default {
   },
   created() {
     if (!this.user) {
-      this.$store.dispatch("getProfile")
-      .then(() => this.isLoading = false)
-      .catch((err) => {
-        this.isLoading = false
+      this.$store
+        .dispatch("getProfile")
+        .then(() => (this.isLoading = false))
+        .catch((err) => {
+          this.isLoading = false;
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
+    }
+
+    if (this.currencies.length === 0) {
+      this.$store.dispatch("getCurrencies").catch((err) => {
         M.toast({
           html: err.response.data.message
             ? err.response.data.message
@@ -90,6 +107,11 @@ export default {
         });
       });
     }
+  },
+  updated() {
+    const tabs = M.Tabs.init(document.querySelector("ul.tabs"));
+    tabs.updateTabIndicator();
+    document.querySelector(".router-link-active").blur();
   },
 };
 </script>

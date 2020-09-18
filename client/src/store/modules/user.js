@@ -51,7 +51,20 @@ const actions = {
                 }
             })()
         })
-    }
+    },
+    updateProfile({commit}, payload) {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                try {
+                    const { data } = await bpApi.users().updateProfile(payload);
+                    commit('updateUser', data);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            })()
+        })
+    },
 }
 
 // mutations

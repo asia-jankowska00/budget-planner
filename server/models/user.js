@@ -303,12 +303,10 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = username;
-
           const pool = await sql.connect(connection);
           const result = await pool
             .request()
-            .input("LoginUsername", sql.NVarChar, input).query(`
+            .input("LoginUsername", sql.NVarChar, username).query(`
               SELECT 
               bpLogin.LoginUsername,
               bpUser.UserId, 
@@ -359,76 +357,58 @@ class User {
   }
 
   // update
-  update(reqBody) {
+  update(reqBody, currencyObj) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = reqBody;
-          const key = Object.keys(input)[0];
+          const pool = await sql.connect(connection);
 
-          if (key === "password") {
-            const newPassword = await bcrypt.hash(input[key], 10);
+          if (reqBody.password) {
+            const newPassword = await bcrypt.hash(reqBody.password, 10);
             if (!newPassword)
               throw {
                 status: 500,
                 message: "Something went wrong",
               };
 
-            const pool = await sql.connect(connection);
             await pool
               .request()
               .input("UserId", sql.NVarChar, this.id)
-              .input("LoginPassword", sql.NVarChar, newPassword).query(`
-                    UPDATE bpLogin
-                    SET 
-                    LoginPassword = @LoginPassword
-                    WHERE UserId = @UserId;
-                  `);
+              .input("LoginPassword", sql.NVarChar, newPassword)
+              .query(`UPDATE bpLogin SET LoginPassword = @LoginPassword WHERE UserId = @UserId;`);
+          }
 
-            resolve();
-            sql.close();
-          } else if (key === "currencyId") {
-            this.currency.id = input.currencyId;
-
-            const pool = await sql.connect(connection);
+          if (reqBody.username !== this.username) {
             await pool
               .request()
-              .input("CurrencyId", sql.Int, this.currency.id)
-              .input("UserId", sql.Int, this.id)
-              .query(
-                `UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`
-              );
-
-            sql.close();
-          } else {
-            if (this[key] !== undefined && this[key] !== null) {
-              this[key] = input[key];
-
-              const pool = await sql.connect(connection);
-              await pool
-                .request()
-                .input("UserId", sql.Int, this.id)
-                .input("UserFirstName", sql.NVarChar, this.firstName)
-                .input("UserLastName", sql.NVarChar, this.lastName)
-                .input("LoginUsername", sql.NVarChar, this.username).query(`
-                    UPDATE bpUser
-                    SET UserFirstName = @UserFirstName,
-                    UserLastName = @UserLastName
-                    WHERE UserId = @UserId;
-
-                    UPDATE bpLogin
-                    SET LoginUsername = @LoginUsername
-                    WHERE UserId = @UserId;
-                  `);
-              sql.close();
-            } else {
-              throw {
-                status: 400,
-                message: "Invalid data",
-              };
-            }
+              .input("UserId", sql.NVarChar, this.id)
+              .input("LoginUsername", sql.NVarChar, reqBody.username)
+              .query(`UPDATE bpLogin SET LoginUsername = @LoginUsername WHERE UserId = @UserId;`);
+            
+            this.username = reqBody.username
           }
-          resolve();
+          
+          if (currencyObj) {
+            await pool
+              .request()
+              .input("CurrencyId", sql.Int, currencyObj.id)
+              .input("UserId", sql.Int, this.id)
+              .query(`UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`);
+
+            this.currency = currencyObj;
+          }
+
+          await pool
+            .request()
+            .input("UserId", sql.Int, this.id)
+            .input("UserFirstName", sql.NVarChar, reqBody.firstName)
+            .input("UserLastName", sql.NVarChar, reqBody.lastName)
+            .query(`UPDATE bpUser SET UserFirstName = @UserFirstName, UserLastName = @UserLastName WHERE UserId = @UserId;`);
+          
+          this.firstName = reqBody.firstName;
+          this.lastName = reqBody.lastName;
+
+          resolve()
         } catch (err) {
           console.log(err);
           reject(err);
