@@ -71,8 +71,6 @@ class Source {
               message: "Failed to save Source to database.",
             };
 
-          const owner = await User.readById(userObj.id);
-
           const record = result.recordset[0];
           const newSource = new Source({
             id: record.SourceId,
