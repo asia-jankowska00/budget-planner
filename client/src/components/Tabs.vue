@@ -10,7 +10,7 @@
                 <li class="tab col s12 primary go-back">
                     <a href="" @click.prevent="goBack" class="link">
                         <Icon name="keyboard_backspace" />
-                        <span>Go back</span>
+                        <span>Back to {{this.lastPage}}</span>
                     </a>
                 </li>
             </ul>
@@ -32,9 +32,19 @@ export default {
     mounted: function() {
         M.Tabs.init(document.querySelector('ul.tabs'));
     },
+    data() {
+        return {
+            lastPage: ''
+        }
+    },
     methods: {
         goBack() {
             this.$router.go(-1)
+        }
+    },
+    watch: {
+        $route(to, from) {
+            this.lastPage = from.name;
         }
     }
 }
