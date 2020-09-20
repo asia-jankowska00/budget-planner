@@ -142,6 +142,11 @@ export default {
   updated() {
     this.updateIndicator() 
   },
+  beforeDestroy() {
+    this.$store.commit('updateSelectedSource', null);
+    this.$store.commit('updateSources', []);
+    this.$store.commit('updateTransactions', []);
+  }
 };
 </script>
 

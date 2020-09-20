@@ -11,7 +11,12 @@
 
     <p class="section-title">Balance</p>
     <h6 id="amount" class="primary">{{selectedSource.amount.toFixed(2)}} {{selectedSource.currency.symbol}}</h6>
-    <p id="convertedAmount" class="light-primary">~ {{selectedSource.convertedAmount.toFixed(2)}} {{user.currency.symbol}}</p>
+    <p 
+      id="convertedAmount" 
+      class="light-primary" 
+      v-if="selectedSource.currency.id !== user.currency.id">
+        ~ {{selectedSource.convertedAmount.toFixed(2)}} {{user.currency.symbol}}
+    </p>
 
     <TransactionsGrid
       v-if="transactions && !isLoadingTransactions"
