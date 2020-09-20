@@ -49,7 +49,7 @@ router.get('/:transactionId', async (req, res) => {
       await Source.checkOwner(params.sourceId, req.user.id)
 
       // getAll transactions by SourceId
-      const transaction = Transaction.getSourceTransaction(params.sourceId, params.transactionId);
+      const transaction = await Transaction.getSourceTransaction(params.sourceId, params.transactionId);
       
       //validate transactions output
       await transactionSchemas.defaultTransactionOutput.validateAsync(transaction)

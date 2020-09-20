@@ -48,9 +48,6 @@ export default {
   watch: {
     $route() {
       this.checkRoute();
-    },
-    user() {
-      // console.log(this);
     }
   },
   computed: {
@@ -145,7 +142,7 @@ export default {
   beforeDestroy() {
     this.$store.commit('updateSelectedSource', null);
     this.$store.commit('updateSources', []);
-    this.$store.commit('updateTransactions', []);
+    this.$store.commit('updateTransactions', null);
   }
 };
 </script>

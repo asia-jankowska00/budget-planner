@@ -83,6 +83,9 @@ INSERT INTO bpCategory(CategoryName)
 
 INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, UserId, SourceId)
   VALUES  ('Weekly groceries', '2020-09-25', 250, 1, 2, 2),
+        ('Salary', '2020-09-24', 12500, 0, 1, 1),
+        ('Rema 1000', '2020-09-24', 237.87, 1, 1, 1),
+        ('Meny', '2020-09-12', 100.43, 1, 1, 1),
         ('6 month DR subscription', '2020-06-01', 660, 1, 1, 1),
         ('1 year Game card', '2019-11-20', 372, 1, 3, 3),
         ('Adobe package', '2020-09-01', 168, 1, 2, 2),

@@ -90,7 +90,58 @@ class Transaction{
   }
 
   static getSourceTransaction(sourceId, transactionId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+          const result = await pool.request()
+            .input("SourceId", sql.Int, sourceId)
+            .input("TransactionId", sql.Int, transactionId)
+            .query(`
+              SELECT
+              TransactionId, TransactionName, TransactionDate, 
+              TransactionAmount, TransactionIsExpense, TransactionNote,  
+              bpTransaction.UserId, UserFirstName, UserLastName, LoginUsername
+              FROM bpTransaction
+              INNER JOIN bpSource
+              ON bpTransaction.SourceId = bpSource.SourceId
+              INNER JOIN bpUser
+              ON bpTransaction.UserId = bpUser.UserId
+              INNER JOIN bpLogin
+              ON bpTransaction.UserId = bpLogin.UserId 
+              WHERE bpTransaction.SourceId = @SourceId 
+              AND bpTransaction.TransactionId = @TransactionId
+            `);
 
+          if (result.recordset.length <= 0)
+            throw { status: 404, message: "No transactions found" };
+
+          if (result.recordset.length > 1)
+            throw { status: 500, message: "Something is wrong in the DB" };
+
+          const record = result.recordset[0];
+          
+          resolve(new Transaction({
+            id: record.TransactionId,
+            name: record.TransactionName,
+            amount: record.TransactionAmount,
+            isExpense: record.TransactionIsExpense,
+            date: record.TransactionDate,
+            note: record.TransactionNote,
+            user: {
+              id: record.UserId,
+              username: record.LoginUsername,
+              firstName: record.UserFirstName,
+              lastName: record.UserLastName
+            }
+          }))
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
   }
 
   static getAllContainerTransactions(containerId) {
