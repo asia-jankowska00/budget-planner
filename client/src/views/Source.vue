@@ -63,12 +63,13 @@ export default {
     }
   },
   created() {
-    this.$store
-      .dispatch("getSourceTransactions", this.selectedSource.id)
+    if (!this.transactions) {
+      this.$store.dispatch("getSourceTransactions", this.selectedSource.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
-  },
+    }
+  }
 };
 </script>
 

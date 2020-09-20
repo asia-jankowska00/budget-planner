@@ -8,10 +8,14 @@
         <th>Date</th>
         <th>Price</th>
       </tr>
-      <tr v-for="transaction in transactions" :key="transaction.id">
+      <tr 
+        v-for="transaction in transactions" 
+        :key="transaction.id"
+        :class="{'is-income': !transaction.isExpense}"
+      >
         <td>{{transaction.name}}</td>
         <td>{{transaction.date.substring(0, 10)}}</td>
-        <td>{{transaction.amount}} {{currency.symbol}}</td>
+        <td class="amount-cell">{{transaction.amount}} {{currency.symbol}}</td>
       </tr>
     </table>
 
@@ -52,8 +56,20 @@ export default {
         }
       }
 
+      &.is-income {
+        td {
+          &.amount-cell {
+            color: #080;
+          }
+        }
+      }
+
       td {
         color: #546E7A;
+
+        &.amount-cell {
+          color: #cb4848;
+        }
       }
 
       th {
