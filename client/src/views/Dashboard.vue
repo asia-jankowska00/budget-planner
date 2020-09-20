@@ -28,20 +28,6 @@ import Loader from "@/components/Loader";
 import M from "materialize-css";
 import { mapGetters } from "vuex";
 
-const checkRoute = function(context) {
-  const url = window.location.href;
-  const hasSlash = url[url.length - 1] === "/" ? true : false;
-  const dashboardPath = hasSlash ? "/dashboard/" : "/dashboard";
-
-  if (url.length - dashboardPath.length === url.indexOf(dashboardPath)) {
-    console.log(
-      "%c Dashboard - redirecting to sources",
-      "color: yellowgreen; background-color: black"
-    );
-    context.$router.push({ path: "dashboard/sources" });
-  }
-};
-
 export default {
   name: "Dashboard",
   components: {
@@ -59,15 +45,8 @@ export default {
   },
   watch: {
     $route() {
-      checkRoute();
-    },
-  },
-  beforeCreate: function() {
-    console.log(
-      "%c Dashboard - beforeCreate - Need to check token from now on",
-      "color: yellow; background-color: black"
-    );
-    checkRoute(this);
+      this.checkRoute();
+    }
   },
   computed: {
     ...mapGetters(["isModalOpen", "modalName", "user", "currencies"]),
@@ -82,38 +61,57 @@ export default {
     goToLogin() {
       this.$router.push("/login");
     },
+    checkRoute() {
+      const url = window.location.href;
+      const hasSlash = url[url.length - 1] === "/" ? true : false;
+      const dashboardPath = hasSlash ? "/dashboard/" : "/dashboard";
+
+      if (url.length - dashboardPath.length === url.indexOf(dashboardPath)) {
+        console.log(
+          "%c Dashboard - redirecting to sources",
+          "color: yellowgreen; background-color: black"
+        );
+        this.$router.push({ path: "dashboard/sources" });
+      }
+    },
+    updateIndicator() {
+      let indicator = document.querySelector('.indicator');
+      if (!indicator) return;
+
+      const newPage = this.$route.name.toLowerCase();
+
+      if (newPage === 'sources') {
+        indicator.style.left = '0px';
+        indicator.style.right = '225px';
+      } else if (newPage === 'budgets') {
+        indicator.style.left = '225px';
+        indicator.style.right = '0px';
+      }
+    }
   },
   created() {
+    this.checkRoute(this);
+
     if (!this.user) {
-      this.$store
-        .dispatch("getProfile")
+      this.$store.dispatch("getProfile")
         .then(() => (this.isLoading = false))
         .catch((err) => {
           this.isLoading = false;
-          M.toast({
-            html: err.response.data.message
-              ? err.response.data.message
-              : "Something went wrong",
-          });
+          M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
         });
     }
 
     if (this.currencies.length === 0) {
       this.$store.dispatch("getCurrencies").catch((err) => {
-        M.toast({
-          html: err.response.data.message
-            ? err.response.data.message
-            : "Something went wrong",
-        });
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     }
   },
+  mounted() {
+    this.updateIndicator()
+  },
   updated() {
-    const tabs = M.Tabs.init(document.querySelector("ul.tabs"));
-    if (tabs) {
-      tabs.updateTabIndicator();
-      document.querySelector(".router-link-active").blur();
-    }
+    this.updateIndicator() 
   },
 };
 </script>
