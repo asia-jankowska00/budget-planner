@@ -23,9 +23,11 @@ const postTransactionInput = {
 }
 
 const defaultTransactionOutput = Joi.object(defaultTransaction);
+const getAllTransactions = Joi.array().items(defaultTransactionOutput);
 
 module.exports = {
   defaultTransaction,
   postTransactionInput,
-  defaultTransactionOutput
+  defaultTransactionOutput,
+  getAllTransactions
 }

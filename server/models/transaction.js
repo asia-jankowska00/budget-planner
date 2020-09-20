@@ -27,6 +27,22 @@ class Transaction{
   static create(transaction, user) {
   
   }
+
+  static getAllSourceTransactions(sourceId) {
+
+  }
+
+  static getSourceTransaction(sourceId, transactionId) {
+
+  }
+
+  static getAllContainerTransactions(containerId) {
+
+  }
+
+  static getContainerTransaction(containerId, transactionId) {
+    
+  }
 }
 
 module.exports = Transaction
