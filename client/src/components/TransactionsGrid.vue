@@ -1,7 +1,8 @@
 <template>
   <section id="transactions">
     <p>Latest transactions</p>
-    <table id="grid">
+
+    <table id="grid" v-if="transactions.length > 0">
       <tr>
         <th>Name</th>
         <th>Date</th>
@@ -13,6 +14,8 @@
         <td>{{transaction.amount}} {{currency.symbol}}</td>
       </tr>
     </table>
+
+    <p class="no-records">No transactions.</p>
   </section>
 </template>
 
@@ -53,6 +56,10 @@ export default {
         color: #546E7A;
       }
     }
+  }
+
+  .no-records {
+    font-weight: 600;
   }
 }
 </style>

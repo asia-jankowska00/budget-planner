@@ -8,16 +8,18 @@
       id="mainSource"
       label="Your sources"
       :options="sources"
-      v-model="selectedSource.id"
+      v-model="selectedSourceId"
       displayKey="name"
       valueKey="id"
     />
 
     <TransactionsGrid
-      v-if="transactions"
+      v-if="transactions && !isLoadingTransactions"
       :transactions="transactions"
       :currency="selectedSource.currency"
     />
+
+    <p v-else-if="isLoadingTransactions">Loading transactions...</p>
   </div>
   <div v-else class="empty-view">Looks like you don't have any sources.</div>
 </template>
@@ -38,7 +40,20 @@ export default {
     ...mapActions(["updateSelectedSource"]),
   },
   computed: {
-    ...mapGetters(["sources", "selectedSource", "transactions"]),
+    ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions']),
+    selectedSourceId: {
+      get () {
+        return this.selectedSource.id
+      },
+      set (value) {
+        const newSourceId = parseInt(value)
+        this.$store.commit('updateSelectedSource', this.sources.find(source => source.id === newSourceId))
+        this.$store.dispatch("getSourceTransactions", newSourceId)
+          .catch((err) => {
+            M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+          });
+      }
+    }
   },
   created() {
     this.$store
