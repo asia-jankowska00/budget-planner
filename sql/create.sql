@@ -1,4 +1,4 @@
--- createing currency table
+-- creating currency table
 CREATE TABLE bpCurrency( 
     CurrencyId INT IDENTITY PRIMARY KEY,
     CurrencyCode NVARCHAR (3) NOT NULL,
@@ -45,20 +45,6 @@ CREATE TABLE bpSource(
     FOREIGN KEY(CurrencyId) REFERENCES bpCurrency(CurrencyId)
 );
 
--- creating user can use source table
-CREATE TABLE bpUserSource(
-    UserId INT NOT NULL,
-    SourceId INT NOT NULL,
-
-    CONSTRAINT UserSource PRIMARY KEY(
-        UserId,
-        SourceId
-    ),
-
-    FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
-    FOREIGN KEY(SourceId) REFERENCES bpSource(SourceId)
-);
-
 --creating container table
 -- user owns container
 CREATE TABLE bpContainer(
@@ -72,10 +58,11 @@ CREATE TABLE bpContainer(
 
 -- creating user has access to container
 CREATE TABLE bpUserContainer(
+    UserContainerId INT IDENTITY PRIMARY KEY,
     UserId INT NOT NULL,
     ContainerId INT NOT NULL,
 
-    CONSTRAINT UserContainer PRIMARY KEY(
+    CONSTRAINT UserContainer UNIQUE(
         UserId,
         ContainerId
     ),
@@ -84,12 +71,13 @@ CREATE TABLE bpUserContainer(
     FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId)
 );
 
--- creating container includes source table
-CREATE TABLE bpContainerSource(
-    ContainerId INT NOT NULL,
+-- creating container includes source
+CREATE TABLE bpSourceContainer(
+    SourceContainerId INT IDENTITY PRIMARY KEY,
     SourceId INT NOT NULL,
+    ContainerId INT NOT NULL,
 
-    CONSTRAINT ContainerSource PRIMARY KEY(
+    CONSTRAINT SourceContainer UNIQUE(
         ContainerId,
         SourceId
     ),
@@ -98,8 +86,21 @@ CREATE TABLE bpContainerSource(
     FOREIGN KEY(SourceId) REFERENCES bpSource(SourceId)
 );
 
+-- creating user can use source in specific container
+CREATE TABLE bpUserSourceContainer(
+    UserContainerId INT NOT NULL,
+    SourceContainerId INT NOT NULL,
+
+    CONSTRAINT UserSourceContainer UNIQUE(
+        UserContainerId,
+        SourceContainerId
+    ),
+
+    FOREIGN KEY(UserContainerId) REFERENCES bpUserContainer(UserContainerId),
+    FOREIGN KEY(SourceContainerId) REFERENCES bpSourceContainer(SourceContainerId)
+);
+
 -- create category table
--- can be found in
 CREATE TABLE bpCategory(
     CategoryId INT IDENTITY PRIMARY KEY,
     CategoryName NVARCHAR (255) NOT NULL,
