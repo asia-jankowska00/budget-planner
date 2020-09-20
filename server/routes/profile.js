@@ -23,18 +23,25 @@ router.patch("/", auth, async (req, res) => {
     await profileSchemas.patchProfileInput.validateAsync(req.body);
 
     const user = await User.readById(req.user.id);
-
-    // check if currency exists
-    if (req.body.currencyId) {
-      await Currency.readById(req.body.currencyId);
+    //usernames should be unique
+    if (req.body.username !== user.username) {
+      await User.canCreateUser(req.body.username)
     }
 
-    await user.update(req.body);
+    let currency;
+
+    // get the new currency if needed
+    if (user.currency.id !== req.body.currencyId) {
+      currency = await Currency.readById(req.body.currencyId);
+    }
+
+    await user.update(req.body, currency);
 
     await profileSchemas.defaultProfileOutput.validateAsync(user);
 
     res.json(user);
   } catch (err) {
+    console.log(err);
     res.status(err.status || 400).json(err);
   }
 });
