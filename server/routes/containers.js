@@ -3,7 +3,6 @@ const router = express.Router();
 const Container = require("../models/container");
 const Source = require("../models/source");
 const User = require("../models/user");
-// const Currency = require("../models/currency");
 const containerSchemas = require("./schemas/containerSchemas");
 
 // container CRUD
@@ -237,25 +236,33 @@ router.delete(
 router.post("/:containerId/sources", async (req, res) => {
   // bind new source to container
   try {
+    // check if requester has access to this container
+    await Container.checkUserContainer(req.user.id, req.params.containerId);
+
+    // check if requester owns the source
+    await Source.checkOwner(req.body.sourceId, req.user.id);
+
     // fetch requester info
     const requester = await User.readById(req.user.id);
 
-    // fetch container
-    const container = await Container.readById(
-      req.params.containerId,
-      requester
-    );
-    console.log(container);
+    // check if source exists
+    await Source.readById(req.body.sourceId, requester);
 
-    //check if requester is in the container
+    // fetch container
+    const container = await Container.readById(req.params.containerId);
 
     // add new source to container
-    const containerWithNewSource = await container.addSource(
-      req.body.sourceId,
-      requester
+    await container.addSource(req.body.sourceId);
+
+    // get all sourceIds bound to a container
+    const sourceIds = await container.getSources();
+
+    // get all sources bound to a container
+    const sources = await Promise.all(
+      sourceIds.map((sourceId) => Source.readById(sourceId, requester))
     );
 
-    res.json(containerWithNewSource);
+    res.json(sources);
   } catch (err) {
     res.status(err.status || 400).json(err);
   }
@@ -264,22 +271,24 @@ router.post("/:containerId/sources", async (req, res) => {
 router.get("/:containerId/sources", async (req, res) => {
   // get all sources bound to a container
   try {
+    // check if user has access to this container
+    await Container.checkUserContainer(req.user.id, req.params.containerId);
+
+    // fetch container
+    const container = await Container.readById(req.params.containerId);
+
     // fetch requester info
     const requester = await User.readById(req.user.id);
 
-    // fetch container
-    const container = await Container.readById(
-      req.params.containerId,
-      requester
-    );
-    console.log(container);
-
-    // check if requester is in container
+    // get all sourceIds bound to a container
+    const sourceIds = await container.getSources();
 
     // get all sources bound to a container
-    const containerSources = await container.getSources(requester);
+    const sources = await Promise.all(
+      sourceIds.map((sourceId) => Source.readById(sourceId, requester))
+    );
 
-    res.json(containerSources);
+    res.json(sources);
   } catch (err) {
     res.status(err.status || 400).json(err);
   }
@@ -288,32 +297,22 @@ router.get("/:containerId/sources", async (req, res) => {
 router.delete("/:containerId/sources/:sourceId", async (req, res) => {
   // get all sources bound to a container
   try {
-    // fetch requester info
-    const requester = await User.readById(req.user.id);
-
-    // fetch source to delete
-    const sourceToDelete = await Source.readById(
-      req.params.sourceId,
-      requester
-    );
-
-    // check if requester is source owner
-
-    // fetch container
-    const container = await Container.readById(
-      req.params.containerId,
-      requester
-    );
-    console.log(container);
-
     // check if requester is in container
+    await Container.checkUserContainer(req.user.id, req.params.containerId);
 
     // check if source is in container
+    await Container.checkSourceContainer(
+      req.params.sourceId,
+      req.params.containerId
+    );
+
+    // fetch container
+    const container = await Container.readById(req.params.containerId);
 
     // delete source from container and all permissions related to the source
-    await container.deleteSource(req.params.sourceId, requester);
+    await container.deleteSource(req.params.sourceId);
 
-    res.json(containerSources);
+    res.json({ message: "Source deleted" });
   } catch (err) {
     res.status(err.status || 400).json(err);
   }
