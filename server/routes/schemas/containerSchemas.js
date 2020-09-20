@@ -37,7 +37,7 @@ const defaultContainerOutput = Joi.object(defaultContainer);
 
 const postContainersInput = Joi.object({
   name: Joi.string().min(1).max(255).required(),
-  sources: Joi.array().items(Joi.number().integer().min(1).required()),
+  sources: Joi.array().items(Joi.number().integer().min(1)).required(),
 });
 
 const postContainersOutput = defaultContainerOutput;
