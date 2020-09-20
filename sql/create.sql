@@ -134,17 +134,17 @@ CREATE TABLE bpTransaction(
 
     UserId INT NOT NULL,
     SourceId INT NOT NULL,
-    CategoryId INT,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
     FOREIGN KEY(SourceId) REFERENCES bpSource(SourceId),
-    FOREIGN KEY(CategoryId) REFERENCES bpCategory(CategoryId)
+
 );
 
 -- creating transaction is visible in container table
 CREATE TABLE bpContainerTransaction(
-    ContainerId INT,
-    TransactionId INT,
+    ContainerId INT NOT NULL,
+    TransactionId INT NOT NULL,
+    CategoryId INT,
 
     CONSTRAINT ContainerTransaction PRIMARY KEY(
         ContainerId,
@@ -152,7 +152,8 @@ CREATE TABLE bpContainerTransaction(
     ),
 
     FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId),
-    FOREIGN KEY(TransactionId) REFERENCES bpTransaction(TransactionId)
+    FOREIGN KEY(TransactionId) REFERENCES bpTransaction(TransactionId),
+    FOREIGN KEY(CategoryId) REFERENCES bpCategory(CategoryId)
 );
 
 -- creating notification table
