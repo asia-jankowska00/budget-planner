@@ -328,7 +328,7 @@ class Container {
               `
             );
 
-          resolve({ message: "Collaborator removed" });
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);

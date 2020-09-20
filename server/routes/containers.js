@@ -1,4 +1,3 @@
-const e = require("express");
 const express = require("express");
 const router = express.Router();
 const Container = require("../models/container");
@@ -7,6 +6,7 @@ const User = require("../models/user");
 // const Currency = require("../models/currency");
 const containerSchemas = require("./schemas/containerSchemas");
 
+// container CRUD
 router.post("/", async (req, res) => {
   try {
     await containerSchemas.postContainersInput.validateAsync(req.body);
@@ -139,6 +139,7 @@ router.delete("/:containerId", async (req, res) => {
   }
 });
 
+// collaborators CRD
 router.post("/:containerId/collaborators", async (req, res) => {
   // add new collaborator to container
   try {
@@ -225,13 +226,14 @@ router.delete(
       // delete collaborator from container and all their permissions
       await container.deleteCollaborator(req.params.collaboratorId);
 
-      res.json();
+      res.json({ message: "Collaborator removed" });
     } catch (err) {
       res.status(err.status || 400).json(err);
     }
   }
 );
 
+// sources CRD
 router.post("/:containerId/sources", async (req, res) => {
   // bind new source to container
   try {
