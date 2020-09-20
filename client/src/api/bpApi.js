@@ -17,13 +17,13 @@ const getConfig = () => {
 export default {
     auth() {
         return {
-            register: (userObj) => axios.post(`${baseUrl}/auth/register`, userObj, getConfig()),
-            login: (userObj) => axios.post(`${baseUrl}/auth/login`, userObj, getConfig()) 
+            register: (userObj) => axios.post(`${baseUrl}/auth/register`, userObj),
+            login: (userObj) => axios.post(`${baseUrl}/auth/login`, userObj) 
         }
     },
     currencies() {
         return {
-            getAll: () => axios.get(`${baseUrl}/currencies`, getConfig())
+            getAll: () => axios.get(`${baseUrl}/currencies`)
         }
     },
     users() {
@@ -34,7 +34,8 @@ export default {
     },
     sources() {
         return {
-            add: (source) => axios.post(`${baseUrl}/sources`, source, getConfig()) 
+            add: (source) => axios.post(`${baseUrl}/sources`, source, getConfig()),
+            getAll: () => axios.get(`${baseUrl}/sources`, getConfig()),
         }
     }
 }
