@@ -15,7 +15,7 @@
       </tr>
     </table>
 
-    <p class="no-records">No transactions.</p>
+    <p class="no-records" v-else>No transactions.</p>
   </section>
 </template>
 
