@@ -49,7 +49,8 @@ class Transaction{
               ON bpTransaction.UserId = bpUser.UserId
               INNER JOIN bpLogin
               ON bpTransaction.UserId = bpLogin.UserId 
-              WHERE bpTransaction.SourceId = @SourceId
+              WHERE bpTransaction.SourceId = @SourceId 
+              ORDER BY TransactionDate DESC
             `);
 
           if (result.recordset.length <= 0)

@@ -82,12 +82,12 @@ INSERT INTO bpCategory(CategoryName)
         ('Bills');
 
 INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, UserId, SourceId)
-  VALUES  ('Weekly groceries', 2020-09-25, 250, 1, 2, 2),
-        ('6 month DR subscription', 2020-06-01, 660, 1, 1, 1),
-        ('1 year Game card', 2019-11-20, 372, 1, 3, 3),
-        ('Adobe package', 2020-09-01, 168, 1, 2, 2),
-        ('Spotify subscription',2020-09-10, 40, 1,  3, 3),
-        ('Netflix subscription', 2020-08-28, 160, 1, 1, 1);
+  VALUES  ('Weekly groceries', '2020-09-25', 250, 1, 2, 2),
+        ('6 month DR subscription', '2020-06-01', 660, 1, 1, 1),
+        ('1 year Game card', '2019-11-20', 372, 1, 3, 3),
+        ('Adobe package', '2020-09-01', 168, 1, 2, 2),
+        ('Spotify subscription','2020-09-10', 40, 1,  3, 3),
+        ('Netflix subscription', '2020-08-28', 160, 1, 1, 1);
 
 INSERT INTO bpUserContainer(UserId, ContainerId) 
   VALUES  

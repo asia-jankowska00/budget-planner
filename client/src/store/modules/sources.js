@@ -3,7 +3,7 @@ import bpApi from '../../api/bpApi';
 // initial state
 const state = () => ({
   sources: [],
-  selectedSource: { id: 2, name: 'SparNord' }
+  selectedSource: null
 })
 
 // getters
@@ -33,7 +33,7 @@ const actions = {
           try {
             const { data } = await bpApi.sources().getAll();
             commit('updateSources', data);
-            resolve();
+            resolve(data);
           } catch (err) {
             reject(err);
           }

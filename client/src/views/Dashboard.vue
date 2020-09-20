@@ -106,6 +106,8 @@ export default {
         .catch((err) => {
           M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
         });
+    } else {
+      this.isLoadingUser = false;
     }
 
     if (this.currencies.length === 0) {
@@ -114,14 +116,21 @@ export default {
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    } else {
+      this.isLoadingCurrencies = false;
     }
 
     if (this.sources.length === 0) {
       this.$store.dispatch("getAllSources")
-      .then(() => this.isLoadingSources = false)
+      .then((data) => {
+        this.$store.commit('updateSelectedSource', data[0])
+        this.isLoadingSources = false
+      })
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    } else {
+      this.isLoadingSources = false;
     }
   },
   mounted() {

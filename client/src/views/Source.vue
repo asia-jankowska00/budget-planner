@@ -1,55 +1,77 @@
 <template>
-  <div id="sources" class="content-wrapper" v-if="sources.length > 0">
-    <Select 
-      id="mainSource" 
+  <div
+    id="sources"
+    class="content-wrapper"
+    v-if="sources.length > 0 && selectedSource"
+  >
+    <Select
+      id="mainSource"
       label="Your sources"
-      :options="sources" 
-      v-model="selectedSource" 
-      displayKey="name" 
+      :options="sources"
+      v-model="selectedSource.id"
+      displayKey="name"
       valueKey="id"
+    />
+
+    <TransactionsGrid
+      v-if="transactions"
+      :transactions="transactions"
+      :currency="selectedSource.currency"
     />
   </div>
   <div v-else class="empty-view">Looks like you don't have any sources.</div>
 </template>
 
 <script>
-import Select from '@/components/Select';
-import { mapGetters, mapActions } from 'vuex';
+import Select from "@/components/Select";
+import TransactionsGrid from "@/components/TransactionsGrid";
+import { mapGetters, mapActions } from "vuex";
+import M from "materialize-css";
 
 export default {
-  name: 'Source',
+  name: "Source",
   components: {
-    Select
+    Select,
+    TransactionsGrid,
   },
   methods: {
-    ...mapActions(['updateSelectedSource']),
+    ...mapActions(["updateSelectedSource"]),
   },
   computed: {
-    ...mapGetters(['sources']),
-    selectedSource: {
-      get () {
-        return this.$store.state.sources.selectedSource.id
-      },
-      set (value) {
-        this.$store.commit('updateSelectedSource', this.sources.find(s => s.id.toString() === value))
-      }
-    }
-  }
-}
+    ...mapGetters(["sources", "selectedSource", "transactions"]),
+  },
+  created() {
+    this.$store
+      .dispatch("getSourceTransactions", this.selectedSource.id)
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+  },
+};
 </script>
 
 <style lang="scss">
-  .content-wrapper {
-    height: calc(100% - 116px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-top: 8px;
-    padding: 0 5%;
+.content-wrapper {
+  height: calc(100% - 116px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 8px;
+  padding: 0 5%;
 
-    #mainSource {
-      label {
-        left: 0;
-      }
+  #mainSource {
+    width: 50%;
+
+    input {
+      border: 0;
+    }
+
+    .dropdown-content {
+      width: 100%;
+    }
+
+    label {
+      left: 0;
     }
   }
+}
 </style>

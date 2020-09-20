@@ -5,6 +5,7 @@ import budgets from './modules/budgets'
 import modals from './modules/modals'
 import user from './modules/user'
 import currencies from  './modules/currencies'
+import transactions from  './modules/transactions'
 
 Vue.use(Vuex)
 
@@ -14,6 +15,7 @@ export default new Vuex.Store({
     budgets,
     modals,
     user,
-    currencies
+    currencies,
+    transactions
   }
 })
