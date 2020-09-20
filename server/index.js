@@ -15,6 +15,8 @@ app.use("/api/profile", require("./routes/profile"));
 app.use("/api/currencies", require("./routes/currencies"));
 app.use("/api/sources", [auth], require("./routes/sources"));
 app.use("/api/containers", [auth], require("./routes/containers"));
+app.use("/api/containers/:containerId/categories", [auth], require("./routes/categories"));
+
 app.use("/api/transactions", [auth], require("./routes/transactions"));
 
 app.get("/", (req, res) => {

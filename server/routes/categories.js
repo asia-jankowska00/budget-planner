@@ -1,63 +1,69 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const Category = require('../models/category');
 const categorySchemas = require('./schemas/categorySchemas');
 
 router.post('/', async (req, res) => {
     try {
-        await categorySchemas.defaultCategory.validateAsync(req.body);
+        
+        await categorySchemas.postInputCategory.validateAsync(req.body);
+        
+        const newCategory = await Category.create(req.params.containerId, req.body);
 
-        const newCategory = await Category.create(req.body);
-
-        await categorySchemas.defaultCategory.validateAsync(newCategory);
-
-    } catch {
+        await categorySchemas.defaultOutputCategory.validateAsync(newCategory);
+        res.status(201).json(newCategory)
+    } catch (err){
+        console.log(err)
         res.status(err.status || 400).json(err);
     }
 })
 
 router.get('/', async (req, res) => {
     try {
-        const categories = await Category.readAll();
+        const categories = await Category.readAll(req.params.containerId);
 
-        await categorySchemas.defaultCategory.validateAsync(categories);
+        await categorySchemas.getCategoriesOutput.validateAsync(categories);
         res.json(categories);
-    } catch {
+    } catch (err){
+        console.log(err)
         res.status(err.status || 400).json(err);
     }
 })
 
 router.get('/:categoryId', async (req, res) => {
     try {
-        const category = await Category.readById(req.params.categoryId);
+        const category = await Category.readById(req.params.containerId, req.params.categoryId);
 
-        await categorySchemas.defaultCategory.validateAsync(category);
+        await categorySchemas.defaultOutputCategory.validateAsync(category);
 
         res.json(category);
-    } catch {
+    } catch (err){
+        console.log(err)
         res.status(err.status || 400).json(err);
     }
 })
 
 router.patch('/:categoryId', async (req, res) => {
     try {
-        await categorySchemas.defaultCategory.validateAsync(req.body);
+        await categorySchemas.postInputCategory.validateAsync(req.body);
 
-        const category = await Category.readById(req.params.categoryId);
+        const category = await Category.readById(req.params.containerId, req.params.categoryId);
         await category.update(req.body);
 
-        await categorySchemas.defaultCategory.validateAsync(category);
+        await categorySchemas.defaultOutputCategory.validateAsync(category);
         res.json(category)
-    } catch {
+    } catch (err){
+        console.log(err)
         res.status(err.status || 400).json(err);
     }
 })
 
 router.delete('/:categoryId', async (req, res) => {
     try {
-        await Category.delete(req.params.id);
+        await Category.delete(req.params.containerId, req.params.categoryId);
         res.json('Category deleted')
-    } catch {
+    } catch (err){
+        console.log(err)
         res.status(err.status || 400).json(err);
     }
 })
