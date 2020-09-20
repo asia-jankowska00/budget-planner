@@ -1,6 +1,6 @@
 <template>
   <section id="transactions">
-    <p>Latest transactions</p>
+    <p class="section-title">Latest transactions</p>
 
     <table id="grid" v-if="transactions.length > 0">
       <tr>
@@ -54,6 +54,10 @@ export default {
 
       td {
         color: #546E7A;
+      }
+
+      th {
+        font-weight: 500;
       }
     }
   }

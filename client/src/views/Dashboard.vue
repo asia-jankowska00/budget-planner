@@ -10,7 +10,7 @@
     <router-view :user="user"></router-view>
   </div>
 
-  <Loader v-else-if="isLoading"/>
+  <Loader v-else-if="isLoading" text="Loading data"/>
 
   <div class="no-data" v-else-if="!user && !isLoading">
     <p>Something went wrong :(</p>
@@ -104,6 +104,7 @@ export default {
       this.$store.dispatch("getProfile")
         .then(() => this.isLoadingUser = false)
         .catch((err) => {
+          this.isLoadingUser = false;
           M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
         });
     } else {
@@ -114,6 +115,7 @@ export default {
       this.$store.dispatch("getCurrencies")
       .then(() => this.isLoadingCurrencies = false)
       .catch((err) => {
+        this.isLoadingCurrencies = false;
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     } else {
@@ -127,6 +129,7 @@ export default {
         this.isLoadingSources = false
       })
       .catch((err) => {
+        this.isLoadingSources = false;
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     } else {

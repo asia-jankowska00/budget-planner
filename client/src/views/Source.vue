@@ -1,9 +1,5 @@
 <template>
-  <div
-    id="sources"
-    class="content-wrapper"
-    v-if="sources.length > 0 && selectedSource"
-  >
+  <div v-if="sources.length > 0 && selectedSource" id="sources" class="content-wrapper">
     <Select
       id="mainSource"
       label="Your sources"
@@ -13,19 +9,24 @@
       valueKey="id"
     />
 
+    <p class="section-title">Balance</p>
+    <h6 id="amount" class="primary">{{selectedSource.amount.toFixed(2)}} {{selectedSource.currency.symbol}}</h6>
+    <p id="convertedAmount" class="light-primary">~ {{selectedSource.convertedAmount.toFixed(2)}} {{user.currency.symbol}}</p>
+
     <TransactionsGrid
       v-if="transactions && !isLoadingTransactions"
       :transactions="transactions"
       :currency="selectedSource.currency"
     />
 
-    <p v-else-if="isLoadingTransactions">Loading transactions...</p>
+    <Loader v-else-if="isLoadingTransactions" text="Loading transactions" :isSmall="true"/>
   </div>
   <div v-else class="empty-view">Looks like you don't have any sources.</div>
 </template>
 
 <script>
 import Select from "@/components/Select";
+import Loader from "@/components/Loader";
 import TransactionsGrid from "@/components/TransactionsGrid";
 import { mapGetters, mapActions } from "vuex";
 import M from "materialize-css";
@@ -35,12 +36,13 @@ export default {
   components: {
     Select,
     TransactionsGrid,
+    Loader
   },
   methods: {
     ...mapActions(["updateSelectedSource"]),
   },
   computed: {
-    ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions']),
+    ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions', 'user']),
     selectedSourceId: {
       get () {
         return this.selectedSource.id
@@ -87,6 +89,16 @@ export default {
     label {
       left: 0;
     }
+  }
+
+  #amount {
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+
+  #convertedAmount {
+    font-size: 0.9rem;
+    margin: 0;
   }
 }
 </style>

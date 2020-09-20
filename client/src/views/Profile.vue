@@ -126,16 +126,6 @@ export default {
     }
   }
 
-  .title {
-    color: #90A4AE;
-  }
-
-  .section-title {
-    color: #37474F;
-    font-weight: 700;
-    margin: 32px 0 16px;
-  }
-
   .actions {
     width: 100%;
     margin: 32px 0 0 0;
@@ -144,5 +134,4 @@ export default {
     align-items: center;
   }
 }
-
 </style>

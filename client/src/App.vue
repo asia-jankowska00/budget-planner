@@ -41,7 +41,7 @@ html {
 }
 
 .light-primary {
-  color: $lightPrimary
+  color: $text-light
 }
 
 .primary-bg {
@@ -50,6 +50,16 @@ html {
 
 .light-primary-bg {
   background-color: $lightPrimary;
+}
+
+.title {
+  color: $text-light;
+}
+
+.section-title {
+  color: #37474F;
+  font-weight: 600;
+  margin: 16px 0 8px;
 }
 
 h1 {
