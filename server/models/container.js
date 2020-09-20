@@ -43,7 +43,7 @@ class Container {
           if (!access.recordset[0]) {
             throw {
               status: 401,
-              message: "You are not the owner of this container",
+              message: "This user is not the owner of this container",
             };
           }
 
@@ -76,7 +76,7 @@ class Container {
           if (!access.recordset[0]) {
             throw {
               status: 401,
-              message: "You are not authorized to access this container",
+              message: "This user does not have access to this container",
             };
           }
 
@@ -147,7 +147,7 @@ class Container {
             throw {
               status: 401,
               message:
-                "This you do not have access to this source in this container",
+                "This user does not have access to this source in this container",
             };
           }
 
@@ -230,7 +230,24 @@ class Container {
         try {
           const pool = await sql.connect(connection);
 
-          const result = await pool
+          const result1 = await pool
+            .request()
+            .input("ContainerId", sql.Int, this.id)
+            .input("UserId", sql.Int, user.id)
+            .query(
+              `
+              SELECT UserId FROM bpUserContainer 
+              WHERE UserId = @UserId AND ContainerId = @ContainerId;
+              `
+            );
+
+          if (result1.recordset[0])
+            throw {
+              status: 400,
+              message: "Collaborator already exists in this container.",
+            };
+
+          const result2 = await pool
             .request()
             .input("ContainerId", sql.Int, this.id)
             .input("UserId", sql.Int, user.id)
@@ -243,7 +260,7 @@ class Container {
               `
             );
 
-          if (!result.recordset[0])
+          if (!result2.recordset[0])
             throw {
               status: 500,
               message: "Failed to add collaborator.",
@@ -279,10 +296,11 @@ class Container {
               message: "No collaborators found.",
             };
 
-          const collaborators = result.recordset[0];
-          console.log(collaborators);
+          const collaborators = result.recordsets[0].map((record) => {
+            return record.UserId;
+          });
 
-          resolve();
+          resolve(collaborators);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -293,7 +311,32 @@ class Container {
     });
   }
 
-  deleteCollaborator() {}
+  deleteCollaborator(userId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+
+          await pool
+            .request()
+            .input("ContainerId", sql.Int, this.id)
+            .input("UserId", sql.Int, userId)
+            .query(
+              `
+              DELETE FROM bpUserContainer 
+              WHERE UserId = @UserId AND ContainerId = @ContainerId;
+              `
+            );
+
+          resolve({ message: "Collaborator removed" });
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
 
   //source methods
   getSources() {}
@@ -558,7 +601,7 @@ class Container {
   
             DELETE FROM bpContainerCategory 
             WHERE ContainerId = @ContainerId;
-               
+
             DELETE FROM bpContainerTransaction 
             WHERE ContainerId = @ContainerId;
 
