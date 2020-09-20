@@ -10,7 +10,7 @@
     <router-view :user="user"></router-view>
   </div>
 
-  <Loader v-else-if="isLoading"/>
+  <Loader v-else-if="isLoading" text="Loading data"/>
 
   <div class="no-data" v-else-if="!user && !isLoading">
     <p>Something went wrong :(</p>
@@ -104,24 +104,36 @@ export default {
       this.$store.dispatch("getProfile")
         .then(() => this.isLoadingUser = false)
         .catch((err) => {
+          this.isLoadingUser = false;
           M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
         });
+    } else {
+      this.isLoadingUser = false;
     }
 
     if (this.currencies.length === 0) {
       this.$store.dispatch("getCurrencies")
       .then(() => this.isLoadingCurrencies = false)
       .catch((err) => {
+        this.isLoadingCurrencies = false;
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    } else {
+      this.isLoadingCurrencies = false;
     }
 
     if (this.sources.length === 0) {
       this.$store.dispatch("getAllSources")
-      .then(() => this.isLoadingSources = false)
+      .then((data) => {
+        this.$store.commit('updateSelectedSource', data[0])
+        this.isLoadingSources = false
+      })
       .catch((err) => {
+        this.isLoadingSources = false;
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    } else {
+      this.isLoadingSources = false;
     }
   },
   mounted() {
@@ -130,6 +142,11 @@ export default {
   updated() {
     this.updateIndicator() 
   },
+  beforeDestroy() {
+    this.$store.commit('updateSelectedSource', null);
+    this.$store.commit('updateSources', []);
+    this.$store.commit('updateTransactions', []);
+  }
 };
 </script>
 

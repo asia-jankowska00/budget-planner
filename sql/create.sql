@@ -127,7 +127,7 @@ CREATE TABLE bpContainerCategory(
 CREATE TABLE bpTransaction(
     TransactionId INT IDENTITY PRIMARY KEY,
     TransactionName NVARCHAR (255) NOT NULL,
-    TransactionDate DATETIME,
+    TransactionDate DATE,
     TransactionAmount MONEY,--data type for money
     TransactionIsExpense BIT NOT NULL,
     TransactionNote NVARCHAR (255),

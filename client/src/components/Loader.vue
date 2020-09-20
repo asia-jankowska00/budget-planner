@@ -1,6 +1,6 @@
 <template>
-  <div class="loading">
-    <p>Loading data</p>
+  <div class="loading" :class="{ small: isSmall }">
+    <p>{{text}}</p>
     <div class="progress">
       <div class="indeterminate"></div>
     </div>
@@ -9,7 +9,14 @@
 
 <script>
 export default {
-  name: 'Loader'
+  name: 'Loader',
+  props: {
+    text: {
+      type: String,
+      required: true
+    },
+    isSmall: Boolean
+  }
 }
 </script>
 
@@ -25,6 +32,13 @@ export default {
     align-items: center;
     justify-content: center;
     padding: 5vw;
+
+    &.small {
+      height: 100px;
+      position: relative;
+      padding: 0;
+      margin: 32px 0;
+    }
 
     > p {
       margin-bottom: 4px;

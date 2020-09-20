@@ -32,10 +32,11 @@ export default {
             updateProfile: (userObj) => axios.patch(`${baseUrl}/profile`, userObj, getConfig())
         }
     },
-    sources() {
+    sources(sourceId) {
         return {
             add: (source) => axios.post(`${baseUrl}/sources`, source, getConfig()),
             getAll: () => axios.get(`${baseUrl}/sources`, getConfig()),
+            getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig())
         }
     }
 }

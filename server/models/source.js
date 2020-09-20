@@ -40,7 +40,7 @@ class Source {
   }
 
   // checker methods
-  static checkOwner(sourceId, user) {
+  static checkOwner(sourceId, userId) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
@@ -48,7 +48,7 @@ class Source {
           const access = await pool
             .request()
             .input("SourceId", sql.Int, sourceId)
-            .input("UserId", sql.Int, user.id).query(`
+            .input("UserId", sql.Int, userId).query(`
             SELECT SourceId FROM bpSource
             WHERE SourceId = @SourceId AND UserId = @UserId;
           `);

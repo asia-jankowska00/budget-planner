@@ -49,33 +49,36 @@ class Transaction{
               ON bpTransaction.UserId = bpUser.UserId
               INNER JOIN bpLogin
               ON bpTransaction.UserId = bpLogin.UserId 
-              WHERE bpTransaction.SourceId = @SourceId
+              WHERE bpTransaction.SourceId = @SourceId 
+              ORDER BY TransactionDate DESC
             `);
 
-          if (result.recordset.length <= 0)
+          if (result.recordset.length < 0)
             throw { status: 404, message: "No transactions found" };
 
 
           const transactions = [];
-          result.recordset.forEach((record) => {
-            const transactionObj = {
-              id: record.TransactionId,
-              name: record.TransactionName,
-              amount: record.TransactionAmount,
-              isExpense: record.TransactionIsExpense,
-              date: record.TransactionDate,
-              note: record.TransactionNote,
-              user: {
-                id: record.UserId,
-                username: record.LoginUsername,
-                firstName: record.UserFirstName,
-                lastName: record.UserLastName
+          if (result.recordset.length > 1) {
+            result.recordset.forEach((record) => {
+              const transactionObj = {
+                id: record.TransactionId,
+                name: record.TransactionName,
+                amount: record.TransactionAmount,
+                isExpense: record.TransactionIsExpense,
+                date: record.TransactionDate,
+                note: record.TransactionNote,
+                user: {
+                  id: record.UserId,
+                  username: record.LoginUsername,
+                  firstName: record.UserFirstName,
+                  lastName: record.UserLastName
+                }
               }
-            }
-
-            transactions.push(new Transaction(transactionObj));
-          });
-
+  
+              transactions.push(new Transaction(transactionObj));
+            });
+          }
+          
           resolve(transactions);
         } catch (err) {
           console.log(err);

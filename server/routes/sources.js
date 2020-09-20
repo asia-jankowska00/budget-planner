@@ -41,7 +41,7 @@ router.get("/", async (req, res) => {
 router.get("/:sourceId", async (req, res) => {
   try {
     // check if requester is owner
-    await Source.checkOwner(req.params.sourceId, req.user);
+    await Source.checkOwner(req.params.sourceId, req.user.id);
 
     // fetch requester info
     const requester = await User.readById(req.user.id);
@@ -63,7 +63,7 @@ router.patch("/:sourceId", async (req, res) => {
     await sourceSchemas.patchSourceInput.validateAsync(req.body);
 
     // check if requester is source owner
-    await Source.checkOwner(req.params.sourceId, req.user);
+    await Source.checkOwner(req.params.sourceId, req.user.id);
 
     if (req.body.currencyId) {
       // check if currency exists
@@ -88,11 +88,8 @@ router.patch("/:sourceId", async (req, res) => {
 
 router.delete("/:sourceId", async (req, res) => {
   try {
-    // fetch requester info
-    const requester = await User.readById(req.user.id);
-
     // check if requester is source owner
-    await Source.checkOwner(req.params.sourceId, requester);
+    await Source.checkOwner(req.params.sourceId, req.user.id);
 
     // delete source
     await Source.delete(req.params.sourceId);
