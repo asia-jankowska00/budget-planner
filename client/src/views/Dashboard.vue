@@ -1,5 +1,5 @@
 <template>
-  <div id="dashboard" v-if="user">
+  <div id="dashboard" v-if="user && !isLoading">
     <Panel :user="user" />
     <Tabs :canGoBack="canGoBack" />
     <FloatAction v-if="!canGoBack" />
@@ -10,7 +10,7 @@
     <router-view :user="user"></router-view>
   </div>
 
-  <Loader v-else-if="!user && isLoading"/>
+  <Loader v-else-if="isLoading"/>
 
   <div class="no-data" v-else-if="!user && !isLoading">
     <p>Something went wrong :(</p>
@@ -40,22 +40,30 @@ export default {
   },
   data() {
     return {
-      isLoading: true,
+      isLoadingUser: true,
+      isLoadingCurrencies: true,
+      isLoadingSources: true,
     };
   },
   watch: {
     $route() {
       this.checkRoute();
+    },
+    user() {
+      // console.log(this);
     }
   },
   computed: {
-    ...mapGetters(["isModalOpen", "modalName", "user", "currencies"]),
+    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources"]),
     canGoBack: function() {
       const lastMatch = this.$route.matched[
         this.$route.matched.length - 1
       ].name.toLowerCase();
       return lastMatch !== "sources" && lastMatch !== "budgets";
     },
+    isLoading: function() {
+      return this.isLoadingUser || this.isLoadingSources || this.isLoadingCurrencies
+    }
   },
   methods: {
     goToLogin() {
@@ -94,15 +102,24 @@ export default {
 
     if (!this.user) {
       this.$store.dispatch("getProfile")
-        .then(() => (this.isLoading = false))
+        .then(() => this.isLoadingUser = false)
         .catch((err) => {
-          this.isLoading = false;
           M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
         });
     }
 
     if (this.currencies.length === 0) {
-      this.$store.dispatch("getCurrencies").catch((err) => {
+      this.$store.dispatch("getCurrencies")
+      .then(() => this.isLoadingCurrencies = false)
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+    }
+
+    if (this.sources.length === 0) {
+      this.$store.dispatch("getAllSources")
+      .then(() => this.isLoadingSources = false)
+      .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     }
