@@ -5,6 +5,7 @@
             <ul class="tabs light-primary-bg " v-if="!canGoBack">
                 <li class="tab col s6 primary"><router-link to="/dashboard/sources">Sources</router-link></li>
                 <li class="tab col s6 primary"><router-link to="/dashboard/budgets">Budgets</router-link></li>
+                <li class="indicator" style=""></li>
             </ul>
             <ul class="tabs light-primary-bg" v-else>
                 <li class="tab col s12 primary go-back">
@@ -19,7 +20,6 @@
 </template>
 
 <script>
-import M from "materialize-css";
 import Icon from '@/components/Icon';
 export default {
     name: 'Tabs',
@@ -28,9 +28,6 @@ export default {
     },
     props: {
         canGoBack: Boolean
-    },
-    mounted: function() {
-        M.Tabs.init(document.querySelector('ul.tabs'));
     },
     data() {
         return {
@@ -93,6 +90,7 @@ export default {
 
         .indicator {
             background-color: #2979ff;
+            transition: 0.25s ease-out;
         }
     }
 </style>
