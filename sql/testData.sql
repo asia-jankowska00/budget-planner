@@ -81,13 +81,13 @@ INSERT INTO bpCategory(CategoryName)
         ('Footwear'),
         ('Bills');
 
-INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, UserId, SourceId, CategoryId)
-  VALUES  ('Weekly groceries', 2020-09-25, 250, 1, 2, 2, 1),
-        ('6 month DR subscription', 2020-06-01, 660, 1, 1, 1, 7),
-        ('1 year Game card', 2019-11-20, 372, 1, 3, 3, 4),
-        ('Adobe package', 2020-09-01, 168, 1, 2, 2, 4),
-        ('Spotify subscription',2020-09-10, 40, 1,  3, 3, 4),
-        ('Netflix subscription', 2020-08-28, 160, 1, 1, 1, 4);
+INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, UserId, SourceId)
+  VALUES  ('Weekly groceries', 2020-09-25, 250, 1, 2, 2),
+        ('6 month DR subscription', 2020-06-01, 660, 1, 1, 1),
+        ('1 year Game card', 2019-11-20, 372, 1, 3, 3),
+        ('Adobe package', 2020-09-01, 168, 1, 2, 2),
+        ('Spotify subscription',2020-09-10, 40, 1,  3, 3),
+        ('Netflix subscription', 2020-08-28, 160, 1, 1, 1);
 
 INSERT INTO bpUserContainer(UserId, ContainerId) 
   VALUES  
@@ -118,6 +118,23 @@ INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId)
   (4, 3),
   (5, 3),
   (4, 6);
+
+INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation)
+VALUES 
+(5, 3, 100),
+(5, 6, 20),
+(1, 5, 0),
+(1, 4, NULL),
+(2, 2, 213);
+
+INSERT INTO bpContainerTransaction(ContainerId, TransactionId, CategoryId)
+VALUES
+(5, 3, 6),
+(5, 5, 3);
+
+SELECT * FROM bpContainerCategory;
+SELECT * FROM bpContainerTransaction;
+SELECT * FROM bpCategory;
 
 SELECT * FROM bpCurrency;
 
