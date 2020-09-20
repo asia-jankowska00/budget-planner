@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       await Source.checkOwner(params.containerId, req.user)
 
       // getAll transactions by SourceId
-      const transactions = Transaction.getAllSourceTransactions(params.sourceId);
+      const transactions = await Transaction.getAllSourceTransactions(params.sourceId);
       
       //validate transactions output
       await transactionSchemas.getAllTransactions.validateAsync(transactions)
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
       await Container.checkOwner(params.containerId, req.user)
 
       // getAll transactions by SourceId
-      const transactions = Transaction.getAllContainerTransactions(params.containerId);
+      const transactions = await Transaction.getAllContainerTransactions(params.containerId);
       
       //validate transactions output
       await transactionSchemas.getAllTransactions.validateAsync(transactions)
