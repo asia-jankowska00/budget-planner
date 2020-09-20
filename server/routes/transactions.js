@@ -3,6 +3,7 @@ const router = express.Router({ mergeParams: true });
 const Transaction = require('../models/transaction');
 const Source = require('../models/source');
 const Container = require('../models/container');
+const transactionSchemas = require('./schemas/transactionSchemas');
 
 module.exports = router;
 
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
 
     if (params.sourceId) {
       // verify if user has access on the source
-      await Source.checkOwner(params.containerId, req.user)
+      await Source.checkOwner(params.sourceId, req.user)
 
       // getAll transactions by SourceId
       const transactions = await Transaction.getAllSourceTransactions(params.sourceId);
@@ -45,7 +46,7 @@ router.get('/:transactionId', async (req, res) => {
 
     if (params.sourceId) {
       // verify if user has access on the source
-      await Source.checkOwner(params.containerId, req.user)
+      await Source.checkOwner(params.sourceId, req.user)
 
       // getAll transactions by SourceId
       const transaction = Transaction.getSourceTransaction(params.sourceId, params.transactionId);
