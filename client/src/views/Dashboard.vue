@@ -107,6 +107,9 @@ export default {
       });
     }
   },
+  mounted() {
+    this.updateIndicator()
+  },
   updated() {
     this.updateIndicator() 
   },
