@@ -463,6 +463,142 @@ class Container {
     });
   }
 
+  addPermission(UserContainerId, SourceContainerId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+
+          const result2 = await pool
+            .request()
+            .input("UserContainerId", sql.Int, UserContainerId)
+            .input("SourceContainerId", sql.Int, SourceContainerId)
+            .query(
+              `
+              INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId)
+              VALUES (@UserContainerId, @SourceContainerId);
+
+              SELECT * FROM bpUserSourceContainer 
+              WHERE UserContainerId = @UserContainerId AND SourceContainerId = @SourceContainerId;
+              `
+            );
+
+          if (!result2.recordset[0])
+            throw {
+              status: 500,
+              message: "Failed to add permission to source.",
+            };
+
+          resolve();
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
+
+  getPermissions(sourceId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+
+          const result = await pool
+            .request()
+            .input("SourceId", sql.Int, sourceId)
+            .input("ContainerId", sql.Int, this.id).query(`
+            SELECT SourceContainerId FROM bpSourceContainer
+            WHERE ContainerId = @ContainerId AND SourceId = @SourceId;
+              `);
+
+          if (!result.recordset[0])
+            throw {
+              status: 404,
+              message: "This source doesn't exist in this container.",
+            };
+
+          const SourceContainerId = result.recordset[0].SourceContainerId;
+
+          const result2 = await pool
+            .request()
+            .input("SourceContainerId", sql.Int, SourceContainerId).query(`
+          SELECT UserId FROM bpUserSourceContainer
+          INNER JOIN
+          bpUserContainer
+          ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+          WHERE SourceContainerId = @SourceContainerId;
+            `);
+
+          if (!result2.recordset[0])
+            throw {
+              status: 404,
+              message: "This source has no bound permissions.",
+            };
+
+          const users = result2.recordsets[0].map((record) => {
+            return record.UserId;
+          });
+
+          // const UserContainerId = result2.recordset[0].UserContainerId;
+
+          //   const result3 = await pool
+          //   .request()
+          //   .input("UserContainerId", sql.Int, SourceContainerId).query(`
+          // SELECT UserId FROM bpUserContainer
+          // WHERE UserContainerId = @UserContainerId;
+          //   `);
+
+          // if (!result.recordset[0])
+          // throw {
+          //   status: 404,
+          //   message: "User not found",
+          // };
+
+          // const UserId = result3.recordset[0].UserId;
+
+          resolve(users);
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+
+        sql.close();
+      })();
+    });
+  }
+
+  deletePermissions(sourceId, userId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+
+          await pool
+            .request()
+            .input("UserId", sql.Int, userId)
+            .input("SourceId", sql.Int, sourceId)
+            .query(
+              `
+              DELETE bpUserSourceContainer FROM bpUserSourceContainer
+              INNER JOIN bpSourceContainer
+              ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+              INNER JOIN bpUserContainer
+              ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+              WHERE SourceId = @SourceId and UserId = @UserId;
+              `
+            );
+          resolve();
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        sql.close();
+      })();
+    });
+  }
+
   // container CRUD
   static create(containerObj, userObj) {
     return new Promise((resolve, reject) => {

@@ -283,10 +283,21 @@ router.get("/:containerId/sources", async (req, res) => {
     // get all sourceIds bound to a container
     const sourceIds = await container.getSources();
 
+    // get UserContainer permissions for each sources
+    const usersWithAccess = await Promise.all(
+      sourceIds.map((sourceId) => container.getPermissions(sourceId))
+    );
+
     // get all sources bound to a container
     const sources = await Promise.all(
       sourceIds.map((sourceId) => Source.readById(sourceId, requester))
     );
+
+    sources.forEach((source, index) => {
+      const currentSource = source;
+
+      currentSource.usersWithAccess = usersWithAccess[index];
+    });
 
     res.json(sources);
   } catch (err) {
@@ -317,5 +328,117 @@ router.delete("/:containerId/sources/:sourceId", async (req, res) => {
     res.status(err.status || 400).json(err);
   }
 });
+
+// permissions CRD
+router.post("/:containerId/sources/:sourceId/permissions", async (req, res) => {
+  // bind new source to container
+  try {
+    // check if requester is in container
+    await Container.checkUserContainer(req.user.id, req.params.containerId);
+
+    // check if source is in container
+    const SourceContainerId = await Container.checkSourceContainer(
+      req.params.sourceId,
+      req.params.containerId
+    );
+
+    const UserContainerId = await Container.checkUserContainer(
+      req.body.userId,
+      req.params.containerId
+    );
+
+    // check if requester owns the source
+    await Source.checkOwner(req.body.sourceId, req.user.id);
+
+    // fetch container
+    const container = await Container.readById(req.params.containerId);
+
+    // delete source from container and all permissions related to the source
+    await container.addPermission(UserContainerId, SourceContainerId);
+
+    res.json(container);
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
+
+router.get("/:containerId/permissions", async (req, res) => {
+  // get all sources bound to a container
+  try {
+    // check if user has access to this container
+    await Container.checkUserContainer(req.user.id, req.params.containerId);
+
+    // fetch container
+    const container = await Container.readById(req.params.containerId);
+
+    // fetch requester info
+    const requester = await User.readById(req.user.id);
+
+    // get all sourceIds bound to a container
+    const sourceIds = await container.getSources();
+
+    // get UserContainer permissions for each sources
+    const usersWithAccess = await Promise.all(
+      sourceIds.map((sourceId) => container.getPermissions(sourceId))
+    );
+    console.log(usersWithAccess);
+
+    // const fullUsersWithAccess = await Promise.all(
+    //   usersWithAccess.forEach((userIdArray) =>
+    //     userIdArray.map((userId) => {
+    //       return User.readById(userId);
+    //     })
+    //   )
+    // );
+
+    // console.log(fullUsersWithAccess);
+
+    // get all sources bound to a container
+    const sources = await Promise.all(
+      sourceIds.map((sourceId) => Source.readById(sourceId, requester))
+    );
+
+    sources.forEach((source, index) => {
+      const currentSource = source;
+
+      currentSource.usersWithAccess = usersWithAccess[index];
+    });
+
+    res.json(sources);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 400).json(err);
+  }
+});
+
+router.delete(
+  "/:containerId/sources/:sourceId/permissions/:userId",
+  async (req, res) => {
+    // get all sources bound to a container
+    try {
+      // check if requester is in container
+      const UserContainerId = await Container.checkUserContainer(
+        req.user.id,
+        req.params.containerId
+      );
+
+      // check if source is in container
+      const SourceContainerId = await Container.checkSourceContainer(
+        req.params.sourceId,
+        req.params.containerId
+      );
+
+      // fetch container
+      const container = await Container.readById(req.params.containerId);
+
+      // delete source from container and all permissions related to the source
+      await container.deletePermission(UserContainerId, SourceContainerId);
+
+      res.json({ message: "Source deleted" });
+    } catch (err) {
+      res.status(err.status || 400).json(err);
+    }
+  }
+);
 
 module.exports = router;
