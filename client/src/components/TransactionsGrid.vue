@@ -16,7 +16,7 @@
         <td>{{ transaction.name }}</td>
         <td>{{ transaction.date.substring(0, 10) }}</td>
         <td class="amount-cell">
-          {{format(currency.code, transaction.amount)}} {{currency.symbol}}
+          {{transaction.isExpense ? '-': '+'}} {{format(currency.code, transaction.amount)}} {{currency.symbol}}
         </td>
       </tr>
     </table>
