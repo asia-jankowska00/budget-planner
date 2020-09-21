@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { defaultUser } = require('./userSchemas');
+const { defaultCurrency } = require('./currencySchemas');
 
 const defaultTransaction = {
   id: Joi.number().integer().min(1).required(),
@@ -11,7 +12,8 @@ const defaultTransaction = {
   user: Joi.object(defaultUser),
   source: Joi.object({
     id: Joi.number().integer().min(1).required(),
-    name: Joi.string().min(1).max(255).required()
+    name: Joi.string().min(1).max(255).required(),
+    currency: Joi.object({defaultCurrency})
   })
 }
 
