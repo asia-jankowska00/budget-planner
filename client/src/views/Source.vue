@@ -9,24 +9,24 @@
       valueKey="id"
     />
 
-    <p class="section-title">Balance</p>
-    <h6 id="amount" class="primary">
+    <!-- <p class="section-title">Balance</p> -->
+    <h4 id="amount" class="primary">
       {{format(selectedSource.currency.code, selectedSource.amount, true)}} 
-    </h6>
+    </h4>
     <p 
       id="convertedAmount" 
       class="light-primary" 
-      v-if="selectedSource.currency.id !== user.currency.id">
+      v-if="selectedSource.convertedAmount && selectedSource.currency.id !== user.currency.id">
         ~ {{format(user.currency.code, selectedSource.convertedAmount, true)}}
     </p>
 
     <TransactionsGrid
-      v-if="transactions && !isLoadingTransactions"
-      :transactions="transactions"
+      v-if="sourceTransactions && !isLoadingSourceTransactions"
+      :transactions="sourceTransactions"
       :currency="selectedSource.currency"
     />
 
-    <Loader v-else-if="isLoadingTransactions" text="Loading transactions" :isSmall="true"/>
+    <Loader v-else-if="isLoadingSourceTransactions" text="Loading transactions" :isSmall="true"/>
   </div>
   <div v-else class="empty-view">Looks like you don't have any sources.</div>
 </template>
@@ -52,7 +52,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions', 'user']),
+    ...mapGetters(["sources", "selectedSource", "sourceTransactions", 'isLoadingSourceTransactions', 'user']),
     selectedSourceId: {
       get () {
         return this.selectedSource.id
@@ -68,7 +68,7 @@ export default {
     }
   },
   created() {
-    if (!this.transactions) {
+    if (!this.sourceTransactions) {
       this.$store.dispatch("getSourceTransactions", this.selectedSource.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });

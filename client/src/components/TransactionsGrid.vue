@@ -45,6 +45,11 @@ export default {
       return formatter.formatAmount(code, amount);
     },
   },
+  watch: {
+    transactions: function(value) {
+      console.log(value);
+    }
+  }
 };
 </script>
 

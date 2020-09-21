@@ -9,19 +9,26 @@
       valueKey="id"
     />
 
-    <div id="budgetCollaborators" v-if="budgetCollaborators">
+    <div id="budgetCollaborators" v-if="budgetCollaborators && !isBudgetLoading">
       <p class="collaborator" v-for="person in budgetCollaborators" :key="'collaborator' + person.id">
         <span class="circle">{{person.firstName[0]}}</span>
       </p>
     </div>
     
-    <div id="budgetSources" v-if="budgetSources">
+    <div id="budgetSources" v-if="budgetSources && !isBudgetLoading">
       <h4 id="amount" class="primary">
         {{format(user.currency.code, budgetTotal, true)}} 
       </h4>
       <p class="source" v-for="source in budgetSources" :key="'source' + source.id">{{source.name}}</p>
     </div>
     
+    <TransactionsGrid
+      v-if="!isBudgetLoading"
+      :transactions="budgetTransactions"
+      :currency="user.currency"
+    />
+
+    <Loader v-else text="Loading budget data" :isSmall="true"/>
 
   </section>
   <div v-else class="empty-view">Looks like you don't have any budgets.</div>
@@ -30,13 +37,17 @@
 <script>
 import { mapGetters } from "vuex";
 import Select from '@/components/Select'
+import TransactionsGrid from '@/components/TransactionsGrid'
+import Loader from '@/components/Loader'
 import M from "materialize-css";
 import formatter from '../helpers/formatter';
 
 export default {
   name: 'Budget',
   components: {
-    Select
+    Select,
+    Loader,
+    TransactionsGrid
   },
   methods: {
     format(code, amount, showSymbol) {
@@ -44,7 +55,17 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["budgets", "selectedBudget", "transactions", 'isLoadingTransactions', 'user', 'budgetSources', 'budgetCollaborators']),
+    ...mapGetters([
+      "budgets", 
+      "selectedBudget",
+      "budgetTransactions",
+      'user',
+      'budgetSources',
+      'budgetCollaborators',
+      'isBudgetLoadingSources',
+      'isBudgetLoadingCollaborators',
+      'isLoadingBudgetTransactions'
+    ]),
     selectedBudgetId: {
       get () {
         return this.selectedBudget.id
@@ -61,6 +82,9 @@ export default {
             M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
           });
       }
+    },
+    isBudgetLoading() {
+      return this.isBudgetLoadingSources || this.isBudgetLoadingCollaborators || this.isLoadingBudgetTransactions
     },
     budgetTotal: function() {
       let total = 0;
@@ -84,7 +108,12 @@ export default {
       });
     }
 
-    //get transactions
+    if (!this.budgetTransactions) {
+      this.$store.dispatch("getBudgetTransactions", this.selectedBudget.id)
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+    }
   }
 }
 </script>
