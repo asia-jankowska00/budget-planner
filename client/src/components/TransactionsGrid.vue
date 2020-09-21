@@ -88,9 +88,5 @@ export default {
       }
     }
   }
-
-  .no-records {
-    font-weight: 600;
-  }
 }
 </style>

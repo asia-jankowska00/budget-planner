@@ -156,8 +156,12 @@ export default {
   },
   beforeDestroy() {
     this.$store.commit('updateSelectedSource', null);
+    this.$store.commit('updateSelectedBudget', null);
     this.$store.commit('updateSources', []);
+    this.$store.commit('updateBudgets', []);
     this.$store.commit('updateTransactions', null);
+    this.$store.commit('updateBudgetCollaborators', null);
+    this.$store.commit('updateBudgetSources', null);
   }
 };
 </script>
