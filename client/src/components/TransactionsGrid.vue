@@ -16,7 +16,7 @@
         <td>{{ transaction.name }}</td>
         <td>{{ transaction.date.substring(0, 10) }}</td>
         <td class="amount-cell">
-          {{transaction.isExpense ? '-': '+'}} {{format(currency.code, transaction.amount)}} {{currency.symbol}}
+          {{transaction.isExpense ? '-': '+'}}{{format(currency.code, transaction.amount, true)}}
         </td>
       </tr>
     </table>
@@ -41,8 +41,8 @@ export default {
     },
   },
   methods: {
-    format(code, amount) {
-      return formatter.formatAmount(code, amount);
+    format(code, amount, showSymbol) {
+      return formatter.formatAmount(code, amount, showSymbol);
     },
   },
   watch: {

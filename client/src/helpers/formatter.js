@@ -1,11 +1,18 @@
 const formatAmount = (currencyCode, amount, showSymbol) => {
   if (!amount && currencyCode) return undefined;
 
-  if (showSymbol) {
-    return new Intl.NumberFormat('da-DK', { style: 'currency', currency: currencyCode }).format(amount)
+  const config = { 
+    style: 'currency', 
+    currency: currencyCode, 
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2 
   }
 
-  return new Intl.NumberFormat({ style: 'currency', currency: currencyCode }).format(amount)
+  if (showSymbol) {
+    return new Intl.NumberFormat('de-DE', config).format(amount)
+  }
+
+  return new Intl.NumberFormat(config).format(amount)
 }
 
 module.exports = {
