@@ -193,6 +193,10 @@ class Transaction{
                 username: record.LoginUsername,
                 firstName: record.UserFirstName,
                 lastName: record.UserLastName
+              },
+              source: {
+                id: record.SourceId,
+                name: record.SourceName
               }
             }
 
