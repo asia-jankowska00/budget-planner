@@ -10,12 +10,14 @@
     />
 
     <p class="section-title">Balance</p>
-    <h6 id="amount" class="primary">{{selectedSource.amount.toFixed(2)}} {{selectedSource.currency.symbol}}</h6>
+    <h6 id="amount" class="primary">
+      {{format(selectedSource.currency.code, selectedSource.amount, true)}} 
+    </h6>
     <p 
       id="convertedAmount" 
       class="light-primary" 
       v-if="selectedSource.currency.id !== user.currency.id">
-        ~ {{selectedSource.convertedAmount.toFixed(2)}} {{user.currency.symbol}}
+        ~ {{format(user.currency.code, selectedSource.convertedAmount, true)}}
     </p>
 
     <TransactionsGrid
@@ -35,6 +37,7 @@ import Loader from "@/components/Loader";
 import TransactionsGrid from "@/components/TransactionsGrid";
 import { mapGetters, mapActions } from "vuex";
 import M from "materialize-css";
+import formatter from '../helpers/formatter';
 
 export default {
   name: "Source",
@@ -45,6 +48,9 @@ export default {
   },
   methods: {
     ...mapActions(["updateSelectedSource"]),
+    format(code, amount, showSymbol) {
+      return formatter.formatAmount(code, amount, showSymbol);
+    }
   },
   computed: {
     ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions', 'user']),

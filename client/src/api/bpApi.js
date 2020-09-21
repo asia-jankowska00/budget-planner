@@ -38,5 +38,15 @@ export default {
             getAll: () => axios.get(`${baseUrl}/sources`, getConfig()),
             getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig())
         }
+    },
+    containers(containerId) {
+        return {
+            add: (container) => axios.post(`${baseUrl}/containers`, container, getConfig()),
+            getAll: () => axios.get(`${baseUrl}/containers`, getConfig()),
+            get: () => axios.get(`${baseUrl}/containers/${containerId}`, getConfig()),
+            getSources: () => axios.get(`${baseUrl}/containers/${containerId}/sources`, getConfig()),
+            getCollaborators: () => axios.get(`${baseUrl}/containers/${containerId}/collaborators`, getConfig()),
+            getAllTransactions: () => axios.get(`${baseUrl}/containers/${containerId}/transactions`, getConfig())
+        }
     }
 }

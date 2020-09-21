@@ -8,14 +8,16 @@
         <th>Date</th>
         <th>Price</th>
       </tr>
-      <tr 
-        v-for="transaction in transactions" 
+      <tr
+        v-for="transaction in transactions"
         :key="transaction.id"
-        :class="{'is-income': !transaction.isExpense}"
+        :class="{ 'is-income': !transaction.isExpense }"
       >
-        <td>{{transaction.name}}</td>
-        <td>{{transaction.date.substring(0, 10)}}</td>
-        <td class="amount-cell">{{transaction.amount}} {{currency.symbol}}</td>
+        <td>{{ transaction.name }}</td>
+        <td>{{ transaction.date.substring(0, 10) }}</td>
+        <td class="amount-cell">
+          {{format(currency.code, transaction.amount)}} {{currency.symbol}}
+        </td>
       </tr>
     </table>
 
@@ -24,19 +26,26 @@
 </template>
 
 <script>
+import formatter from "../helpers/formatter";
+
 export default {
-  name: 'TransactionsGrid',
+  name: "TransactionsGrid",
   props: {
     transactions: {
       type: Array,
-      required: true
+      required: true,
     },
     currency: {
       type: Object,
-      required: true
-    }
-  }
-}
+      required: true,
+    },
+  },
+  methods: {
+    format(code, amount) {
+      return formatter.formatAmount(code, amount);
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -46,13 +55,15 @@ export default {
     font-size: 0.8rem;
 
     tr {
-      td, th {
+      td,
+      th {
         &:first-child {
           padding-left: 0;
         }
 
         &:last-child {
           padding-right: 0;
+          text-align: right;
         }
       }
 
@@ -65,7 +76,7 @@ export default {
       }
 
       td {
-        color: #546E7A;
+        color: #546e7a;
 
         &.amount-cell {
           color: #cb4848;
