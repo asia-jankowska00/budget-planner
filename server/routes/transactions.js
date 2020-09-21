@@ -63,7 +63,7 @@ router.get('/:transactionId', async (req, res) => {
       const transaction = Transaction.getContainerTransaction(params.containerId, params.transactionId);
       
       //validate transactions output
-      await transactionSchemas.defaultTransactionOutput.validateAsync(transactions)
+      await transactionSchemas.defaultTransactionOutput.validateAsync(transaction)
 
       res.json(transaction)
     }
