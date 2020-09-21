@@ -21,15 +21,6 @@ class Transaction{
       this.source = {}
       this.source.id = transaction.source.id
       this.source.name = transaction.source.name
-      if(this.source.currency){
-        this.currency = {};
-        this.currency.id = transaction.currency.id;
-        this.currency.name = transaction.currency.name;
-        this.currency.code = transaction.currency.code;
-        this.currency.symbol = transaction.currency.symbol;
-      }
-      
-
     }
 
     //category to be added for container context
@@ -170,16 +161,13 @@ class Transaction{
           TransactionNote,
           bpTransaction.SourceId,
           bpTransaction.UserId,
-          SourceName, bpSource.CurrencyId,
-          CurrencyCode, CurrencyName, CurrencySymbol,
+          SourceName,
           UserFirstName, UserLastName, LoginUsername
           FROM bpTransaction
           INNER JOIN bpContainerTransaction
           ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
           INNER JOIN bpSource
           ON bpSource.SourceId = bpTransaction.SourceId
-          INNER JOIN bpCurrency
-          ON bpSource.CurrencyId = bpCurrency.CurrencyId
           INNER JOIN bpUser
           ON bpTransaction.UserId = bpUser.UserId
           INNER JOIN bpLogin
@@ -209,13 +197,7 @@ class Transaction{
               },
               source: {
                 id: record.SourceId,
-                name: record.SourceName,
-                currency: {
-                  id: record.CurrencyId,
-                  name: record.CurrencyName,
-                  code: record.CurrencyCode,
-                  symbol: record.CurrencySymbol
-                }
+                name: record.SourceName
               }
             }
 
