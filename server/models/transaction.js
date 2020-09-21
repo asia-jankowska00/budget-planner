@@ -173,6 +173,7 @@ class Transaction{
           INNER JOIN bpLogin
           ON bpTransaction.UserId = bpLogin.UserId 
           WHERE bpContainerTransaction.ContainerId = @ContainerId
+          ORDER BY TransactionDate DESC
           `)
 
           if (result.recordset < 0)
@@ -224,7 +225,28 @@ class Transaction{
           .input('ContainerId', sql.Int, containerId)
           .input('TransactionId', sql.Int, transactionId)
           .query(`
-          
+          SELECT
+          bpTransaction.TransactionId,
+          TransactionName,
+          TransactionDate,
+          TransactionAmount,
+          TransactionIsExpense,
+          TransactionNote,
+          bpTransaction.SourceId,
+          bpTransaction.UserId,
+          SourceName,
+          UserFirstName, UserLastName, LoginUsername
+          FROM bpTransaction
+          INNER JOIN bpContainerTransaction
+          ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
+          INNER JOIN bpSource
+          ON bpSource.SourceId = bpTransaction.SourceId
+          INNER JOIN bpUser
+          ON bpTransaction.UserId = bpUser.UserId
+          INNER JOIN bpLogin
+          ON bpTransaction.UserId = bpLogin.UserId 
+          WHERE bpContainerTransaction.ContainerId = @ContainerId
+          AND bpTransaction.TransactionId = @TransactionId;
           `)
 
           if (!result.recordset[0]) { throw {status: 500, message: "Failed to get category"}}
@@ -242,6 +264,10 @@ class Transaction{
                 username: record.LoginUsername,
                 firstName: record.UserFirstName,
                 lastName: record.UserLastName
+              },
+              source: {
+                id: record.SourceId,
+                name: record.SourceName
               }
           })
 
