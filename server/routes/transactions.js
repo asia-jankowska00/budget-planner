@@ -60,7 +60,7 @@ router.get('/:transactionId', async (req, res) => {
       await Container.checkOwner(params.containerId, req.user.id)
 
       // getAll transactions by SourceId
-      const transaction = Transaction.getContainerTransaction(params.containerId, params.transactionId);
+      const transaction = await Transaction.getContainerTransaction(params.containerId, params.transactionId);
       
       //validate transactions output
       await transactionSchemas.defaultTransactionOutput.validateAsync(transaction)

@@ -249,7 +249,7 @@ class Transaction{
           AND bpTransaction.TransactionId = @TransactionId;
           `)
 
-          if (!result.recordset[0]) { throw {status: 500, message: "Failed to get category"}}
+          if (!result.recordset[0]) { throw {status: 500, message: "Failed to get transaction"}}
 
           const record = result.recordset[0];
           const transaction = new Transaction({
