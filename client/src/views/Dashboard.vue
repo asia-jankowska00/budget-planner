@@ -43,6 +43,7 @@ export default {
       isLoadingUser: true,
       isLoadingCurrencies: true,
       isLoadingSources: true,
+      isLoadingBudgets: true,
     };
   },
   watch: {
@@ -51,7 +52,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources"]),
+    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources", "budgets"]),
     canGoBack: function() {
       const lastMatch = this.$route.matched[
         this.$route.matched.length - 1
@@ -59,7 +60,7 @@ export default {
       return lastMatch !== "sources" && lastMatch !== "budgets";
     },
     isLoading: function() {
-      return this.isLoadingUser || this.isLoadingSources || this.isLoadingCurrencies
+      return this.isLoadingUser || this.isLoadingSources || this.isLoadingCurrencies || this.isLoadingBudgets
     }
   },
   methods: {
@@ -131,6 +132,20 @@ export default {
       });
     } else {
       this.isLoadingSources = false;
+    }
+
+    if (this.budgets.length === 0) {
+      this.$store.dispatch("getAllBudgets")
+      .then((data) => {
+        this.$store.commit('updateSelectedBudget', data[0])
+        this.isLoadingBudgets = false
+      })
+      .catch((err) => {
+        this.isLoadingBudgets = false;
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+    } else {
+      this.isLoadingBudgets = false;
     }
   },
   mounted() {

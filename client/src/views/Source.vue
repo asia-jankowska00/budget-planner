@@ -35,7 +35,7 @@
 import Select from "@/components/Select";
 import Loader from "@/components/Loader";
 import TransactionsGrid from "@/components/TransactionsGrid";
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import M from "materialize-css";
 import formatter from '../helpers/formatter';
 
@@ -47,7 +47,6 @@ export default {
     Loader
   },
   methods: {
-    ...mapActions(["updateSelectedSource"]),
     format(code, amount, showSymbol) {
       return formatter.formatAmount(code, amount, showSymbol);
     }
@@ -87,7 +86,8 @@ export default {
   margin-top: 8px;
   padding: 0 5%;
 
-  #mainSource {
+  #mainSource,
+  #mainBudget {
     width: 50%;
 
     input {

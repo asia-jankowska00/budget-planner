@@ -39,7 +39,7 @@ export default {
             getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig())
         }
     },
-    containers(containerId) {
+    budgets(containerId) {
         return {
             add: (container) => axios.post(`${baseUrl}/containers`, container, getConfig()),
             getAll: () => axios.get(`${baseUrl}/containers`, getConfig()),
