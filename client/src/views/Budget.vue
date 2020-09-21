@@ -1,5 +1,5 @@
 <template>
-  <div v-if="budgets.length > 0 && selectedBudget" id="budgets" class="content-wrapper">
+  <section v-if="budgets.length > 0 && selectedBudget" id="budgets" class="content-wrapper">
     <Select
       id="mainBudget"
       label="Your sources"
@@ -8,22 +8,43 @@
       displayKey="name"
       valueKey="id"
     />
-  </div>
+
+    <div id="budgetCollaborators" v-if="budgetCollaborators">
+      <p class="collaborator" v-for="person in budgetCollaborators" :key="'collaborator' + person.id">
+        <span class="circle">{{person.firstName[0]}}</span>
+      </p>
+    </div>
+    
+    <div id="budgetSources" v-if="budgetSources">
+      <h4 id="amount" class="primary">
+        {{format(user.currency.code, budgetTotal, true)}} 
+      </h4>
+      <p class="source" v-for="source in budgetSources" :key="'source' + source.id">{{source.name}}</p>
+    </div>
+    
+
+  </section>
   <div v-else class="empty-view">Looks like you don't have any budgets.</div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import Select from '@/components/Select'
-// import M from "materialize-css";
+import M from "materialize-css";
+import formatter from '../helpers/formatter';
 
 export default {
   name: 'Budget',
   components: {
     Select
   },
+  methods: {
+    format(code, amount, showSymbol) {
+      return formatter.formatAmount(code, amount, showSymbol);
+    }
+  },
   computed: {
-    ...mapGetters(["budgets", "selectedBudget", "transactions", 'isLoadingTransactions', 'user']),
+    ...mapGetters(["budgets", "selectedBudget", "transactions", 'isLoadingTransactions', 'user', 'budgetSources', 'budgetCollaborators']),
     selectedBudgetId: {
       get () {
         return this.selectedBudget.id
@@ -31,15 +52,93 @@ export default {
       set (value) {
         const newBudgetId = parseInt(value)
         this.$store.commit('updateSelectedBudget', this.budgets.find(budget => budget.id === newBudgetId))
-        // this.$store.dispatch("getBudgetTransactions", newBudgetId)
-        //   .catch((err) => {
-        //     M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-        //   });
+        this.$store.dispatch("getBudgetSources", newBudgetId)
+          .catch((err) => {
+            M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+          });
+        this.$store.dispatch("getBudgetCollaborators", newBudgetId)
+          .catch((err) => {
+            M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+          });
       }
+    },
+    budgetTotal: function() {
+      let total = 0;
+      this.budgetSources.forEach(source => total += source.amount);
+
+      return total;
     }
   },
+  created() {
+    if (!this.budgetSources) {
+      this.$store.dispatch("getBudgetSources", this.selectedBudget.id)
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+    }
+
+    if (!this.budgetCollaborators) {
+      this.$store.dispatch("getBudgetCollaborators", this.selectedBudget.id)
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
+    }
+
+    //get transactions
+  }
 }
 </script>
 
 <style lang="scss">
+#mainBudget {
+  margin-bottom: 0;
+
+  input {
+    margin-bottom: 0;
+  }
+}
+.collaborator {
+  display: inline-block;
+  margin-left: -12px;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  &:nth-child(3n) {
+    .circle {
+      background: #ec8383;
+    }
+  }
+
+  &:nth-child(3n+1) {
+    .circle {
+      background: cyan;
+    }
+  }
+
+  &:nth-child(3n+2) {
+    .circle {
+      background: #ffc05f;
+    }
+  }
+
+  .circle {
+    background: cyan;
+    font-size: 1rem;
+    width: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 32px;
+    overflow: hidden;
+  }
+}
+
+#budgetSources {
+  .source {
+    font-size: 0.85rem;
+    margin: 0;
+  }
+}
 </style>

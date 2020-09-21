@@ -7,7 +7,7 @@
     <AddBudget v-if="isModalOpen && modalName === 'addBudget'" />
     <div id="mask" v-if="isModalOpen"></div>
 
-    <router-view :user="user"></router-view>
+    <router-view :user="user" v-if="selectedSource && selectedBudget"></router-view>
   </div>
 
   <Loader v-else-if="isLoading" text="Loading data"/>
@@ -52,7 +52,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources", "budgets"]),
+    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources", "budgets", "selectedSource", "selectedBudget"]),
     canGoBack: function() {
       const lastMatch = this.$route.matched[
         this.$route.matched.length - 1
