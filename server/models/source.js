@@ -31,11 +31,13 @@ class Source {
       this.owner.lastName = source.owner.lastName;
       this.owner.username = source.owner.username;
 
-      this.owner.currency = {};
-      this.owner.currency.id = source.owner.currency.id;
-      this.owner.currency.name = source.owner.currency.name;
-      this.owner.currency.code = source.owner.currency.code;
-      this.owner.currency.symbol = source.owner.currency.symbol;
+      if (source.owner.currency) {
+        this.owner.currency = {};
+        this.owner.currency.id = source.owner.currency.id;
+        this.owner.currency.name = source.owner.currency.name;
+        this.owner.currency.code = source.owner.currency.code;
+        this.owner.currency.symbol = source.owner.currency.symbol;
+      }
     }
   }
 
@@ -99,12 +101,22 @@ class Source {
               message: "Failed to save Source to database.",
             };
 
+          const { data } = await axios.get(
+            `https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`
+          );
+
           const record = result.recordset[0];
           const newSource = new Source({
             id: record.SourceId,
             sourceName: record.SourceName,
             sourceDescription: record.SourceDescription,
             sourceAmount: record.SourceAmount,
+            sourceConvertedAmount: Number(
+              parseFloat(
+                record.SourceAmount /
+                  data.rates[record.CurrencyCode.toUpperCase()]
+              ).toFixed(4)
+            ),
             currency: {
               id: record.CurrencyId,
               name: record.CurrencyName,
@@ -201,6 +213,9 @@ class Source {
             .input("SourceId", sql.Int, sourceId).query(`
             SELECT SourceId, SourceName, SourceDescription, SourceAmount, 
             bpSource.UserId,
+            bpLogin.LoginUsername,
+            bpUser.UserFirstName,
+            bpUser.UserLastName,
             bpSource.CurrencyId, 
             CurrencyName,
             CurrencyCode, 
@@ -210,6 +225,8 @@ class Source {
             ON bpSource.CurrencyId = bpCurrency.CurrencyId
             INNER JOIN bpUser
             on bpSource.UserId = bpUser.UserId
+            INNER JOIN bpLogin
+            on bpSource.UserId = bpLogin.UserId
             WHERE bpSource.SourceId = @SourceId;
             `);
 
@@ -241,6 +258,12 @@ class Source {
               name: record.CurrencyName,
               code: record.CurrencyCode,
               symbol: record.CurrencySymbol,
+            },
+            owner: {
+              id: record.UserId,
+              username: record.LoginUsername,
+              firstName: record.UserFirstName,
+              lastName: record.UserLastName,
             },
           });
 

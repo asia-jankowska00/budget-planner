@@ -49,7 +49,7 @@ router.get("/:sourceId", async (req, res) => {
     // fetch source info
     const source = await Source.readById(req.params.sourceId, requester);
 
-    source.owner = requester;
+    // source.owner = requester;
 
     await sourceSchemas.defaultSourceOutput.validateAsync(source);
     res.json(source);
