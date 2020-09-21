@@ -2,7 +2,7 @@
   <section v-if="budgets.length > 0 && selectedBudget" id="budgets" class="content-wrapper">
     <Select
       id="mainBudget"
-      label="Your sources"
+      label="Budgets"
       :options="budgets"
       v-model="selectedBudgetId"
       displayKey="name"
