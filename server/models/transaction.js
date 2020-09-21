@@ -21,15 +21,12 @@ class Transaction{
       this.source = {}
       this.source.id = transaction.source.id
       this.source.name = transaction.source.name
-      if(this.source.currency){
-        this.currency = {};
-        this.currency.id = transaction.currency.id;
-        this.currency.name = transaction.currency.name;
-        this.currency.code = transaction.currency.code;
-        this.currency.symbol = transaction.currency.symbol;
-      }
-      
 
+      this.currency = {};
+      this.currency.id = transaction.source.currency.id;
+      this.currency.name = transaction.source.currency.name;
+      this.currency.code = transaction.source.currency.code;
+      this.currency.symbol = transaction.source.currency.symbol;
     }
 
     //category to be added for container context
