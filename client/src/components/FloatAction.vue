@@ -13,7 +13,7 @@
                 <Button :isFloating="true" :isLink="true" label="Source" @click="openModal('addSource')"/>
             </li>
             <li>
-                <Button :isDisabled="budgets.length === 0 || sources.length === 0" :isFloating="true" :isLink="true" label="Transaction"/>
+                <Button :isDisabled="budgets.length === 0 || sources.length === 0" :isFloating="true" :isLink="true" label="Transaction" @click="openModal('addTransaction')"/>
             </li>
         </ul>
     </div>

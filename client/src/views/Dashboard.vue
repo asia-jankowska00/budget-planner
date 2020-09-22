@@ -5,6 +5,7 @@
     <FloatAction v-if="!canGoBack" />
     <AddSource v-if="isModalOpen && modalName === 'addSource'" />
     <AddBudget v-if="isModalOpen && modalName === 'addBudget'" />
+    <AddTransaction v-if="isModalOpen && modalName === 'addTransaction'" />
     <div id="mask" v-if="isModalOpen"></div>
 
     <router-view :user="user"></router-view>
@@ -24,6 +25,7 @@ import Tabs from "@/components/Tabs";
 import FloatAction from "@/components/FloatAction";
 import AddSource from "@/components/AddSource";
 import AddBudget from "@/components/AddBudget";
+import AddTransaction from "@/components/AddTransaction";
 import Loader from "@/components/Loader";
 import M from "materialize-css";
 import { mapGetters } from "vuex";
@@ -36,7 +38,8 @@ export default {
     FloatAction,
     AddSource,
     AddBudget,
-    Loader,
+    AddTransaction,
+    Loader
   },
   data() {
     return {
