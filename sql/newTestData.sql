@@ -288,4 +288,18 @@ VALUES ()
 
 */
 
-SELECT * FROM bpContainerTransaction;
+SELECT * FROM bpCurrency
+SELECT * FROM bpUser
+SELECT * FROM bpLogin
+SELECT * FROM bpSource
+SELECT * FROM bpContainer
+SELECT * FROM bpUserContainer
+SELECT * FROM bpSourceContainer
+SELECT * FROM bpUserSourceContainer
+SELECT * FROM bpCategory
+SELECT * FROM bpContainerCategory
+SELECT * FROM bpTransaction
+SELECT * FROM bpContainerTransaction
+
+--SELECT * FROM bpNotification
+--SELECT * FROM bpGoal
