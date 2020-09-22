@@ -6,7 +6,7 @@
       <tr>
         <th>Name</th>
         <th>Date</th>
-        <th>Price</th>
+        <th>Amount</th>
       </tr>
       <tr
         v-for="transaction in transactions"
