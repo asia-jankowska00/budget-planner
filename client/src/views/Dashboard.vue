@@ -7,7 +7,7 @@
     <AddBudget v-if="isModalOpen && modalName === 'addBudget'" />
     <div id="mask" v-if="isModalOpen"></div>
 
-    <router-view :user="user" v-if="selectedSource && selectedBudget"></router-view>
+    <router-view :user="user"></router-view>
   </div>
 
   <Loader v-else-if="isLoading" text="Loading data"/>

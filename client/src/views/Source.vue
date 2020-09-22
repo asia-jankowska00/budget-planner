@@ -28,7 +28,7 @@
 
     <Loader v-else-if="isLoadingSourceTransactions" text="Loading transactions" :isSmall="true"/>
   </div>
-  <div v-else class="empty-view">Looks like you don't have any sources.</div>
+  <div v-else-if="sources.length === 0" class="empty-view">Looks like you don't have any sources.</div>
 </template>
 
 <script>
@@ -68,7 +68,7 @@ export default {
     }
   },
   created() {
-    if (!this.sourceTransactions) {
+    if (!this.sourceTransactions && this.selectedSource) {
       this.$store.dispatch("getSourceTransactions", this.selectedSource.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });

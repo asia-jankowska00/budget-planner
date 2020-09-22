@@ -31,7 +31,7 @@
     <Loader v-else text="Loading budget data" :isSmall="true"/>
 
   </section>
-  <div v-else class="empty-view">Looks like you don't have any budgets.</div>
+  <div v-else-if="budgets.length === 0" class="empty-view">Looks like you don't have any budgets.</div>
 </template>
 
 <script>
@@ -94,21 +94,21 @@ export default {
     }
   },
   created() {
-    if (!this.budgetSources) {
+    if (!this.budgetSources && this.selectedBudget) {
       this.$store.dispatch("getBudgetSources", this.selectedBudget.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     }
 
-    if (!this.budgetCollaborators) {
+    if (!this.budgetCollaborators && this.selectedBudget) {
       this.$store.dispatch("getBudgetCollaborators", this.selectedBudget.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
     }
 
-    if (!this.budgetTransactions) {
+    if (!this.budgetTransactions && this.selectedBudget) {
       this.$store.dispatch("getBudgetTransactions", this.selectedBudget.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
