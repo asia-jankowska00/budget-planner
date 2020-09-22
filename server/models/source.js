@@ -146,7 +146,7 @@ class Source {
           WHERE bpSource.UserId = @UserId;
           `);
 
-          if (result.recordset.length <= 0)
+          if (result.recordset.length < 0)
             throw {
               status: 404,
               message: "No sources found",
@@ -157,30 +157,32 @@ class Source {
           );
 
           const sources = [];
-          result.recordset.forEach((record) => {
-            const sourceObj = {
-              id: record.SourceId,
-              sourceName: record.SourceName,
-              sourceDescription: record.SourceDescription,
-              sourceAmount: record.SourceAmount,
-              sourceConvertedAmount: Number(
-                parseFloat(
-                  record.SourceAmount /
-                    data.rates[record.CurrencyCode.toUpperCase()]
-                ).toFixed(4)
-              ),
-              currency: {
-                id: record.CurrencyId,
-                name: record.CurrencyName,
-                code: record.CurrencyCode,
-                symbol: record.CurrencySymbol,
-              },
-              owner: owner,
-            };
-
-            sources.push(new Source(sourceObj));
-          });
-
+          if (result.recordset.length > 0) {
+            result.recordset.forEach((record) => {
+              const sourceObj = {
+                id: record.SourceId,
+                sourceName: record.SourceName,
+                sourceDescription: record.SourceDescription,
+                sourceAmount: record.SourceAmount,
+                sourceConvertedAmount: Number(
+                  parseFloat(
+                    record.SourceAmount /
+                      data.rates[record.CurrencyCode.toUpperCase()]
+                  ).toFixed(4)
+                ),
+                currency: {
+                  id: record.CurrencyId,
+                  name: record.CurrencyName,
+                  code: record.CurrencyCode,
+                  symbol: record.CurrencySymbol,
+                },
+                owner: owner,
+              };
+  
+              sources.push(new Source(sourceObj));
+            });
+          }
+          
           resolve(sources);
         } catch (err) {
           console.log(err);

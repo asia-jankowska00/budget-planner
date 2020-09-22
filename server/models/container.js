@@ -577,22 +577,26 @@ class Container {
             WHERE bpUserContainer.UserId = @UserId;
           `);
 
-          if (result.recordset.length <= 0)
+          if (result.recordset.length < 0)
             throw {
               status: 404,
               message: "No containers found",
             };
 
           const containers = [];
-          result.recordset.forEach((record) => {
-            const containerObj = {
-              id: record.ContainerId,
-              name: record.ContainerName,
-              owner: { id: record.UserId },
-            };
-
-            containers.push(new Container(containerObj));
-          });
+          
+          if (result.recordset.length > 0) {
+            result.recordset.forEach((record) => {
+              const containerObj = {
+                id: record.ContainerId,
+                name: record.ContainerName,
+                owner: { id: record.UserId },
+              };
+  
+              containers.push(new Container(containerObj));
+            });
+          }
+          
           resolve(containers);
         } catch (err) {
           console.log(err);
