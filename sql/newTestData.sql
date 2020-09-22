@@ -38,10 +38,10 @@ VALUES
 --bpLogin
 INSERT INTO bpLogin (LoginUsername, LoginPassword, UserId)
 VALUES
-/* 1 */    ('Liam1', 'TOKEN', 1),
-/* 2 */    ('Ava2', 'TOKEN', 2),
-/* 3 */    ('Fiona3', 'TOKEN', 3),
-/* 4 */    ('Mike4', 'TOKEN', 4)
+/* 1 */    ('Liam1', '$2a$10$R6VWA3Wfv0GqYf4NERMrIOjvtreWbhedKzNFVHQpihWt0RIBTz.A6', 1),
+/* 2 */    ('Ava2', '$2a$10$jklL5Skjf3/VpWAD99pak.aEHbU9Yq7PGkdrM8rH1tXkbD89aKw9e', 2),
+/* 3 */    ('Fiona3', '$2a$10$UlQODp7/URyBLejwxG8v2.UsSceKR7.53C5eX5zJYPjXjGTU8wXxq', 3),
+/* 4 */    ('Mike4', '$2a$10$r4DNo/0nza.mRzjxSekGleg6uGiL.xUpiluE3lsieg4/ruhVC9zlW', 4)
 
 --bpSource
 INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
