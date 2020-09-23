@@ -7,7 +7,7 @@
       <RadioButton label="Income" name="type" id="transactionTypeIncome" v-model="type"/>
       
       <TextInput v-model="name" label="Name" type="text" id="transactionName" />
-      <TextInput v-model="amount" label="Initial amount" type="number" id="transactionAmount" min="0" step="0.01" />
+      <TextInput v-model="amount" label="Initial amount" type="number" id="transactionAmount" min="0" step="0.0001" />
       <Datepicker v-model="date" label="Date" id="transactionDate"/>
 
       <Select id="transactionContainer" label="Budget" :options="budgets" v-model="budgetId" displayKey="name" valueKey="id" />

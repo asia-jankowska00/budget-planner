@@ -5,7 +5,7 @@
     <form @submit.prevent="submit" class="row" autocomplete="off" v-if="!isUpdatingSource">
       <TextInput v-model="name" label="Name" type="text" id="sourceName" />
       <TextInput v-model="description" label="Description" type="text" id="sourceDescription" />
-      <TextInput v-model="amount" label="Initial amount" type="number" id="sourceAmount" min="0" step="0.01" />
+      <TextInput v-model="amount" label="Initial amount" type="number" id="sourceAmount" min="0" step="0.0001" />
       <!-- <Select v-model="currencyId" :options="currencies" label="Currency" placeholder="Select currency"  valueKey="id" displayKey="name" id="sourceCurrency"/> -->
     
       <div class="actions">
