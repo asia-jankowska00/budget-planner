@@ -1,13 +1,16 @@
 <template>
   <div v-if="sources.length > 0 && selectedSource" id="sources" class="content-wrapper">
-    <Select
-      id="mainSource"
-      label="Your sources"
-      :options="sources"
-      v-model="selectedSourceId"
-      displayKey="name"
-      valueKey="id"
-    />
+    <div class="control">
+      <Select
+        id="mainSource"
+        label="Your sources"
+        :options="sources"
+        v-model="selectedSourceId"
+        displayKey="name"
+        valueKey="id"
+      />
+      <Icon name="edit" @click.native="goToEdit"/>
+    </div>
 
     <!-- <p class="section-title">Balance</p> -->
     <h4 id="amount" class="primary">
@@ -34,6 +37,7 @@
 <script>
 import Select from "@/components/Select";
 import Loader from "@/components/Loader";
+import Icon from "@/components/Icon";
 import TransactionsGrid from "@/components/TransactionsGrid";
 import { mapGetters } from "vuex";
 import M from "materialize-css";
@@ -44,11 +48,15 @@ export default {
   components: {
     Select,
     TransactionsGrid,
-    Loader
+    Loader,
+    Icon
   },
   methods: {
     format(code, amount, showSymbol) {
       return formatter.formatAmount(code, amount, showSymbol);
+    },
+    goToEdit() {
+      this.$router.push({ path: `sources/${this.selectedSource.id}/edit` })
     }
   },
   computed: {

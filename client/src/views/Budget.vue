@@ -1,14 +1,18 @@
 <template>
   <section v-if="budgets.length > 0 && selectedBudget" id="budgets" class="content-wrapper">
-    <Select
-      id="mainBudget"
-      label="Budgets"
-      :options="budgets"
-      v-model="selectedBudgetId"
-      displayKey="name"
-      valueKey="id"
-    />
+    <div class="control">
+      <Select
+        id="mainBudget"
+        label="Budgets"
+        :options="budgets"
+        v-model="selectedBudgetId"
+        displayKey="name"
+        valueKey="id"
+      />
 
+      <Icon name="edit" @click.native="goToEdit"/>
+    </div>
+    
     <div id="budgetCollaborators" v-if="budgetCollaborators && !isBudgetLoading">
       <p class="collaborator" v-for="person in budgetCollaborators" :key="'collaborator' + person.id">
         <span class="circle">{{person.firstName[0]}}</span>
@@ -29,7 +33,6 @@
     />
 
     <Loader v-else text="Loading budget data" :isSmall="true"/>
-
   </section>
   <div v-else-if="budgets.length === 0" class="empty-view">Looks like you don't have any budgets.</div>
 </template>
@@ -37,6 +40,7 @@
 <script>
 import { mapGetters } from "vuex";
 import Select from '@/components/Select'
+import Icon from '@/components/Icon'
 import TransactionsGrid from '@/components/TransactionsGrid'
 import Loader from '@/components/Loader'
 import M from "materialize-css";
@@ -47,11 +51,15 @@ export default {
   components: {
     Select,
     Loader,
-    TransactionsGrid
+    TransactionsGrid,
+    Icon
   },
   methods: {
     format(code, amount, showSymbol) {
       return formatter.formatAmount(code, amount, showSymbol);
+    },
+    goToEdit() {
+      this.$router.push({ path: `budgets/${this.selectedBudget.id}/edit` })
     }
   },
   computed: {
@@ -183,6 +191,16 @@ export default {
   .source {
     font-size: 0.85rem;
     margin: 0;
+  }
+}
+
+.control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  i {
+    cursor: pointer;
   }
 }
 </style>

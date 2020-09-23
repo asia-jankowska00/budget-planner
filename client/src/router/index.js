@@ -5,6 +5,8 @@ import Dashboard from '../views/Dashboard.vue'
 import Source from '../views/Source.vue';
 import Budget from '../views/Budget.vue';
 import Profile from '../views/Profile.vue';
+import BudgetEdit from '../views/BudgetEdit.vue';
+import SourceEdit from '../views/SourceEdit.vue';
 
 Vue.use(VueRouter)
 
@@ -25,9 +27,19 @@ Vue.use(VueRouter)
         component: Source
       },
       {
+        path: 'sources/:id/edit',
+        name: 'SourceEdit',
+        component: SourceEdit,
+      },
+      {
         path: 'budgets',
         name: 'Budgets',
-        component: Budget
+        component: Budget,
+      },
+      {
+        path: 'budgets/:id/edit',
+        name: 'BudgetEdit',
+        component: BudgetEdit,
       },
       {
         path: 'profile',
