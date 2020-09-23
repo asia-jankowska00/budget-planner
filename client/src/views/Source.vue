@@ -60,10 +60,6 @@ export default {
       set (value) {
         const newSourceId = parseInt(value)
         this.$store.commit('updateSelectedSource', this.sources.find(source => source.id === newSourceId))
-        this.$store.dispatch("getSourceTransactions", newSourceId)
-          .catch((err) => {
-            M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-          });
       }
     }
   },
@@ -73,6 +69,16 @@ export default {
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    }
+  },
+  watch: {
+    selectedSource: function(source) {
+      if (source) {
+        this.$store.dispatch("getSourceTransactions", source.id)
+        .catch((err) => {
+          M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+        });
+      }
     }
   }
 };

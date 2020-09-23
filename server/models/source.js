@@ -84,14 +84,14 @@ class Source {
             .input("SourceAmount", sql.Money, sourceObj.amount)
             .input("UserId", sql.Int, owner.id)
             .input("CurrencyId", sql.Int, sourceObj.currencyId).query(`
-                  INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
-                  VALUES (@SourceName, @SourceDescription, @SourceAmount, @UserId, @CurrencyId);
+              INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
+              VALUES (@SourceName, @SourceDescription, @SourceAmount, @UserId, @CurrencyId);
 
-                  SELECT SourceId, SourceName, SourceDescription, SourceAmount, bpSource.CurrencyId, CurrencyName, CurrencyCode, CurrencySymbol FROM bpSource
-                  INNER JOIN bpCurrency
-                  ON bpSource.CurrencyId = bpCurrency.CurrencyId
-                  WHERE SourceId = IDENT_CURRENT('bpSource');
-      `);
+              SELECT SourceId, SourceName, SourceDescription, SourceAmount, bpSource.CurrencyId, CurrencyName, CurrencyCode, CurrencySymbol FROM bpSource
+              INNER JOIN bpCurrency
+              ON bpSource.CurrencyId = bpCurrency.CurrencyId
+              WHERE SourceId = IDENT_CURRENT('bpSource');
+            `);
 
           if (!result.recordset[0])
             throw {
@@ -99,12 +99,23 @@ class Source {
               message: "Failed to save Source to database.",
             };
 
+          const { data } = await axios.get(
+            `https://api.exchangeratesapi.io/latest?base=${owner.currency.code.toUpperCase()}`
+          );
+  
+
           const record = result.recordset[0];
           const newSource = new Source({
             id: record.SourceId,
             sourceName: record.SourceName,
             sourceDescription: record.SourceDescription,
             sourceAmount: record.SourceAmount,
+            sourceConvertedAmount: Number(
+              parseFloat(
+                record.SourceAmount /
+                  data.rates[record.CurrencyCode.toUpperCase()]
+              ).toFixed(4)
+            ),
             currency: {
               id: record.CurrencyId,
               name: record.CurrencyName,

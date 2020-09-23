@@ -20,6 +20,7 @@ const actions = {
           try {
               const { data } = await bpApi.sources().add(payload);
               commit('addSource', data);
+              commit('updateSelectedSource', data)
               resolve();
           } catch (err) {
               reject(err);
