@@ -21,6 +21,20 @@ const getters = {
 
 // actions
 const actions = {
+  addBudget({commit}, payload) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+          try {
+              const { data } = await bpApi.budgets().add(payload);
+              commit('addBudget', data);
+              commit('updateSelectedBudget', data)
+              resolve();
+          } catch (err) {
+              reject(err);
+          }
+      })();
+    })
+  },
   getAllBudgets({commit}) {
     return new Promise((resolve, reject) => {
       (async () => {
@@ -70,6 +84,7 @@ const actions = {
 
 // mutations
 const mutations = {
+  addBudget: (state, newBudget) => state.budgets.push(newBudget),
   updateSelectedBudget: (state, selectedBudget) => state.selectedBudget = selectedBudget,
   updateBudgets: (state, budgets) => state.budgets = budgets,
   updateBudgetSources: (state, sources) => state.budgetSources = sources,

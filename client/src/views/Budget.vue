@@ -88,7 +88,7 @@ export default {
     },
     budgetTotal: function() {
       let total = 0;
-      this.budgetSources.forEach(source => total += source.amount);
+      this.budgetSources.forEach(source => total += source.convertedAmount);
 
       return total;
     }
@@ -113,6 +113,21 @@ export default {
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    }
+  },
+  watch: {
+    selectedBudget: function(budget) {
+      if (budget) {
+        this.$store.dispatch("getBudgetTransactions", budget.id)
+        .catch((err) => {
+          M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+        });
+
+        this.$store.dispatch("getBudgetCollaborators", budget.id)
+        .catch((err) => {
+          M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+        });
+      }
     }
   }
 }
