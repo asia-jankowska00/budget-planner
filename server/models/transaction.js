@@ -22,11 +22,13 @@ class Transaction{
       this.source.id = transaction.source.id
       this.source.name = transaction.source.name
 
-      this.currency = {};
-      this.currency.id = transaction.source.currency.id;
-      this.currency.name = transaction.source.currency.name;
-      this.currency.code = transaction.source.currency.code;
-      this.currency.symbol = transaction.source.currency.symbol;
+      if (transaction.source.currency) {
+        this.currency = {};
+        this.currency.id = transaction.source.currency.id;
+        this.currency.name = transaction.source.currency.name;
+        this.currency.code = transaction.source.currency.code;
+        this.currency.symbol = transaction.source.currency.symbol;
+      }
     }
 
     //category to be added for container context
@@ -186,7 +188,7 @@ class Transaction{
           throw {status: 404 , message: 'No transactions found.'}
 
           const transactions = [];
-          if(result.recordset.length > 1){
+          if(result.recordset.length > 0){
             result.recordset.forEach((record) => {
             const transactionObj = {
               id: record.TransactionId,
@@ -210,8 +212,6 @@ class Transaction{
             transactions.push(new Transaction(transactionObj))
           })
           }
-          
-
           resolve(transactions);
         } catch (err) {
           console.log(err);
