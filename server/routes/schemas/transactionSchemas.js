@@ -1,6 +1,5 @@
 const Joi = require('joi');
 const { defaultUser } = require('./userSchemas');
-const { defaultSource } = require('./sourceSchemas');
 
 const defaultTransaction = {
   id: Joi.number().integer().min(1).required(),

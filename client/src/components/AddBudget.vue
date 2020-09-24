@@ -17,7 +17,7 @@
 
             <div class="actions">
                 <Button label="Close" :isFlat="true" @click="closeModal"/>
-                <Button label="Save" type="submit"/>
+                <Button label="Save" type="submit" :isDisabled="!canSubmit"/>
             </div>
         </form>
     </div>
@@ -28,6 +28,7 @@ import TextInput from '@/components/TextInput';
 import Button from '@/components/Button';
 import Checkbox from '@/components/Checkbox';
 import { mapGetters } from 'vuex';
+import M from "materialize-css";
 
 export default {
     name: 'AddBudget',
@@ -44,10 +45,24 @@ export default {
     },
     computed: {
         ...mapGetters(['sources']),
+        canSubmit: function () {
+            return this.name.length > 2 && this.selectedSources.length > 0
+        }
     },
     methods: {
         submit: function() {
-            alert('budget submitted');
+            if (this.canSubmit) {
+                this.$store
+                .dispatch("addBudget", { name: this.name, sources: this.selectedSources })
+                .then(() => { this.closeModal(); })
+                .catch((err) => {
+                    M.toast({
+                    html: err.response.data.message
+                        ? err.response.data.message
+                        : "Something went wrong",
+                    });
+                });
+            } 
         },
         closeModal: function() {
             this.$store.commit('closeModal');

@@ -36,7 +36,8 @@ export default {
         return {
             add: (source) => axios.post(`${baseUrl}/sources`, source, getConfig()),
             getAll: () => axios.get(`${baseUrl}/sources`, getConfig()),
-            getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig())
+            getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig()),
+            update: (sourceData) => axios.patch(`${baseUrl}/sources/${sourceId}`, sourceData, getConfig())
         }
     },
     budgets(containerId) {

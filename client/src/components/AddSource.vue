@@ -15,7 +15,7 @@
         type="number"
         id="sourceAmount"
         min="0"
-        step="0.01"
+        step="0.0001"
       />
       <Select
         v-model="currencyId"

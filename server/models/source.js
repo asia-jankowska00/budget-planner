@@ -86,14 +86,14 @@ class Source {
             .input("SourceAmount", sql.Money, sourceObj.amount)
             .input("UserId", sql.Int, owner.id)
             .input("CurrencyId", sql.Int, sourceObj.currencyId).query(`
-                  INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
-                  VALUES (@SourceName, @SourceDescription, @SourceAmount, @UserId, @CurrencyId);
+              INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
+              VALUES (@SourceName, @SourceDescription, @SourceAmount, @UserId, @CurrencyId);
 
-                  SELECT SourceId, SourceName, SourceDescription, SourceAmount, bpSource.CurrencyId, CurrencyName, CurrencyCode, CurrencySymbol FROM bpSource
-                  INNER JOIN bpCurrency
-                  ON bpSource.CurrencyId = bpCurrency.CurrencyId
-                  WHERE SourceId = IDENT_CURRENT('bpSource');
-      `);
+              SELECT SourceId, SourceName, SourceDescription, SourceAmount, bpSource.CurrencyId, CurrencyName, CurrencyCode, CurrencySymbol FROM bpSource
+              INNER JOIN bpCurrency
+              ON bpSource.CurrencyId = bpCurrency.CurrencyId
+              WHERE SourceId = IDENT_CURRENT('bpSource');
+            `);
 
           if (!result.recordset[0])
             throw {
@@ -158,7 +158,7 @@ class Source {
           WHERE bpSource.UserId = @UserId;
           `);
 
-          if (result.recordset.length <= 0)
+          if (result.recordset.length < 0)
             throw {
               status: 404,
               message: "No sources found",
@@ -169,29 +169,31 @@ class Source {
           );
 
           const sources = [];
-          result.recordset.forEach((record) => {
-            const sourceObj = {
-              id: record.SourceId,
-              sourceName: record.SourceName,
-              sourceDescription: record.SourceDescription,
-              sourceAmount: record.SourceAmount,
-              sourceConvertedAmount: Number(
-                parseFloat(
-                  record.SourceAmount /
-                    data.rates[record.CurrencyCode.toUpperCase()]
-                ).toFixed(4)
-              ),
-              currency: {
-                id: record.CurrencyId,
-                name: record.CurrencyName,
-                code: record.CurrencyCode,
-                symbol: record.CurrencySymbol,
-              },
-              owner: owner,
-            };
+          if (result.recordset.length > 0) {
+            result.recordset.forEach((record) => {
+              const sourceObj = {
+                id: record.SourceId,
+                sourceName: record.SourceName,
+                sourceDescription: record.SourceDescription,
+                sourceAmount: record.SourceAmount,
+                sourceConvertedAmount: Number(
+                  parseFloat(
+                    record.SourceAmount /
+                      data.rates[record.CurrencyCode.toUpperCase()]
+                  ).toFixed(4)
+                ),
+                currency: {
+                  id: record.CurrencyId,
+                  name: record.CurrencyName,
+                  code: record.CurrencyCode,
+                  symbol: record.CurrencySymbol,
+                },
+                owner: owner,
+              };
 
-            sources.push(new Source(sourceObj));
-          });
+              sources.push(new Source(sourceObj));
+            });
+          }
 
           resolve(sources);
         } catch (err) {

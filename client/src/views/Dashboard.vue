@@ -5,9 +5,10 @@
     <FloatAction v-if="!canGoBack" />
     <AddSource v-if="isModalOpen && modalName === 'addSource'" />
     <AddBudget v-if="isModalOpen && modalName === 'addBudget'" />
+    <AddTransaction v-if="isModalOpen && modalName === 'addTransaction'" />
     <div id="mask" v-if="isModalOpen"></div>
 
-    <router-view :user="user" v-if="selectedSource && selectedBudget"></router-view>
+    <router-view :user="user"></router-view>
   </div>
 
   <Loader v-else-if="isLoading" text="Loading data"/>
@@ -24,6 +25,7 @@ import Tabs from "@/components/Tabs";
 import FloatAction from "@/components/FloatAction";
 import AddSource from "@/components/AddSource";
 import AddBudget from "@/components/AddBudget";
+import AddTransaction from "@/components/AddTransaction";
 import Loader from "@/components/Loader";
 import M from "materialize-css";
 import { mapGetters } from "vuex";
@@ -36,7 +38,8 @@ export default {
     FloatAction,
     AddSource,
     AddBudget,
-    Loader,
+    AddTransaction,
+    Loader
   },
   data() {
     return {
@@ -159,7 +162,8 @@ export default {
     this.$store.commit('updateSelectedBudget', null);
     this.$store.commit('updateSources', []);
     this.$store.commit('updateBudgets', []);
-    this.$store.commit('updateTransactions', null);
+    this.$store.commit('updateSourceTransactions', null);
+    this.$store.commit('updateBudgetTransactions', null);
     this.$store.commit('updateBudgetCollaborators', null);
     this.$store.commit('updateBudgetSources', null);
   }

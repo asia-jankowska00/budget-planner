@@ -1,39 +1,43 @@
 <template>
   <div v-if="sources.length > 0 && selectedSource" id="sources" class="content-wrapper">
-    <Select
-      id="mainSource"
-      label="Your sources"
-      :options="sources"
-      v-model="selectedSourceId"
-      displayKey="name"
-      valueKey="id"
-    />
+    <div class="control">
+      <Select
+        id="mainSource"
+        label="Your sources"
+        :options="sources"
+        v-model="selectedSourceId"
+        displayKey="name"
+        valueKey="id"
+      />
+      <Icon name="edit" @click.native="goToEdit"/>
+    </div>
 
-    <p class="section-title">Balance</p>
-    <h6 id="amount" class="primary">
+    <!-- <p class="section-title">Balance</p> -->
+    <h4 id="amount" class="primary">
       {{format(selectedSource.currency.code, selectedSource.amount, true)}} 
-    </h6>
+    </h4>
     <p 
       id="convertedAmount" 
       class="light-primary" 
-      v-if="selectedSource.currency.id !== user.currency.id">
+      v-if="selectedSource.convertedAmount && selectedSource.currency.id !== user.currency.id">
         ~ {{format(user.currency.code, selectedSource.convertedAmount, true)}}
     </p>
 
     <TransactionsGrid
-      v-if="transactions && !isLoadingTransactions"
-      :transactions="transactions"
+      v-if="sourceTransactions && !isLoadingSourceTransactions"
+      :transactions="sourceTransactions"
       :currency="selectedSource.currency"
     />
 
-    <Loader v-else-if="isLoadingTransactions" text="Loading transactions" :isSmall="true"/>
+    <Loader v-else-if="isLoadingSourceTransactions" text="Loading transactions" :isSmall="true"/>
   </div>
-  <div v-else class="empty-view">Looks like you don't have any sources.</div>
+  <div v-else-if="sources.length === 0" class="empty-view">Looks like you don't have any sources.</div>
 </template>
 
 <script>
 import Select from "@/components/Select";
 import Loader from "@/components/Loader";
+import Icon from "@/components/Icon";
 import TransactionsGrid from "@/components/TransactionsGrid";
 import { mapGetters } from "vuex";
 import M from "materialize-css";
@@ -44,15 +48,19 @@ export default {
   components: {
     Select,
     TransactionsGrid,
-    Loader
+    Loader,
+    Icon
   },
   methods: {
     format(code, amount, showSymbol) {
       return formatter.formatAmount(code, amount, showSymbol);
+    },
+    goToEdit() {
+      this.$router.push({ path: `sources/${this.selectedSource.id}/edit` })
     }
   },
   computed: {
-    ...mapGetters(["sources", "selectedSource", "transactions", 'isLoadingTransactions', 'user']),
+    ...mapGetters(["sources", "selectedSource", "sourceTransactions", 'isLoadingSourceTransactions', 'user']),
     selectedSourceId: {
       get () {
         return this.selectedSource.id
@@ -60,19 +68,25 @@ export default {
       set (value) {
         const newSourceId = parseInt(value)
         this.$store.commit('updateSelectedSource', this.sources.find(source => source.id === newSourceId))
-        this.$store.dispatch("getSourceTransactions", newSourceId)
-          .catch((err) => {
-            M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-          });
       }
     }
   },
   created() {
-    if (!this.transactions) {
+    if (!this.sourceTransactions && this.selectedSource) {
       this.$store.dispatch("getSourceTransactions", this.selectedSource.id)
       .catch((err) => {
         M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
       });
+    }
+  },
+  watch: {
+    selectedSource: function(source) {
+      if (source) {
+        this.$store.dispatch("getSourceTransactions", source.id)
+        .catch((err) => {
+          M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+        });
+      }
     }
   }
 };

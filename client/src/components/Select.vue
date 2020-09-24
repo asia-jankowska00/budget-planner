@@ -66,4 +66,8 @@ export default {
 .dropdown-content {
     max-height: 350px;
 }
+
+.select-wrapper input.select-dropdown {
+    height: 2.5rem;
+}
 </style>

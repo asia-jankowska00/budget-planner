@@ -1,14 +1,18 @@
 import bpApi from '../../api/bpApi';
 
 const state = () => ({
-  transactions: null,
-  isLoadingTransactions: true,
+  sourceTransactions: null,
+  isLoadingSourceTransactions: true,
+  budgetTransactions: null,
+  isLoadingBudgetTransactions: true,
 })
 
 // getters
 const getters = {
-  transactions: state => state.transactions,
-  isLoadingTransactions: state => state.isLoadingTransactions
+  sourceTransactions: state => state.sourceTransactions,
+  isLoadingSourceTransactions: state => state.isLoadingSourceTransactions,
+  budgetTransactions: state => state.budgetTransactions,
+  isLoadingBudgetTransactions: state => state.isLoadingBudgetTransactions
 }
 
 // actions
@@ -17,14 +21,31 @@ const actions = {
     return new Promise((resolve, reject) => {
       (async () => {
           try {
-            commit('updateTransactionLoading', true)
+            commit('updateSourceTransactionLoading', true)
             const { data } = await bpApi.sources(sourceId).getAllTransactions();
-            commit('updateTransactions', data);
-            commit('updateTransactionLoading', false)
+            commit('updateSourceTransactions', data);
+            commit('updateSourceTransactionLoading', false)
             resolve(data);
           } catch (err) {
-            commit('updateTransactions', []);
-            commit('updateTransactionLoading', false)
+            commit('updateSourceTransactions', []);
+            commit('updateSourceTransactionLoading', false)
+            reject(err);
+          }
+      })();
+    })
+  },
+  getBudgetTransactions({commit}, budgetId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+          try {
+            commit('updateBudgetTransactionLoading', true)
+            const { data } = await bpApi.budgets(budgetId).getAllTransactions();
+            commit('updateBudgetTransactions', data);
+            commit('updateBudgetTransactionLoading', false)
+            resolve(data);
+          } catch (err) {
+            commit('updateBudgetTransactions', []);
+            commit('updateBudgetTransactionLoading', false)
             reject(err);
           }
       })();
@@ -34,8 +55,10 @@ const actions = {
 
 // mutations
 const mutations = {
-  updateTransactions: (state, transactions) => state.transactions = transactions,
-  updateTransactionLoading: (state, isLoading) => state.isLoadingTransactions = isLoading
+  updateSourceTransactions: (state, transactions) => state.sourceTransactions = transactions,
+  updateSourceTransactionLoading: (state, isLoading) => state.isLoadingSourceTransactions = isLoading,
+  updateBudgetTransactions: (state, transactions) => state.budgetTransactions = transactions,
+  updateBudgetTransactionLoading: (state, isLoading) => state.isLoadingBudgetTransactions = isLoading
 }
 
 export default {
