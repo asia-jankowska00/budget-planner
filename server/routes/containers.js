@@ -237,7 +237,10 @@ router.post("/:containerId/sources", async (req, res) => {
   // bind new source to container
   try {
     // check if requester has access to this container
-    await Container.checkUserContainer(req.user.id, req.params.containerId);
+    const UserContainerId = await Container.checkUserContainer(
+      req.user.id,
+      req.params.containerId
+    );
 
     // check if requester owns the source
     await Source.checkOwner(req.body.sourceId, req.user.id);
@@ -252,7 +255,10 @@ router.post("/:containerId/sources", async (req, res) => {
     const container = await Container.readById(req.params.containerId);
 
     // add new source to container
-    await container.addSource(req.body.sourceId);
+    const SourceContainerId = await container.addSource(req.body.sourceId);
+
+    // add permission to use for the owner
+    await container.addPermission(UserContainerId, SourceContainerId);
 
     // get all sourceIds bound to a container
     const sourceIds = await container.getSources();
@@ -264,6 +270,7 @@ router.post("/:containerId/sources", async (req, res) => {
 
     res.json(sources);
   } catch (err) {
+    console.log(err);
     res.status(err.status || 400).json(err);
   }
 });
@@ -333,6 +340,7 @@ router.delete("/:containerId/sources/:sourceId", async (req, res) => {
 router.post("/:containerId/sources/:sourceId/permissions", async (req, res) => {
   // bind new source to container
   try {
+    console.log(req.user);
     // check if requester is in container
     await Container.checkUserContainer(req.user.id, req.params.containerId);
 
@@ -348,7 +356,7 @@ router.post("/:containerId/sources/:sourceId/permissions", async (req, res) => {
     );
 
     // check if requester owns the source
-    await Source.checkOwner(req.body.sourceId, req.user.id);
+    await Source.checkOwner(req.params.sourceId, req.user.id);
 
     // fetch container
     const container = await Container.readById(req.params.containerId);
@@ -436,6 +444,7 @@ router.delete(
 
       res.json({ message: "Source deleted" });
     } catch (err) {
+      console.log(err);
       res.status(err.status || 400).json(err);
     }
   }

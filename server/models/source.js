@@ -286,11 +286,15 @@ class Source {
         try {
           const pool = await sql.connect(connection);
 
-          const key = Object.keys(input)[0];
+          const keys = Object.keys(input);
 
           let result;
 
-          if (key === "currencyId") {
+          keys.forEach((key) => {
+            this[key] = input[key];
+          });
+
+          if (keys.includes("currencyId")) {
             this.currency.id = input.currencyId;
 
             result = await pool
@@ -302,8 +306,6 @@ class Source {
                 `UPDATE bpSource SET CurrencyId = @CurrencyId WHERE UserId = @UserId AND SourceId=@SourceId;`
               );
           } else {
-            this[key] = input[key];
-
             result = await pool
               .request()
               .input("SourceId", sql.Int, this.id)

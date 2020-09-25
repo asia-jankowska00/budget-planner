@@ -53,7 +53,10 @@ const getContainerIdOutput = defaultContainerOutput;
 // PATCH /container/:containerId
 
 const patchContainerInput = Joi.object({
-  name: Joi.string().min(1).max(255).required(),
+  id: Joi.number().integer().min(1),
+  name: Joi.string().min(1).max(255),
+  sources: Joi.array(),
+  owner: defaultUserWithCurrency,
   collaborators: Joi.array(),
 });
 

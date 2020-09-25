@@ -376,7 +376,7 @@ class Container {
               INSERT INTO bpSourceContainer (SourceId, ContainerId)
               VALUES (@SourceId, @ContainerId);
 
-              SELECT SourceId FROM bpSourceContainer 
+              SELECT SourceContainerId  FROM bpSourceContainer 
               WHERE SourceId = @SourceId AND ContainerId = @ContainerId;
               `
             );
@@ -387,7 +387,9 @@ class Container {
               message: "Failed to add source to container.",
             };
 
-          resolve();
+          const SourceContainerId = result2.recordset[0].SourceContainerId;
+
+          resolve(SourceContainerId);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -531,11 +533,11 @@ class Container {
           WHERE SourceContainerId = @SourceContainerId;
             `);
 
-          if (!result2.recordset[0])
-            throw {
-              status: 404,
-              message: "This source has no bound permissions.",
-            };
+          // if (!result2.recordset[0])
+          //   throw {
+          //     status: 404,
+          //     message: "This source has no bound permissions.",
+          //   };
 
           const users = result2.recordsets[0].map((record) => {
             return record.UserId;
@@ -569,7 +571,7 @@ class Container {
     });
   }
 
-  deletePermissions(sourceId, userId) {
+  deletePermission(sourceId, userId) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
@@ -581,12 +583,14 @@ class Container {
             .input("SourceId", sql.Int, sourceId)
             .query(
               `
-              DELETE bpUserSourceContainer FROM bpUserSourceContainer
+              DELETE FROM bpUserSourceContainer
               INNER JOIN bpSourceContainer
               ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
               INNER JOIN bpUserContainer
               ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
               WHERE SourceId = @SourceId and UserId = @UserId;
+
+              
               `
             );
           resolve();
@@ -720,7 +724,7 @@ class Container {
             };
 
           const containers = [];
-          
+
           if (result.recordset.length > 0) {
             result.recordset.forEach((record) => {
               const containerObj = {
@@ -728,11 +732,11 @@ class Container {
                 name: record.ContainerName,
                 owner: { id: record.UserId },
               };
-  
+
               containers.push(new Container(containerObj));
             });
           }
-          
+
           resolve(containers);
         } catch (err) {
           console.log(err);
@@ -749,27 +753,13 @@ class Container {
         try {
           const pool = await sql.connect(connection);
 
-          // check if user is the owner of the container
-          const resultOwner = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("UserId", sql.Int, userObj.id).query(`
-            SELECT UserId FROM bpContainer
-            WHERE ContainerId = @ContainerId AND UserId = @UserId;
-          `);
-
-          if (!resultOwner.recordset[0]) {
-            throw {
-              status: 401,
-              message: "You are not authorized to update this container",
-            };
-          }
-
           const input = containerObj;
 
-          const key = Object.keys(input)[0];
+          const keys = Object.keys(input);
 
-          this[key] = input[key];
+          keys.forEach((key) => {
+            this[key] = input[key];
+          });
 
           const result = await pool
             .request()
