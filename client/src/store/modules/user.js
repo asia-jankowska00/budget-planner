@@ -70,8 +70,9 @@ const actions = {
 // mutations
 const mutations = {
     updateUser(state, payload) {
-        const { firstName, lastName, username, currency } = payload;
+        const { id, firstName, lastName, username, currency } = payload;
         state.user = {
+            id,
             firstName,
             lastName,
             username,

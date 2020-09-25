@@ -10,7 +10,7 @@
         valueKey="id"
       />
 
-      <Icon name="edit" @click.native="goToEdit"/>
+      <Icon name="edit" @click.native="goToEdit" v-if="selectedBudget.owner.id === user.id"/>
     </div>
     
     <div id="budgetCollaborators" v-if="budgetCollaborators && !isBudgetLoading">
@@ -96,7 +96,7 @@ export default {
     },
     budgetTotal: function() {
       let total = 0;
-      this.budgetSources.forEach(source => total += source.convertedAmount);
+      this.budgetSources.forEach(source => total += source.convertedAmount ? source.convertedAmount : source.amount);
 
       return total;
     }

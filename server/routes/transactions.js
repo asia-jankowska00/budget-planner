@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
       res.json(transactions)
     } else if (params.containerId) {
       // verify if user has access on the source
-      await Container.checkOwner(params.containerId, req.user.id)
+      await Container.checkUserContainer(req.user.id, params.containerId)
 
       // getAll transactions by SourceId
       const transactions = await Transaction.getAllContainerTransactions(params.containerId);
@@ -57,7 +57,7 @@ router.get('/:transactionId', async (req, res) => {
       res.json(transaction)
     } else if (params.containerId) {
       // verify if user has access on the source
-      await Container.checkOwner(params.containerId, req.user.id)
+      await Container.checkUserContainer(req.user.id, params.containerId)
 
       // getAll transactions by SourceId
       const transaction = await Transaction.getContainerTransaction(params.containerId, params.transactionId);

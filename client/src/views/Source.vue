@@ -103,6 +103,7 @@ export default {
   #mainSource,
   #mainBudget {
     width: 50%;
+    margin-bottom: 0 !important;
 
     input {
       border: 0;
