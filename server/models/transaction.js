@@ -4,12 +4,12 @@ const sql = require("mssql");
 class Transaction {
   constructor(transaction) {
     this.id = transaction.id;
-    this.name = transaction.name
-    this.amount = transaction.amount
-    this.isExpense = transaction.isExpense
-    this.date = transaction.date
+    this.name = transaction.name;
+    this.amount = transaction.amount;
+    this.isExpense = transaction.isExpense;
+    this.date = transaction.date;
 
-    if (transaction.note) this.note = transaction.note
+    if (transaction.note) this.note = transaction.note;
 
     this.user = {};
     this.user.id = transaction.user.id;
@@ -18,9 +18,9 @@ class Transaction {
     this.user.username = transaction.user.username;
 
     if (transaction.source) {
-      this.source = {}
-      this.source.id = transaction.source.id
-      this.source.name = transaction.source.name
+      this.source = {};
+      this.source.id = transaction.source.id;
+      this.source.name = transaction.source.name;
 
       if (transaction.source.currency) {
         this.currency = {};
@@ -121,9 +121,9 @@ class Transaction {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input("SourceId", sql.Int, sourceId)
-            .query(`
+          const result = await pool
+            .request()
+            .input("SourceId", sql.Int, sourceId).query(`
               SELECT
               TransactionId, TransactionName, TransactionDate, 
               TransactionAmount, TransactionIsExpense, TransactionNote,  
@@ -141,7 +141,6 @@ class Transaction {
 
           if (result.recordset.length < 0)
             throw { status: 404, message: "No transactions found" };
-
 
           const transactions = [];
           if (result.recordset.length > 1) {
@@ -170,7 +169,7 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -180,10 +179,10 @@ class Transaction {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
+          const result = await pool
+            .request()
             .input("SourceId", sql.Int, sourceId)
-            .input("TransactionId", sql.Int, transactionId)
-            .query(`
+            .input("TransactionId", sql.Int, transactionId).query(`
               SELECT
               TransactionId, TransactionName, TransactionDate, 
               TransactionAmount, TransactionIsExpense, TransactionNote,  
@@ -225,7 +224,7 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -260,10 +259,10 @@ class Transaction {
           ON bpTransaction.UserId = bpLogin.UserId 
           WHERE bpContainerTransaction.ContainerId = @ContainerId
           ORDER BY TransactionDate DESC
-          `)
+          `);
 
           if (result.recordset < 0)
-            throw { status: 404, message: 'No transactions found.' }
+            throw { status: 404, message: "No transactions found." };
 
           const transactions = [];
           if (result.recordset.length > 0) {
@@ -295,9 +294,9 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        sql.close();
-      })()
-    })
+        // sql.close();
+      })();
+    });
   }
 
   static getContainerTransaction(containerId, transactionId) {
@@ -331,7 +330,7 @@ class Transaction {
           ON bpTransaction.UserId = bpLogin.UserId 
           WHERE bpContainerTransaction.ContainerId = @ContainerId
           AND bpTransaction.TransactionId = @TransactionId;
-          `)
+          `);
 
           if (!result.recordset[0]) { throw { status: 500, message: "Failed to get transaction" } }
 
@@ -357,15 +356,16 @@ class Transaction {
 
           resolve(transaction)
 
+          resolve(transaction);
         } catch (err) {
           console.log(err);
           reject(err);
         }
 
-        sql.close();
-      })()
-    })
+        // sql.close();
+      })();
+    });
   }
 }
 
-module.exports = Transaction
+module.exports = Transaction;

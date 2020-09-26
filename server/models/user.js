@@ -64,7 +64,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -99,7 +99,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -156,7 +156,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -236,7 +236,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -293,7 +293,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -351,7 +351,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -375,7 +375,9 @@ class User {
               .request()
               .input("UserId", sql.NVarChar, this.id)
               .input("LoginPassword", sql.NVarChar, newPassword)
-              .query(`UPDATE bpLogin SET LoginPassword = @LoginPassword WHERE UserId = @UserId;`);
+              .query(
+                `UPDATE bpLogin SET LoginPassword = @LoginPassword WHERE UserId = @UserId;`
+              );
           }
 
           if (reqBody.username !== this.username) {
@@ -383,17 +385,21 @@ class User {
               .request()
               .input("UserId", sql.NVarChar, this.id)
               .input("LoginUsername", sql.NVarChar, reqBody.username)
-              .query(`UPDATE bpLogin SET LoginUsername = @LoginUsername WHERE UserId = @UserId;`);
-            
-            this.username = reqBody.username
+              .query(
+                `UPDATE bpLogin SET LoginUsername = @LoginUsername WHERE UserId = @UserId;`
+              );
+
+            this.username = reqBody.username;
           }
-          
+
           if (currencyObj) {
             await pool
               .request()
               .input("CurrencyId", sql.Int, currencyObj.id)
               .input("UserId", sql.Int, this.id)
-              .query(`UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`);
+              .query(
+                `UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`
+              );
 
             this.currency = currencyObj;
           }
@@ -403,17 +409,19 @@ class User {
             .input("UserId", sql.Int, this.id)
             .input("UserFirstName", sql.NVarChar, reqBody.firstName)
             .input("UserLastName", sql.NVarChar, reqBody.lastName)
-            .query(`UPDATE bpUser SET UserFirstName = @UserFirstName, UserLastName = @UserLastName WHERE UserId = @UserId;`);
-          
+            .query(
+              `UPDATE bpUser SET UserFirstName = @UserFirstName, UserLastName = @UserLastName WHERE UserId = @UserId;`
+            );
+
           this.firstName = reqBody.firstName;
           this.lastName = reqBody.lastName;
 
-          resolve()
+          resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -442,7 +450,7 @@ class User {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }

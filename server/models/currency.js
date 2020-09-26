@@ -42,7 +42,7 @@ class Currency {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -80,7 +80,7 @@ class Currency {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
