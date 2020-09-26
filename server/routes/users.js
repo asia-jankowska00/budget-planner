@@ -6,7 +6,7 @@ const userSchemas = require("./schemas/userSchemas");
 
 router.get("", auth, async (req, res) => {
   try {
-    const users = await User.search(req.query.q);
+    const users = await User.search(req.query.username);
 
     if (!users) throw { message: "Failed to find user" };
 

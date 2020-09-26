@@ -3,32 +3,6 @@
     <form @submit.prevent="submit" class="row" autocomplete="off">
       <h5>Add transaction</h5>
 
-      <RadioButton
-        label="Expense"
-        name="isExpense"
-        :value="true"
-        id="transactionTypeExpense"
-        v-model="isExpense"
-      />
-      <RadioButton
-        label="Income"
-        name="isExpense"
-        id="transactionTypeIncome"
-        :value="false"
-        v-model="isExpense"
-      />
-
-      <TextInput v-model="name" label="Name" type="text" id="transactionName" />
-      <TextInput
-        v-model="amount"
-        label="Initial amount"
-        type="number"
-        id="transactionAmount"
-        min="0"
-        step="0.0001"
-      />
-      <Datepicker v-model="date" label="Date" id="transactionDate" />
-
       <Select
         id="transactionContainer"
         label="Budget"
@@ -56,6 +30,32 @@
         valueKey="id"
         placeholder="Select category"
       />
+
+      <RadioButton
+        label="Expense"
+        name="isExpense"
+        :value="true"
+        id="transactionTypeExpense"
+        v-model="isExpense"
+      />
+      <RadioButton
+        label="Income"
+        name="isExpense"
+        id="transactionTypeIncome"
+        :value="false"
+        v-model="isExpense"
+      />
+
+      <TextInput v-model="name" label="Name" type="text" id="transactionName" />
+      <TextInput
+        v-model="amount"
+        label="Initial amount"
+        type="number"
+        id="transactionAmount"
+        min="0"
+        step="0.0001"
+      />
+      <Datepicker v-model="date" label="Date" id="transactionDate" />
 
       <div class="actions">
         <Button label="Close" :isFlat="true" @click="closeModal" />

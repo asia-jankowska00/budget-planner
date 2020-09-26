@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const PORT = 8578;
+const PORT = 8550;
 const baseUrl = `http://localhost:${PORT}/api`;
 
 axios.defaults.headers.common["Content-Type"] = "application/json-patch+json";
@@ -29,38 +29,27 @@ export default {
   users() {
     return {
       getProfile: () => axios.get(`${baseUrl}/profile`, getConfig()),
-      updateProfile: (userObj) =>
-        axios.patch(`${baseUrl}/profile`, userObj, getConfig()),
+      updateProfile: (userObj) => axios.patch(`${baseUrl}/profile`, userObj, getConfig()),
+      search: (username) => axios.get(`${baseUrl}/users?username=${username}`, getConfig()) 
     };
   },
   sources(sourceId) {
     return {
       add: (source) => axios.post(`${baseUrl}/sources`, source, getConfig()),
       getAll: () => axios.get(`${baseUrl}/sources`, getConfig()),
-      getAllTransactions: () =>
-        axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig()),
-      update: (sourceData) =>
-        axios.patch(`${baseUrl}/sources/${sourceId}`, sourceData, getConfig()),
+      getAllTransactions: () => axios.get(`${baseUrl}/sources/${sourceId}/transactions`, getConfig()),
+      update: (sourceData) => axios.patch(`${baseUrl}/sources/${sourceId}`, sourceData, getConfig()),
     };
   },
   budgets(containerId) {
     return {
-      add: (container) =>
-        axios.post(`${baseUrl}/containers`, container, getConfig()),
+      add: (container) => axios.post(`${baseUrl}/containers`, container, getConfig()),
       getAll: () => axios.get(`${baseUrl}/containers`, getConfig()),
       get: () => axios.get(`${baseUrl}/containers/${containerId}`, getConfig()),
-      getSources: () =>
-        axios.get(`${baseUrl}/containers/${containerId}/sources`, getConfig()),
-      getCollaborators: () =>
-        axios.get(
-          `${baseUrl}/containers/${containerId}/collaborators`,
-          getConfig()
-        ),
-      getAllTransactions: () =>
-        axios.get(
-          `${baseUrl}/containers/${containerId}/transactions`,
-          getConfig()
-        ),
+      getSources: () => axios.get(`${baseUrl}/containers/${containerId}/sources`, getConfig()),
+      getCollaborators: () => axios.get(`${baseUrl}/containers/${containerId}/collaborators`, getConfig()),
+      addCollaborator: (collaborator) => axios.post(`${baseUrl}/containers/${containerId}/collaborators`, collaborator, getConfig()),
+      getAllTransactions: () =>axios.get(`${baseUrl}/containers/${containerId}/transactions`, getConfig()),
     };
   },
   transactions() {

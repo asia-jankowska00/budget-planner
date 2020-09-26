@@ -105,13 +105,33 @@ class User {
   }
 
   // search
-  static search(query) {
+  static  search(query) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const input = query;
 
           const pool = await sql.connect(connection);
+          // const result = await pool
+          //   .request()
+          //   .input("Query", sql.NVarChar, input).query(`
+          //     SELECT 
+          //     bpLogin.UserId,
+          //     bpLogin.LoginUsername,
+          //     bpUser.UserFirstName,
+          //     bpUser.UserLastName
+          //     FROM bpLogin 
+          //     INNER JOIN bpUser 
+          //     ON bpLogin.UserId = bpUser.UserId
+          //     WHERE 
+          //     bpLogin.LoginUsername LIKE @Query + '%' 
+          //     OR 
+          //     bpUser.UserFirstName LIKE @Query + '%'
+          //     OR 
+          //     bpUser.UserLastName LIKE @Query + '%'
+          //     AND NOT bpUser.UserIsDisabled = 1;
+          // `);
+
           const result = await pool
             .request()
             .input("Query", sql.NVarChar, input).query(`
@@ -124,32 +144,30 @@ class User {
               INNER JOIN bpUser 
               ON bpLogin.UserId = bpUser.UserId
               WHERE 
-              bpLogin.LoginUsername LIKE @Query + '%' 
-              OR 
-              bpUser.UserFirstName LIKE @Query + '%'
-              OR 
-              bpUser.UserLastName LIKE @Query + '%'
+              bpLogin.LoginUsername LIKE @Query + '%'
               AND NOT bpUser.UserIsDisabled = 1;
           `);
 
-          if (!result.recordset[0])
+          if (!result.recordset.length < 0)
             throw {
-              status: 404,
-              message: "User not found",
+              status: 500,
+              message: "Something went wrong in the DB",
             };
 
           const dbRecords = [];
-
-          result.recordset.forEach((record) => {
-            dbRecords.push(
-              new User({
-                id: record.UserId,
-                username: record.LoginUsername,
-                firstName: record.UserFirstName,
-                lastName: record.UserLastName,
-              })
-            );
-          });
+          
+          if (result.recordset.length > 0) {
+            result.recordset.forEach((record) => {
+              dbRecords.push(
+                new User({
+                  id: record.UserId,
+                  username: record.LoginUsername,
+                  firstName: record.UserFirstName,
+                  lastName: record.UserLastName,
+                })
+              );
+            });
+          }
 
           resolve(dbRecords);
         } catch (err) {

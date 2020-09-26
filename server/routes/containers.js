@@ -147,7 +147,6 @@ router.post("/:containerId/collaborators", async (req, res) => {
 
     // fetch container
     const container = await Container.readById(req.params.containerId);
-    console.log(container);
 
     // check if new collaborator exists
     const newCollaborator = await User.readById(req.body.collaboratorId);
