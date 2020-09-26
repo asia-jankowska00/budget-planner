@@ -53,7 +53,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -88,7 +88,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -122,7 +122,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -156,7 +156,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -217,7 +217,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -271,7 +271,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -305,7 +305,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -337,7 +337,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -394,7 +394,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -428,7 +428,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -460,7 +460,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -496,7 +496,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -566,7 +566,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -598,7 +598,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -646,7 +646,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -693,7 +693,7 @@ class Container {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -742,7 +742,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -790,7 +790,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -829,7 +829,7 @@ class Container {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }

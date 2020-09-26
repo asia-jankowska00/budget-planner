@@ -68,7 +68,7 @@ class Source {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -131,7 +131,7 @@ class Source {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -200,7 +200,7 @@ class Source {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -275,7 +275,7 @@ class Source {
           reject(err);
         }
 
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -341,7 +341,7 @@ class Source {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -373,7 +373,7 @@ class Source {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }

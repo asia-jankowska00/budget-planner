@@ -1,26 +1,26 @@
 const connection = require("../config/connection");
 const sql = require("mssql");
 
-class Transaction{
+class Transaction {
   constructor(transaction) {
     this.id = transaction.id;
-    this.name = transaction.name
-    this.amount = transaction.amount
-    this.isExpense = transaction.isExpense
-    this.date = transaction.date
+    this.name = transaction.name;
+    this.amount = transaction.amount;
+    this.isExpense = transaction.isExpense;
+    this.date = transaction.date;
 
-    if (transaction.note) this.note = transaction.note
+    if (transaction.note) this.note = transaction.note;
 
     this.user = {};
     this.user.id = transaction.user.id;
     this.user.firstName = transaction.user.firstName;
     this.user.lastName = transaction.user.lastName;
     this.user.username = transaction.user.username;
-    
+
     if (transaction.source) {
-      this.source = {}
-      this.source.id = transaction.source.id
-      this.source.name = transaction.source.name
+      this.source = {};
+      this.source.id = transaction.source.id;
+      this.source.name = transaction.source.name;
 
       if (transaction.source.currency) {
         this.currency = {};
@@ -34,18 +34,16 @@ class Transaction{
     //category to be added for container context
   }
 
-  static create(transaction, user) {
-  
-  }
+  static create(transaction, user) {}
 
   static getAllSourceTransactions(sourceId) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input("SourceId", sql.Int, sourceId)
-            .query(`
+          const result = await pool
+            .request()
+            .input("SourceId", sql.Int, sourceId).query(`
               SELECT
               TransactionId, TransactionName, TransactionDate, 
               TransactionAmount, TransactionIsExpense, TransactionNote,  
@@ -64,7 +62,6 @@ class Transaction{
           if (result.recordset.length < 0)
             throw { status: 404, message: "No transactions found" };
 
-
           const transactions = [];
           if (result.recordset.length > 1) {
             result.recordset.forEach((record) => {
@@ -79,20 +76,20 @@ class Transaction{
                   id: record.UserId,
                   username: record.LoginUsername,
                   firstName: record.UserFirstName,
-                  lastName: record.UserLastName
-                }
-              }
-  
+                  lastName: record.UserLastName,
+                },
+              };
+
               transactions.push(new Transaction(transactionObj));
             });
           }
-          
+
           resolve(transactions);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -102,10 +99,10 @@ class Transaction{
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
+          const result = await pool
+            .request()
             .input("SourceId", sql.Int, sourceId)
-            .input("TransactionId", sql.Int, transactionId)
-            .query(`
+            .input("TransactionId", sql.Int, transactionId).query(`
               SELECT
               TransactionId, TransactionName, TransactionDate, 
               TransactionAmount, TransactionIsExpense, TransactionNote,  
@@ -128,26 +125,28 @@ class Transaction{
             throw { status: 500, message: "Something is wrong in the DB" };
 
           const record = result.recordset[0];
-          
-          resolve(new Transaction({
-            id: record.TransactionId,
-            name: record.TransactionName,
-            amount: record.TransactionAmount,
-            isExpense: record.TransactionIsExpense,
-            date: record.TransactionDate,
-            note: record.TransactionNote,
-            user: {
-              id: record.UserId,
-              username: record.LoginUsername,
-              firstName: record.UserFirstName,
-              lastName: record.UserLastName
-            }
-          }))
+
+          resolve(
+            new Transaction({
+              id: record.TransactionId,
+              name: record.TransactionName,
+              amount: record.TransactionAmount,
+              isExpense: record.TransactionIsExpense,
+              date: record.TransactionDate,
+              note: record.TransactionNote,
+              user: {
+                id: record.UserId,
+                username: record.LoginUsername,
+                firstName: record.UserFirstName,
+                lastName: record.UserLastName,
+              },
+            })
+          );
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        // sql.close();
       })();
     });
   }
@@ -157,9 +156,9 @@ class Transaction{
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
-          .input('ContainerId', sql.Int, containerId)
-          .query(`
+          const result = await pool
+            .request()
+            .input("ContainerId", sql.Int, containerId).query(`
           SELECT
           bpTransaction.TransactionId,
           TransactionName,
@@ -182,55 +181,55 @@ class Transaction{
           ON bpTransaction.UserId = bpLogin.UserId 
           WHERE bpContainerTransaction.ContainerId = @ContainerId
           ORDER BY TransactionDate DESC
-          `)
+          `);
 
           if (result.recordset < 0)
-          throw {status: 404 , message: 'No transactions found.'}
+            throw { status: 404, message: "No transactions found." };
 
           const transactions = [];
-          if(result.recordset.length > 0){
+          if (result.recordset.length > 0) {
             result.recordset.forEach((record) => {
-            const transactionObj = {
-              id: record.TransactionId,
-              name: record.TransactionName,
-              amount: record.TransactionAmount,
-              isExpense: record.TransactionIsExpense,
-              date: record.TransactionDate,
-              note: record.TransactionNote,
-              user: {
-                id: record.UserId,
-                username: record.LoginUsername,
-                firstName: record.UserFirstName,
-                lastName: record.UserLastName
-              },
-              source: {
-                id: record.SourceId,
-                name: record.SourceName
-              }
-            }
+              const transactionObj = {
+                id: record.TransactionId,
+                name: record.TransactionName,
+                amount: record.TransactionAmount,
+                isExpense: record.TransactionIsExpense,
+                date: record.TransactionDate,
+                note: record.TransactionNote,
+                user: {
+                  id: record.UserId,
+                  username: record.LoginUsername,
+                  firstName: record.UserFirstName,
+                  lastName: record.UserLastName,
+                },
+                source: {
+                  id: record.SourceId,
+                  name: record.SourceName,
+                },
+              };
 
-            transactions.push(new Transaction(transactionObj))
-          })
+              transactions.push(new Transaction(transactionObj));
+            });
           }
           resolve(transactions);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        sql.close();
-      })()
-    })
+        // sql.close();
+      })();
+    });
   }
 
   static getContainerTransaction(containerId, transactionId) {
-    return new Promise ((resolve, reject) => {
-      (async ()=>{
+    return new Promise((resolve, reject) => {
+      (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool.request()
-          .input('ContainerId', sql.Int, containerId)
-          .input('TransactionId', sql.Int, transactionId)
-          .query(`
+          const result = await pool
+            .request()
+            .input("ContainerId", sql.Int, containerId)
+            .input("TransactionId", sql.Int, transactionId).query(`
           SELECT
           bpTransaction.TransactionId,
           TransactionName,
@@ -253,41 +252,42 @@ class Transaction{
           ON bpTransaction.UserId = bpLogin.UserId 
           WHERE bpContainerTransaction.ContainerId = @ContainerId
           AND bpTransaction.TransactionId = @TransactionId;
-          `)
+          `);
 
-          if (!result.recordset[0]) { throw {status: 500, message: "Failed to get transaction"}}
+          if (!result.recordset[0]) {
+            throw { status: 500, message: "Failed to get transaction" };
+          }
 
           const record = result.recordset[0];
           const transaction = new Transaction({
-              id: record.TransactionId,
-              name: record.TransactionName,
-              amount: record.TransactionAmount,
-              isExpense: record.TransactionIsExpense,
-              date: record.TransactionDate,
-              note: record.TransactionNote,
-              user: {
-                id: record.UserId,
-                username: record.LoginUsername,
-                firstName: record.UserFirstName,
-                lastName: record.UserLastName
-              },
-              source: {
-                id: record.SourceId,
-                name: record.SourceName
-              }
-          })
+            id: record.TransactionId,
+            name: record.TransactionName,
+            amount: record.TransactionAmount,
+            isExpense: record.TransactionIsExpense,
+            date: record.TransactionDate,
+            note: record.TransactionNote,
+            user: {
+              id: record.UserId,
+              username: record.LoginUsername,
+              firstName: record.UserFirstName,
+              lastName: record.UserLastName,
+            },
+            source: {
+              id: record.SourceId,
+              name: record.SourceName,
+            },
+          });
 
-          resolve(transaction)
-
+          resolve(transaction);
         } catch (err) {
           console.log(err);
           reject(err);
         }
 
-      sql.close();
-      })()
-    })
+        // sql.close();
+      })();
+    });
   }
 }
 
-module.exports = Transaction
+module.exports = Transaction;
