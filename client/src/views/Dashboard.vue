@@ -11,7 +11,7 @@
     <router-view :user="user"></router-view>
   </div>
 
-  <Loader v-else-if="isLoading" text="Loading data"/>
+  <Loader v-else-if="isLoading" text="Loading data" />
 
   <div class="no-data" v-else-if="!user && !isLoading">
     <p>Something went wrong :(</p>
@@ -39,7 +39,7 @@ export default {
     AddSource,
     AddBudget,
     AddTransaction,
-    Loader
+    Loader,
   },
   data() {
     return {
@@ -52,10 +52,19 @@ export default {
   watch: {
     $route() {
       this.checkRoute();
-    }
+    },
   },
   computed: {
-    ...mapGetters(["isModalOpen", "modalName", "user", "currencies", "sources", "budgets", "selectedSource", "selectedBudget"]),
+    ...mapGetters([
+      "isModalOpen",
+      "modalName",
+      "user",
+      "currencies",
+      "sources",
+      "budgets",
+      "selectedSource",
+      "selectedBudget",
+    ]),
     canGoBack: function() {
       const lastMatch = this.$route.matched[
         this.$route.matched.length - 1
@@ -63,8 +72,13 @@ export default {
       return lastMatch !== "sources" && lastMatch !== "budgets";
     },
     isLoading: function() {
-      return this.isLoadingUser || this.isLoadingSources || this.isLoadingCurrencies || this.isLoadingBudgets
-    }
+      return (
+        this.isLoadingUser ||
+        this.isLoadingSources ||
+        this.isLoadingCurrencies ||
+        this.isLoadingBudgets
+      );
+    },
   },
   methods: {
     goToLogin() {
@@ -84,89 +98,130 @@ export default {
       }
     },
     updateIndicator() {
-      let indicator = document.querySelector('.indicator');
+      let indicator = document.querySelector(".indicator");
       if (!indicator) return;
 
       const newPage = this.$route.name.toLowerCase();
 
-      if (newPage === 'sources') {
-        indicator.style.left = '0px';
-        indicator.style.right = '225px';
-      } else if (newPage === 'budgets') {
-        indicator.style.left = '225px';
-        indicator.style.right = '0px';
+      if (newPage === "sources") {
+        indicator.style.left = "0px";
+        indicator.style.right = "225px";
+      } else if (newPage === "budgets") {
+        indicator.style.left = "225px";
+        indicator.style.right = "0px";
       }
-    }
+    },
   },
   created() {
     this.checkRoute(this);
 
     if (!this.user) {
-      this.$store.dispatch("getProfile")
-        .then(() => this.isLoadingUser = false)
+      this.$store
+        .dispatch("getProfile")
+        .then(() => (this.isLoadingUser = false))
         .catch((err) => {
           this.isLoadingUser = false;
-          M.toast({ html: err.response.data.message ? err.response.data.message: "Something went wrong" });
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
         });
     } else {
       this.isLoadingUser = false;
     }
 
     if (this.currencies.length === 0) {
-      this.$store.dispatch("getCurrencies")
-      .then(() => this.isLoadingCurrencies = false)
-      .catch((err) => {
-        this.isLoadingCurrencies = false;
-        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-      });
+      this.$store
+        .dispatch("getCurrencies")
+        .then(() => (this.isLoadingCurrencies = false))
+        .catch((err) => {
+          this.isLoadingCurrencies = false;
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
     } else {
       this.isLoadingCurrencies = false;
     }
 
     if (this.sources.length === 0) {
-      this.$store.dispatch("getAllSources")
-      .then((data) => {
-        this.$store.commit('updateSelectedSource', data[0])
-        this.isLoadingSources = false
-      })
-      .catch((err) => {
-        this.isLoadingSources = false;
-        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-      });
+      this.$store
+        .dispatch("getAllSources")
+        .then((data) => {
+          this.$store.commit("updateSelectedSource", data[0]);
+          this.isLoadingSources = false;
+        })
+        .catch((err) => {
+          this.isLoadingSources = false;
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
     } else {
       this.isLoadingSources = false;
     }
 
     if (this.budgets.length === 0) {
-      this.$store.dispatch("getAllBudgets")
-      .then((data) => {
-        this.$store.commit('updateSelectedBudget', data[0])
-        this.isLoadingBudgets = false
-      })
-      .catch((err) => {
-        this.isLoadingBudgets = false;
-        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
-      });
+      this.$store
+        .dispatch("getAllBudgets")
+        .then((data) => {
+          this.$store.commit("updateSelectedBudget", data[0]);
+          this.isLoadingBudgets = false;
+
+          this.$store.dispatch("getBudgetSources", data[0].id);
+        })
+        .catch((err) => {
+          this.isLoadingBudgets = false;
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
+    } else {
+      this.isLoadingBudgets = false;
+    }
+
+    if (this.budgets.length !== 0) {
+      this.$store
+        .dispatch("getAllBudgets")
+        .then((data) => {
+          this.$store.commit("updateSelectedBudget", data[0]);
+          this.isLoadingBudgets = false;
+        })
+        .catch((err) => {
+          this.isLoadingBudgets = false;
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
     } else {
       this.isLoadingBudgets = false;
     }
   },
   mounted() {
-    this.updateIndicator()
+    this.updateIndicator();
   },
   updated() {
-    this.updateIndicator() 
+    this.updateIndicator();
   },
   beforeDestroy() {
-    this.$store.commit('updateSelectedSource', null);
-    this.$store.commit('updateSelectedBudget', null);
-    this.$store.commit('updateSources', []);
-    this.$store.commit('updateBudgets', []);
-    this.$store.commit('updateSourceTransactions', null);
-    this.$store.commit('updateBudgetTransactions', null);
-    this.$store.commit('updateBudgetCollaborators', null);
-    this.$store.commit('updateBudgetSources', null);
-  }
+    this.$store.commit("updateSelectedSource", null);
+    this.$store.commit("updateSelectedBudget", null);
+    this.$store.commit("updateSources", []);
+    this.$store.commit("updateBudgets", []);
+    this.$store.commit("updateSourceTransactions", null);
+    this.$store.commit("updateBudgetTransactions", null);
+    this.$store.commit("updateBudgetCollaborators", null);
+    this.$store.commit("updateBudgetSources", null);
+  },
 };
 </script>
 

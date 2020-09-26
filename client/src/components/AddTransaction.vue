@@ -36,14 +36,16 @@
         v-model="budgetId"
         displayKey="name"
         valueKey="id"
+        placeholder="Select budget"
       />
       <Select
         id="transactionSource"
         label="Source"
-        :options="sources"
+        :options="accessSources"
         v-model="sourceId"
         displayKey="name"
         valueKey="id"
+        placeholder="Select source"
       />
       <Select
         id="transactionCategory"
@@ -52,11 +54,12 @@
         v-model="categoryId"
         displayKey="name"
         valueKey="id"
+        placeholder="Select category"
       />
 
       <div class="actions">
         <Button label="Close" :isFlat="true" @click="closeModal" />
-        <Button label="Save" type="submit" />
+        <Button label="Save" type="submit" :isDisabled="!canSubmit" />
       </div>
     </form>
   </div>
@@ -69,12 +72,13 @@ import Select from "@/components/Select";
 import Datepicker from "@/components/Datepicker";
 import RadioButton from "@/components/RadioButton";
 import { mapGetters } from "vuex";
+import M from "materialize-css";
 
 export default {
   name: "AddTransaction",
   data() {
     return {
-      isExpense: true,
+      isExpense: "",
       name: "",
       amount: "",
       budgetId: "",
@@ -91,7 +95,7 @@ export default {
     RadioButton,
   },
   computed: {
-    ...mapGetters(["budgets", "sources"]),
+    ...mapGetters(["budgets", "budgetSources", "user"]),
     categories: function() {
       return [
         {
@@ -108,10 +112,72 @@ export default {
         },
       ];
     },
+    canSubmit: function() {
+      return (
+        this.amount != 0 &&
+        this.budgetId &&
+        this.categoryId &&
+        this.date &&
+        this.isExpense &&
+        this.name.length > 2 &&
+        this.sourceId
+      );
+    },
+    accessSources: function() {
+      return this.budgetSources.filter((source) =>
+        source.usersWithAccess.includes(this.user.id)
+      );
+    },
+  },
+  watch: {
+    budgetId: function(value) {
+      const newBudgetId = parseInt(value);
+      this.$store.commit(
+        "updateSelectedBudget",
+        this.budgets.find((budget) => budget.id === newBudgetId)
+      );
+      this.$store.dispatch("getBudgetSources", newBudgetId).catch((err) => {
+        M.toast({
+          html: err.response.data.message
+            ? err.response.data.message
+            : "Something went wrong",
+        });
+      });
+      this.$store
+        .dispatch("getBudgetCollaborators", newBudgetId)
+        .catch((err) => {
+          M.toast({
+            html: err.response.data.message
+              ? err.response.data.message
+              : "Something went wrong",
+          });
+        });
+    },
   },
   methods: {
     submit: function() {
-      alert("transaction submitted");
+      if (this.canSubmit) {
+        this.$store
+          .dispatch("addTransaction", {
+            name: this.name,
+            sourceId: parseInt(this.sourceId),
+            containerId: parseInt(this.budgetId),
+            categoryId: 2,
+            isExpense: this.isExpense === "false" ? false : true,
+            date: this.date,
+            amount: parseFloat(this.amount),
+          })
+          .then(() => {
+            this.closeModal();
+          })
+          .catch((err) => {
+            M.toast({
+              html: err.response.data.message
+                ? err.response.data.message
+                : "Something went wrong",
+            });
+          });
+      }
     },
     closeModal: function() {
       this.$store.commit("closeModal");
