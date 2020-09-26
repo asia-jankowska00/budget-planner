@@ -3,16 +3,56 @@
     <form @submit.prevent="submit" class="row" autocomplete="off">
       <h5>Add transaction</h5>
 
-      <RadioButton label="Expense" name="type" id="transactionTypeExpense" v-model="type"/>
-      <RadioButton label="Income" name="type" id="transactionTypeIncome" v-model="type"/>
-      
-      <TextInput v-model="name" label="Name" type="text" id="transactionName" />
-      <TextInput v-model="amount" label="Initial amount" type="number" id="transactionAmount" min="0" step="0.0001" />
-      <Datepicker v-model="date" label="Date" id="transactionDate"/>
+      <RadioButton
+        label="Expense"
+        name="isExpense"
+        :value="true"
+        id="transactionTypeExpense"
+        v-model="isExpense"
+      />
+      <RadioButton
+        label="Income"
+        name="isExpense"
+        id="transactionTypeIncome"
+        :value="false"
+        v-model="isExpense"
+      />
 
-      <Select id="transactionContainer" label="Budget" :options="budgets" v-model="budgetId" displayKey="name" valueKey="id" />
-      <Select id="transactionSource" label="Source" :options="sources" v-model="sourceId" displayKey="name" valueKey="id" />
-      <Select id="transactionCategory" label="Category" :options="categories" v-model="categoryId" displayKey="name" valueKey="id" />
+      <TextInput v-model="name" label="Name" type="text" id="transactionName" />
+      <TextInput
+        v-model="amount"
+        label="Initial amount"
+        type="number"
+        id="transactionAmount"
+        min="0"
+        step="0.0001"
+      />
+      <Datepicker v-model="date" label="Date" id="transactionDate" />
+
+      <Select
+        id="transactionContainer"
+        label="Budget"
+        :options="budgets"
+        v-model="budgetId"
+        displayKey="name"
+        valueKey="id"
+      />
+      <Select
+        id="transactionSource"
+        label="Source"
+        :options="sources"
+        v-model="sourceId"
+        displayKey="name"
+        valueKey="id"
+      />
+      <Select
+        id="transactionCategory"
+        label="Category"
+        :options="categories"
+        v-model="categoryId"
+        displayKey="name"
+        valueKey="id"
+      />
 
       <div class="actions">
         <Button label="Close" :isFlat="true" @click="closeModal" />
@@ -34,13 +74,13 @@ export default {
   name: "AddTransaction",
   data() {
     return {
-      type: "",
+      isExpense: true,
       name: "",
       amount: "",
       budgetId: "",
       sourceId: "",
       categoryId: "",
-      date: null
+      date: null,
     };
   },
   components: {
@@ -48,7 +88,7 @@ export default {
     Button,
     Select,
     Datepicker,
-    RadioButton
+    RadioButton,
   },
   computed: {
     ...mapGetters(["budgets", "sources"]),
@@ -56,18 +96,18 @@ export default {
       return [
         {
           id: 1,
-          name: 'Groceries'
+          name: "Groceries",
         },
         {
           id: 2,
-          name: 'Transportation'
+          name: "Transportation",
         },
         {
           id: 3,
-          name: 'Bills'
-        }
-      ]
-    }
+          name: "Bills",
+        },
+      ];
+    },
   },
   methods: {
     submit: function() {
