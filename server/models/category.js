@@ -50,7 +50,7 @@ class Category {
                     console.log(err);
                     reject(err);
                 }
-                sql.close();
+
             })();
         })
     }
@@ -91,7 +91,7 @@ class Category {
                     console.log(err);
                     reject(err);
                 }
-                sql.close();
+
             })();
         })
     }
@@ -132,7 +132,7 @@ class Category {
                     reject(err);
                 }
 
-                sql.close();
+
             })()
         })
     }
@@ -188,7 +188,7 @@ class Category {
                     console.log(err);
                     reject(err);
                 }
-                sql.close();
+
             })()
         })
     }
@@ -216,7 +216,43 @@ class Category {
                     console.log(err);
                     reject(err);
                 }
-                sql.close();
+
+            })()
+        })
+    }
+
+    static checkContainerCategory(containerId, categoryId) {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                try {
+                    const pool = await sql.connect(connection);
+                    const result = await pool.request()
+                        .input('CategoryId', sql.Int, categoryId)
+                        .input('ContainerId' , sql.Int, containerId)
+                        .query(`
+                        SELECT * FROM bpContainerCategory
+                        WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+                `)
+
+                if (result.recordset.length < 1) {
+                    throw{
+                        status: 400,
+                        message: 'Category not part of the container'
+                    }
+                }
+
+                if (result.recordset.length > 1) {
+                    throw{
+                        status: 500,
+                        message: 'Database is corrupt'
+                    }
+                }
+
+                    resolve();
+                } catch (err) {
+                    console.log(err);
+                    reject(err);
+                }
 
             })()
         })
