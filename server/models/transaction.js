@@ -111,7 +111,7 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        sql.close();
+        //sql.close();
       })()
     })
   }
