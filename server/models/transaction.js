@@ -31,10 +31,90 @@ class Transaction {
       }
     }
 
+    if (transaction.container){
+      this.container = {};
+      this.container.id = transaction.container.id;
+      this.container.name = transaction.container.name;
+
+      if(transaction.container.category){
+        this.category = {};
+        this.category.id = transaction.container.category.id;
+        this.category.name = transaction.container.category.name;
+      }
+    }
+
     //category to be added for container context
   }
 
-  static create(transaction, user) {}
+  static create(transactionObj, user) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+          const result = await pool.request()
+            .input('TransactionName', sql.NVarChar, transactionObj.name)
+            .input('TransactionDate', sql.Date, transactionObj.date)
+            .input('TransactionAmount', sql.Money, transactionObj.amount)
+            .input('TransactionIsExpense', sql.Bit, transactionObj.isExpense)
+            .input('TransactionNote', sql.NVarChar, transactionObj.note)
+            .input('UserId', sql.Int, user.id)
+            .input('ContainerId', sql.Int, transactionObj.containerId)
+            .input('SourceId', sql.Int, transactionObj.sourceId)
+            .input('CategoryId', sql.Int, transactionObj.categoryId)
+            .query(`
+            INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, UserId, SourceId)
+            VALUES (@TransactionName, @TransactionDate, @TransactionAmount, @TransactionIsExpense, @TransactionNote, @UserId, @SourceId)
+
+            INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
+            VALUES (@ContainerId, IDENT_CURRENT('bpTransaction'), @CategoryId);
+
+            SELECT bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
+            FROM bpTransaction
+            INNER JOIN bpContainerTransaction
+            ON bpTransaction.TransactionId = bpContainerTransaction.TransactionId
+            INNER JOIN bpSource
+            ON bpTransaction.SourceId = bpSource.SourceId
+            WHERE bpTransaction.TransactionId = IDENT_CURRENT('bpTransaction')
+          `)
+
+          if (!result.recordset[0])
+            throw {
+              status: 500,
+              message: 'Failed to save Transaction to database'
+            };
+
+          const record = result.recordset[0];
+
+          const newTransaction = new Transaction({
+            id: record.TransactionId,
+            name: record.TransactionName,
+            date: record.TransactionDate,
+            amount: record.TransactionAmount,
+            isExpense: record.TransactionIsExpense,
+            note: record.TransactionNote,
+            user: {
+              id: user.id,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName
+            },
+            source: {
+              id: record.SourceId,
+              name: record.SourceName
+            },
+            category: record.CategoryId
+          })
+
+          resolve(newTransaction);
+
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        //sql.close();
+      })()
+    })
+  }
 
   static getAllSourceTransactions(sourceId) {
     return new Promise((resolve, reject) => {
@@ -76,9 +156,9 @@ class Transaction {
                   id: record.UserId,
                   username: record.LoginUsername,
                   firstName: record.UserFirstName,
-                  lastName: record.UserLastName,
-                },
-              };
+                  lastName: record.UserLastName
+                }
+              }
 
               transactions.push(new Transaction(transactionObj));
             });
@@ -126,22 +206,20 @@ class Transaction {
 
           const record = result.recordset[0];
 
-          resolve(
-            new Transaction({
-              id: record.TransactionId,
-              name: record.TransactionName,
-              amount: record.TransactionAmount,
-              isExpense: record.TransactionIsExpense,
-              date: record.TransactionDate,
-              note: record.TransactionNote,
-              user: {
-                id: record.UserId,
-                username: record.LoginUsername,
-                firstName: record.UserFirstName,
-                lastName: record.UserLastName,
-              },
-            })
-          );
+          resolve(new Transaction({
+            id: record.TransactionId,
+            name: record.TransactionName,
+            amount: record.TransactionAmount,
+            isExpense: record.TransactionIsExpense,
+            date: record.TransactionDate,
+            note: record.TransactionNote,
+            user: {
+              id: record.UserId,
+              username: record.LoginUsername,
+              firstName: record.UserFirstName,
+              lastName: record.UserLastName
+            }
+          }))
         } catch (err) {
           console.log(err);
           reject(err);
@@ -156,9 +234,9 @@ class Transaction {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId).query(`
+          const result = await pool.request()
+            .input('ContainerId', sql.Int, containerId)
+            .query(`
           SELECT
           bpTransaction.TransactionId,
           TransactionName,
@@ -200,16 +278,16 @@ class Transaction {
                   id: record.UserId,
                   username: record.LoginUsername,
                   firstName: record.UserFirstName,
-                  lastName: record.UserLastName,
+                  lastName: record.UserLastName
                 },
                 source: {
                   id: record.SourceId,
-                  name: record.SourceName,
-                },
-              };
+                  name: record.SourceName
+                }
+              }
 
-              transactions.push(new Transaction(transactionObj));
-            });
+              transactions.push(new Transaction(transactionObj))
+            })
           }
           resolve(transactions);
         } catch (err) {
@@ -226,10 +304,10 @@ class Transaction {
       (async () => {
         try {
           const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("TransactionId", sql.Int, transactionId).query(`
+          const result = await pool.request()
+            .input('ContainerId', sql.Int, containerId)
+            .input('TransactionId', sql.Int, transactionId)
+            .query(`
           SELECT
           bpTransaction.TransactionId,
           TransactionName,
@@ -254,9 +332,7 @@ class Transaction {
           AND bpTransaction.TransactionId = @TransactionId;
           `);
 
-          if (!result.recordset[0]) {
-            throw { status: 500, message: "Failed to get transaction" };
-          }
+          if (!result.recordset[0]) { throw { status: 500, message: "Failed to get transaction" } }
 
           const record = result.recordset[0];
           const transaction = new Transaction({
@@ -270,13 +346,15 @@ class Transaction {
               id: record.UserId,
               username: record.LoginUsername,
               firstName: record.UserFirstName,
-              lastName: record.UserLastName,
+              lastName: record.UserLastName
             },
             source: {
               id: record.SourceId,
-              name: record.SourceName,
-            },
-          });
+              name: record.SourceName
+            }
+          })
+
+          resolve(transaction)
 
           resolve(transaction);
         } catch (err) {
