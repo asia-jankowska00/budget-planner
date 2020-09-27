@@ -50,7 +50,7 @@
       <Select
         id="transactionCategory"
         label="Category"
-        :options="categories"
+        :options="budgetCategories"
         v-model="categoryId"
         displayKey="name"
         valueKey="id"
@@ -95,23 +95,23 @@ export default {
     RadioButton,
   },
   computed: {
-    ...mapGetters(["budgets", "budgetSources", "user"]),
-    categories: function() {
-      return [
-        {
-          id: 1,
-          name: "Groceries",
-        },
-        {
-          id: 2,
-          name: "Transportation",
-        },
-        {
-          id: 3,
-          name: "Bills",
-        },
-      ];
-    },
+    ...mapGetters(["budgets", "budgetSources", "budgetCategories", "user"]),
+    // categories: function() {
+    //   return [
+    //     {
+    //       id: 1,
+    //       name: "Groceries",
+    //     },
+    //     {
+    //       id: 2,
+    //       name: "Transportation",
+    //     },
+    //     {
+    //       id: 3,
+    //       name: "Bills",
+    //     },
+    //   ];
+    // },
     canSubmit: function() {
       return (
         this.amount != 0 &&
@@ -143,6 +143,7 @@ export default {
             : "Something went wrong",
         });
       });
+
       this.$store
         .dispatch("getBudgetCollaborators", newBudgetId)
         .catch((err) => {
@@ -152,6 +153,13 @@ export default {
               : "Something went wrong",
           });
         });
+      this.$store.dispatch("getBudgetCategories", newBudgetId).catch((err) => {
+        M.toast({
+          html: err.response.data.message
+            ? err.response.data.message
+            : "Something went wrong",
+        });
+      });
     },
   },
   methods: {
@@ -162,7 +170,7 @@ export default {
             name: this.name,
             sourceId: parseInt(this.sourceId),
             containerId: parseInt(this.budgetId),
-            categoryId: 2,
+            categoryId: parseInt(this.categoryId),
             isExpense: this.isExpense === "false" ? false : true,
             date: this.date,
             amount: parseFloat(this.amount),

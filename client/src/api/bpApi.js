@@ -56,6 +56,11 @@ export default {
           `${baseUrl}/containers/${containerId}/collaborators`,
           getConfig()
         ),
+      getCategories: () =>
+        axios.get(
+          `${baseUrl}/containers/${containerId}/categories`,
+          getConfig()
+        ),
       getAllTransactions: () =>
         axios.get(
           `${baseUrl}/containers/${containerId}/transactions`,
