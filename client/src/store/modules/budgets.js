@@ -8,6 +8,7 @@ const state = () => ({
   budgetCategories: null,
   isBudgetLoadingSources: true,
   isBudgetLoadingCollaborators: true,
+  searchedCollaborators: []
 });
 
 // getters
@@ -115,10 +116,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const { data } = await bpApi
-            .budgets(payload.budgetId)
-            .addCollaborator(payload.collaborator);
-          console.log(data);
+          const { data } = await bpApi.budgets(payload.budgetId).addCollaborator(payload.collaborator);
           commit("updateSearchedCollaborators", []);
           commit("updateBudgetCollaborators", data);
           resolve();

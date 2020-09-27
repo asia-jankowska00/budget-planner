@@ -44,11 +44,6 @@ export default {
     format(code, amount, showSymbol) {
       return formatter.formatAmount(code, amount, showSymbol);
     },
-  },
-  watch: {
-    transactions: function(value) {
-      console.log(value);
-    }
   }
 };
 </script>
