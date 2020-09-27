@@ -7,6 +7,7 @@ import Budget from "../views/Budget.vue";
 import Profile from "../views/Profile.vue";
 import BudgetEdit from "../views/BudgetEdit.vue";
 import SourceEdit from "../views/SourceEdit.vue";
+import CollaboratorsEdit from "../views/CollaboratorsEdit.vue";
 
 Vue.use(VueRouter);
 
@@ -38,8 +39,13 @@ const routes = [
       },
       {
         path: "budgets/:id/edit",
-        name: "BudgetEdit",
+        name: "Edit budget",
         component: BudgetEdit,
+      },
+      {
+        path: "budgets/:id/edit/collaborators",
+        name: "Edit Collaborators",
+        component: CollaboratorsEdit,
       },
       {
         path: "profile",

@@ -19,6 +19,7 @@ const getters = {
   budgetCategories: (state) => state.budgetCategories,
   isBudgetLoadingSources: (state) => state.isBudgetLoadingSources,
   isBudgetLoadingCollaborators: (state) => state.isBudgetLoadingCollaborators,
+  searchedCollaborators: (state) => state.searchedCollaborators,
 };
 
 // actions
@@ -96,6 +97,37 @@ const actions = {
       })();
     });
   },
+  searchCollaborators({ commit }, username) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const { data } = await bpApi.users().search(username);
+          commit("updateSearchedCollaborators", data);
+          resolve();
+        } catch (err) {
+          commit("updateSearchedCollaborators", []);
+          reject(err);
+        }
+      })();
+    });
+  },
+  addCollaborator({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const { data } = await bpApi
+            .budgets(payload.budgetId)
+            .addCollaborator(payload.collaborator);
+          console.log(data);
+          commit("updateSearchedCollaborators", []);
+          commit("updateBudgetCollaborators", data);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      })();
+    });
+  },
 };
 
 // mutations
@@ -113,6 +145,8 @@ const mutations = {
     (state.isBudgetLoadingSources = isLoading),
   updateBudgetCollaboratorsLoading: (state, isLoading) =>
     (state.isBudgetLoadingCollaborators = isLoading),
+  updateSearchedCollaborators: (state, users) =>
+    (state.searchedCollaborators = users),
 };
 
 export default {

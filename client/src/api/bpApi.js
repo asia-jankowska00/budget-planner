@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const PORT = 8578;
+const PORT = 8550;
 const baseUrl = `http://localhost:${PORT}/api`;
 
 axios.defaults.headers.common["Content-Type"] = "application/json-patch+json";
@@ -31,6 +31,8 @@ export default {
       getProfile: () => axios.get(`${baseUrl}/profile`, getConfig()),
       updateProfile: (userObj) =>
         axios.patch(`${baseUrl}/profile`, userObj, getConfig()),
+      search: (username) =>
+        axios.get(`${baseUrl}/users?username=${username}`, getConfig()),
     };
   },
   sources(sourceId) {
@@ -49,6 +51,11 @@ export default {
         axios.post(`${baseUrl}/containers`, container, getConfig()),
       getAll: () => axios.get(`${baseUrl}/containers`, getConfig()),
       get: () => axios.get(`${baseUrl}/containers/${containerId}`, getConfig()),
+      getCategories: () =>
+        axios.get(
+          `${baseUrl}/containers/${containerId}/categories`,
+          getConfig()
+        ),
       getSources: () =>
         axios.get(`${baseUrl}/containers/${containerId}/sources`, getConfig()),
       getCollaborators: () =>
@@ -56,9 +63,10 @@ export default {
           `${baseUrl}/containers/${containerId}/collaborators`,
           getConfig()
         ),
-      getCategories: () =>
-        axios.get(
-          `${baseUrl}/containers/${containerId}/categories`,
+      addCollaborator: (collaborator) =>
+        axios.post(
+          `${baseUrl}/containers/${containerId}/collaborators`,
+          collaborator,
           getConfig()
         ),
       getAllTransactions: () =>

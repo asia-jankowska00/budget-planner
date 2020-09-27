@@ -151,7 +151,10 @@ export default {
       this.$store
         .dispatch("getAllSources")
         .then((data) => {
-          this.$store.commit("updateSelectedSource", data[0]);
+          if (data && data.length > 0) {
+            this.$store.commit("updateSelectedSource", data[0]);
+          }
+
           this.isLoadingSources = false;
         })
         .catch((err) => {
@@ -170,10 +173,12 @@ export default {
       this.$store
         .dispatch("getAllBudgets")
         .then((data) => {
-          this.$store.commit("updateSelectedBudget", data[0]);
-          this.isLoadingBudgets = false;
+          if (data && data.length > 0) {
+            this.$store.commit("updateSelectedBudget", data[0]);
+            this.$store.dispatch("getBudgetSources", data[0].id);
+          }
 
-          this.$store.dispatch("getBudgetSources", data[0].id);
+          this.isLoadingBudgets = false;
         })
         .catch((err) => {
           this.isLoadingBudgets = false;

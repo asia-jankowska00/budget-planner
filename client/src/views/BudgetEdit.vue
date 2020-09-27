@@ -15,7 +15,7 @@
           <span class="username">{{person.username}}</span>
         </p>
       </div>
-      <Button label="Edit collaborators" :isFlat="true"/>
+      <Button label="Edit collaborators" :isFlat="true" @click.native="goToEditCollaborators"/>
     </section>
 
     <section class="edit-section">
@@ -65,17 +65,19 @@ export default {
     }
   },
   created() {
-    this.name = this.selectedBudget.name;
   },
   methods: {
     saveName() {
       alert('update name');
+    },
+    goToEditCollaborators() {
+      this.$router.push({path: `edit/collaborators`});
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   #budgetEdit {
     .title {
       margin-bottom: 32px;
