@@ -35,6 +35,11 @@
       <Button label="cancel" :isFlat="true" @click="cancel"/>
       <Button label="save" @click="update"/>
     </div>
+
+    <section class="edit-section">
+      <p class="edit-section-title danger">Danger zone</p>
+      <Button label="Delete profile" @click.native="deleteProfile" id="delete"/>
+    </section>
     
   </section>
 </template>
@@ -108,6 +113,20 @@ export default {
       this.firstName = this.$props.user.firstName,
       this.lastName = this.$props.user.lastName,
       this.password = ''
+    },
+    deleteProfile() {
+      this.$store.dispatch('deleteProfile')
+      .then(() => {
+        this.$router.push('/')
+        this.$store.commit('clearUser')
+      })
+      .catch((err) => {
+        M.toast({
+          html: err.response.data.message
+            ? err.response.data.message
+            : "Something went wrong",
+        });
+      });
     }
   }
 }
@@ -127,6 +146,13 @@ export default {
 
     .title {
       margin: 0px;
+    }
+  }
+
+  .edit-section {
+    #delete {
+      background: #cc3636 !important;
+      margin: 0;
     }
   }
 

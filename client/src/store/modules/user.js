@@ -65,6 +65,18 @@ const actions = {
             })()
         })
     },
+    deleteProfile() {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                try {
+                    await bpApi.users().deleteProfile();
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            })()
+        })
+    }
 }
 
 // mutations
@@ -78,7 +90,8 @@ const mutations = {
             username,
             currency
         }
-    }
+    },
+    clearUser: (state) => state.user = null
 }
 
 export default {
