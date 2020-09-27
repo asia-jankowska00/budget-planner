@@ -30,6 +30,7 @@ export default {
     return {
       getProfile: () => axios.get(`${baseUrl}/profile`, getConfig()),
       updateProfile: (userObj) => axios.patch(`${baseUrl}/profile`, userObj, getConfig()),
+      deleteProfile: () => axios.delete(`${baseUrl}/profile`, getConfig()),
       search: (username) => axios.get(`${baseUrl}/users?username=${username}`, getConfig()),
     };
   },
