@@ -119,10 +119,14 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin: 32px 0;
 
     i {
       cursor: pointer;
+    }
+
+    .title {
+      margin: 0px;
     }
   }
 
