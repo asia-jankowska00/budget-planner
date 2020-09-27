@@ -188,37 +188,29 @@ CREATE TABLE bpGoal(
 INSERT INTO bpCurrency (CurrencyCode, CurrencyName, CurrencySymbol)
 VALUES
 /* 1 */    ('EUR', 'Euro', N'€'),
-/* 2 */    ('ALL', 'Albanian lek', N'L'),
-/* 3 */    ('BYN', 'New Belarusian ruble', N'Br'),
-/* 4 */    ('BAM', 'Bosnia and Herzegovina convertible mark', N'null'),
-/* 5 */    ('BGN', 'Bulgarian lev', N'лв'),
-/* 6 */    ('HRK', 'Croatian kuna', N'kn'),
-/* 7 */    ('CZK', 'Czech koruna', N'Kč'),
-/* 8 */    ('DKK', 'Danish krone', N'kr'),
-/* 9 */    ('GIP', 'Gibraltar pound', N'£'),
-/* 10 */    ('GBP', 'British pound', N'£'),
-/* 11 */    ('HUF', 'Hungarian forint', N'Ft'),
-/* 12 */    ('ISK', 'Icelandic króna', N'kr'),
-/* 13 */    ('CHF', 'Swiss franc', N'Fr'),
-/* 14 */    ('MKD', 'Macedonian denar', N'ден'),
-/* 15 */    ('MDL', 'Moldovan leu', N'L'),
-/* 16 */    ('NOK', 'Norwegian krone', N'kr'),
-/* 17 */    ('PLN', 'Polish złoty', N'zł'),
-/* 18 */    ('RON', 'Romanian leu', N'lei'),
-/* 19 */    ('RUB', 'Russian ruble', N'₽'),
-/* 20 */    ('RSD', 'Serbian dinar', N'дин.'),
-/* 21 */    ('SEK', 'Swedish krona', N'kr'),
-/* 22 */    ('UAH', 'Ukrainian hryvnia', N'₴'),
-/* 23 */    ('CAD', 'Canadian dollar', N'$'),
-/* 24 */    ('MXN', 'Mexican peso', N'$'),
-/* 25 */    ('USD', 'United States dollar', N'$')
+/* 2 */    ('BGN', 'Bulgarian lev', N'лв'),
+/* 3 */    ('HRK', 'Croatian kuna', N'kn'),
+/* 4 */    ('CZK', 'Czech koruna', N'Kč'),
+/* 5 */    ('DKK', 'Danish krone', N'kr'),
+/* 6 */    ('GBP', 'British pound', N'£'),
+/* 7 */    ('HUF', 'Hungarian forint', N'Ft'),
+/* 8 */    ('ISK', 'Icelandic króna', N'kr'),
+/* 9 */    ('CHF', 'Swiss franc', N'Fr'),
+/* 10 */    ('NOK', 'Norwegian krone', N'kr'),
+/* 11 */    ('PLN', 'Polish złoty', N'zł'),
+/* 12 */    ('RON', 'Romanian leu', N'lei'),
+/* 13 */    ('RUB', 'Russian ruble', N'₽'),
+/* 14 */    ('SEK', 'Swedish krona', N'kr'),
+/* 15 */    ('CAD', 'Canadian dollar', N'$'),
+/* 16 */    ('MXN', 'Mexican peso', N'$'),
+/* 17 */    ('USD', 'United States dollar', N'$')
 
 --bpUser
 INSERT INTO bpUser (UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
 VALUES  
-/* 1 */    ('Liam', 'Miller', 0, 8),
+/* 1 */    ('Liam', 'Miller', 0, 5),
 /* 2 */    ('Ava', 'Miller', 0, 10),
-/* 3 */    ('Fiona', 'Watson', 0, 25),
+/* 3 */    ('Fiona', 'Watson', 0, 3),
 /* 4 */    ('Mike', 'Bailey', 0, 7)
 
 --bpLogin
@@ -233,7 +225,7 @@ VALUES
 INSERT INTO bpSource (SourceName, SourceDescription, SourceAmount, UserId, CurrencyId)
 VALUES
 /* 1 */    ('Cash', 'Personal', 100000.4289, 1, 1),
-/* 2 */    ('Sparnord', 'Shared', 68000.3568, 1, 1),
+/* 2 */    ('Sparnord', 'Shared', 68000.3568, 1, 17),
 /* 3 */    ('Jyske', 'Shared', 45639.1325, 2, 1),
 /* 4 */    ('Savings', 'Personal', 126543.4568, 2, 1),
 /* 5 */    ('Nordea', 'Shared', 23569.7624, 3, 1),
