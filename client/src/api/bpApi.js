@@ -51,7 +51,8 @@ export default {
       getCollaborators: () => axios.get(`${baseUrl}/containers/${containerId}/collaborators`, getConfig()),
       addCollaborator: (collaborator) => axios.post( `${baseUrl}/containers/${containerId}/collaborators`, collaborator, getConfig()),
       getAllTransactions: () => axios.get(`${baseUrl}/containers/${containerId}/transactions`, getConfig()),
-      update: (payload) => axios.patch(`${baseUrl}/containers/${containerId}`, payload, getConfig())
+      update: (payload) => axios.patch(`${baseUrl}/containers/${containerId}`, payload, getConfig()),
+      delete: () => axios.delete(`${baseUrl}/containers/${containerId}`, getConfig())
     };
   },
   transactions() {

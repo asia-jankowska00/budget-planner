@@ -1,5 +1,5 @@
 <template>
-  <div id="budgetEdit" class="content-wrapper">
+  <div id="budgetEdit" class="content-wrapper" v-if="selectedBudget">
     <h6 class="title">Edit budget - <em>{{selectedBudget.name}}</em></h6>
   
     <section class="name-edit">
@@ -30,6 +30,11 @@
         <p class="source-name" v-for="source in otherSources" :key="'source' + source.id">{{source.name}}</p>
       </div>
       <Button label="Edit source permissions" :isFlat="true"/>
+    </section>
+
+    <section class="edit-section">
+      <p class="edit-section-title danger">Danger zone</p>
+      <Button label="Delete budget" @click.native="deleteBudget" id="delete"/>
     </section>
   </div>
 </template>
@@ -82,6 +87,13 @@ export default {
     },
     goToEditCollaborators() {
       this.$router.push({path: `edit/collaborators`});
+    },
+    deleteBudget() {
+      this.$store.dispatch('deleteBudget', this.selectedBudget.id)
+      .then(() => this.$router.go(-1))
+      .catch((err) => {
+        M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+      });
     }
   }
 }
@@ -98,6 +110,10 @@ export default {
 
       &.btn-flat {
         color: #2979ff;
+      }
+
+      &#delete {
+        background: #cc3636 !important;
       }
     }
   }
@@ -126,6 +142,10 @@ export default {
     .edit-section-title {
       font-size: 0.9rem;
       margin-bottom: 8px;
+
+      &.danger {
+        color: #cc3636;
+      }
     }
 
     .source-title {

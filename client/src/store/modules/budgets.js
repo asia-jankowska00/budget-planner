@@ -139,26 +139,41 @@ const actions = {
         }
       })();
     });
+  },
+  deleteBudget({commit, state}, budgetId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          await bpApi.budgets(budgetId).delete();
+          const newBudgets = state.budgets.filter(budget => budget.id !== budgetId);
+          commit('updateBudgets', newBudgets);
+
+          if (newBudgets.length > 0) {
+            commit('updateSelectedBudget', newBudgets[0])
+          } else {
+            commit('updateSelectedBudget', null)
+          }
+          
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      })();
+    });
   }
 };
 
 // mutations
 const mutations = {
   addBudget: (state, newBudget) => state.budgets.push(newBudget),
-  updateSelectedBudget: (state, selectedBudget) =>
-    (state.selectedBudget = selectedBudget),
+  updateSelectedBudget: (state, selectedBudget) => (state.selectedBudget = selectedBudget),
   updateBudgets: (state, budgets) => (state.budgets = budgets),
   updateBudgetSources: (state, sources) => (state.budgetSources = sources),
-  updateBudgetCollaborators: (state, collaborators) =>
-    (state.budgetCollaborators = collaborators),
-  updateBudgetCategories: (state, categories) =>
-    (state.budgetCategories = categories),
-  updateBudgetSourcesLoading: (state, isLoading) =>
-    (state.isBudgetLoadingSources = isLoading),
-  updateBudgetCollaboratorsLoading: (state, isLoading) =>
-    (state.isBudgetLoadingCollaborators = isLoading),
-  updateSearchedCollaborators: (state, users) =>
-    (state.searchedCollaborators = users),
+  updateBudgetCollaborators: (state, collaborators) => (state.budgetCollaborators = collaborators),
+  updateBudgetCategories: (state, categories) => (state.budgetCategories = categories),
+  updateBudgetSourcesLoading: (state, isLoading) => (state.isBudgetLoadingSources = isLoading),
+  updateBudgetCollaboratorsLoading: (state, isLoading) => (state.isBudgetLoadingCollaborators = isLoading),
+  updateSearchedCollaborators: (state, users) => (state.searchedCollaborators = users),
 };
 
 export default {
