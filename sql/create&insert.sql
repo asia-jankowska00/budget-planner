@@ -216,7 +216,7 @@ VALUES
 --bpUser
 INSERT INTO bpUser (UserFirstName, UserLastName, UserIsDisabled, CurrencyId)
 VALUES  
-/* 1 */    ('Liam', 'Miller', 0, 1),
+/* 1 */    ('Liam', 'Miller', 0, 8),
 /* 2 */    ('Ava', 'Miller', 0, 10),
 /* 3 */    ('Fiona', 'Watson', 0, 25),
 /* 4 */    ('Mike', 'Bailey', 0, 7)
