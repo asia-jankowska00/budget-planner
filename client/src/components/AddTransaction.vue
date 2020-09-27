@@ -49,7 +49,7 @@
       <TextInput v-model="name" label="Name" type="text" id="transactionName" />
       <TextInput
         v-model="amount"
-        label="Initial amount"
+        label="Amount"
         type="number"
         id="transactionAmount"
         min="0"
@@ -95,23 +95,7 @@ export default {
     RadioButton,
   },
   computed: {
-    ...mapGetters(["budgets", "budgetSources", "budgetCategories", "user"]),
-    // categories: function() {
-    //   return [
-    //     {
-    //       id: 1,
-    //       name: "Groceries",
-    //     },
-    //     {
-    //       id: 2,
-    //       name: "Transportation",
-    //     },
-    //     {
-    //       id: 3,
-    //       name: "Bills",
-    //     },
-    //   ];
-    // },
+    ...mapGetters(["budgets", "selectedBudget", "selectedSource", "budgetSources", "budgetCategories", "user"]),
     canSubmit: function() {
       return (
         this.amount != 0 &&
@@ -165,6 +149,7 @@ export default {
   methods: {
     submit: function() {
       if (this.canSubmit) {
+        let self = this;
         this.$store
           .dispatch("addTransaction", {
             name: this.name,
@@ -175,8 +160,18 @@ export default {
             date: this.date,
             amount: parseFloat(this.amount),
           })
-          .then(() => {
-            this.closeModal();
+          .then((data) => {
+            if (self.selectedSource.id === data.sourceId) {
+              let source = self.selectedSource;
+              source.amount = data.transaction.isExpense ? source.amount - data.transaction.amount : source.amount + data.transaction.amount
+              self.$store.commit('updateSelectedSource', source);
+
+              self.$store.dispatch('getSourceTransactions', data.sourceId)
+            }
+            if (self.selectedBudget.id === data.containerId) {
+              self.$store.dispatch('getBudgetSources', data.containerId)
+            }
+            self.closeModal();
           })
           .catch((err) => {
             M.toast({

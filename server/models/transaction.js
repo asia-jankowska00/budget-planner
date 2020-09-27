@@ -68,6 +68,15 @@ class Transaction {
             INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
             VALUES (@ContainerId, IDENT_CURRENT('bpTransaction'), @CategoryId);
 
+            IF @TransactionIsExpense = 1
+              UPDATE bpSource 
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - @TransactionAmount
+              WHERE SourceId = @SourceId;
+            ELSE
+              UPDATE bpSource 
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + @TransactionAmount
+              WHERE SourceId = @SourceId;
+
             SELECT bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
             FROM bpTransaction
             INNER JOIN bpContainerTransaction

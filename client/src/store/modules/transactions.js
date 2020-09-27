@@ -51,18 +51,16 @@ const actions = {
       })();
     });
   },
-  addTransaction({ commit, state }, payload) {
+  addTransaction(context, payload) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
           const { data } = await bpApi.transactions().add(payload);
-          if (state.selectedSource === payload.sourceId) {
-            commit("addSourceTransaction", data);
-          }
-          if (state.selectedBudget === payload.budgetId) {
-            commit("addBudgetTransaction", data);
-          }
-          resolve();
+          resolve({
+            transaction: data,
+            sourceId: payload.sourceId,
+            containerId: payload.containerId
+          });
         } catch (err) {
           reject(err);
         }
@@ -73,18 +71,12 @@ const actions = {
 
 // mutations
 const mutations = {
-  addBudgetTransaction: (state, transaction) =>
-    (state.budgetTransactions = [transaction, ...state.budgetTransactions]),
-  addSourceTransaction: (state, transaction) =>
-    (state.sourceTransactions = [transaction, ...state.sourceTransactions]),
-  updateSourceTransactions: (state, transactions) =>
-    (state.sourceTransactions = transactions),
-  updateSourceTransactionLoading: (state, isLoading) =>
-    (state.isLoadingSourceTransactions = isLoading),
-  updateBudgetTransactions: (state, transactions) =>
-    (state.budgetTransactions = transactions),
-  updateBudgetTransactionLoading: (state, isLoading) =>
-    (state.isLoadingBudgetTransactions = isLoading),
+  // addBudgetTransaction: (state, transaction) => (state.budgetTransactions = state.budgetTransactions ? [transaction, ...state.budgetTransactions] : [transaction]),
+  // addSourceTransaction: (state, transaction) => (state.sourceTransactions = state.sourceTransactions ? [transaction, ...state.sourceTransactions] : [transaction]),
+  updateSourceTransactions: (state, transactions) => (state.sourceTransactions = transactions),
+  updateSourceTransactionLoading: (state, isLoading) => (state.isLoadingSourceTransactions = isLoading),
+  updateBudgetTransactions: (state, transactions) => (state.budgetTransactions = transactions),
+  updateBudgetTransactionLoading: (state, isLoading) => (state.isLoadingBudgetTransactions = isLoading)
 };
 
 export default {
