@@ -820,6 +820,9 @@ class Container {
             DELETE FROM bpContainerTransaction 
             WHERE ContainerId = @ContainerId;
 
+            DELETE FROM bpGoal
+            WHERE ContainerId = @ContainerId;
+
             DELETE FROM bpContainer
             WHERE ContainerId = @ContainerId;
               `);
