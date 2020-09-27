@@ -38,6 +38,7 @@
 import { mapGetters } from 'vuex';
 import TextInput from '@/components/TextInput'
 import Button from '@/components/Button'
+import M from 'materialize-css';
 
 export default {
   name: 'BudgetEdit',
@@ -65,10 +66,19 @@ export default {
     }
   },
   created() {
+    this.name = this.selectedBudget.name;
   },
   methods: {
     saveName() {
-      alert('update name');
+      if (this.canSaveName) {
+        this.$store.dispatch('updateBudgetName', {
+          budgetId: this.selectedBudget.id,
+          data: { name: this.name }
+        })
+        .catch((err) => {
+          M.toast({ html: err.response.data.message ? err.response.data.message : "Something went wrong" });
+        });
+      }
     },
     goToEditCollaborators() {
       this.$router.push({path: `edit/collaborators`});

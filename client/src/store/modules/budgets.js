@@ -126,6 +126,20 @@ const actions = {
       })();
     });
   },
+  updateBudgetName({commit, state}, payload) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const { data } = await bpApi.budgets(payload.budgetId).update(payload.data);
+          commit('updateSelectedBudget', data)
+          commit('updateBudgets', [data, ...state.budgets.filter(budget => budget.id !== data.id)])
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      })();
+    });
+  }
 };
 
 // mutations
