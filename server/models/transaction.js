@@ -239,7 +239,7 @@ class Transaction {
             `);
 
           if (result.recordset.length <= 0)
-            throw { status: 404, message: "No transactions found" };
+            throw { status: 404, message: "Transaction not found" };
 
           if (result.recordset.length > 1)
             throw { status: 500, message: "Something is wrong in the DB" };
@@ -372,7 +372,11 @@ class Transaction {
           AND bpTransaction.TransactionId = @TransactionId;
           `);
 
-          if (!result.recordset[0]) { throw { status: 500, message: "Failed to get transaction" } }
+          if (result.recordset.length <= 0)
+            throw { status: 404, message: "Transaction not found" };
+
+          if (result.recordset.length > 1)
+            throw { status: 500, message: "Something is wrong in the DB" };
 
           const record = result.recordset[0];
           const transaction = new Transaction({
@@ -412,33 +416,60 @@ class Transaction {
       (async () => {
         try {
           const pool = await sql.connect(connection);
+
           const result = await pool.request()
             .input('TransactionId', sql.Int, transactionId)
+            .input('SourceId', sql.Int, sourceId)
             .query(`
             DELETE FROM bpContainerTransaction
             WHERE TransactionId = @TransactionId;
 
-            IF bpTransaction.TransactionIsExpense = 1
-              UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = bpTransaction.SourceId) + bpTransaction.TransactionAmount
-              FROM bpSource
-              INNER JOIN bpTransaction
-              ON bpTransaction.SourceId = bpSource.SourceId
-              WHERE bpSource.TransactionId = @TransactionId;
-            ELSE
-              UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = bpTransaction.SourceId) - bpTransaction.TransactionAmount
-              FROM bpSource
-              INNER JOIN bpTransaction
-              ON bpTransaction.SourceId = bpSource.SourceId
-              WHERE bpSource.TransactionId = @TransactionId;
+            UPDATE bpSource 
+            SET bpSource.SourceAmount = CASE 
+                    WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + bpTransaction.TransactionAmount
+                    ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - bpTransaction.TransactionAmount
+                  END
+            FROM bpSource
+            INNER JOIN bpTransaction
+              ON bpSource.SourceId = bpTransaction.SourceId
+            WHERE bpTransaction.SourceId = @SourceId;
 
             DELETE FROM bpNotification
             WHERE TransactionId = @TransactionId;
-
+  
             DELETE FROM bpTransaction
             WHERE TransactionId = @TransactionId;
           `)
+          //   .query(`
+          //   DELETE FROM bpContainerTransaction
+          //   WHERE TransactionId = @TransactionId;
+
+          //   SELECT bpTransaction.TransactionIsExpense,
+          //   CASE
+          //   WHEN bpTransaction.TransactionIsExpense = 1 THEN
+          //     UPDATE bpSource 
+          //     SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + bpTransaction.TransactionAmount
+          //     FROM bpSource
+          //     INNER JOIN bpTransaction
+          //     ON bpTransaction.SourceId = @SourceId
+          //     WHERE bpSource.TransactionId = @TransactionId
+          //   ELSE
+          //     UPDATE bpSource 
+          //     SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - bpTransaction.TransactionAmount
+          //     FROM bpSource
+          //     INNER JOIN bpTransaction
+          //     ON bpTransaction.SourceId = @SourceId
+          //     WHERE bpSource.TransactionId = @TransactionId
+          //   END AS NewField
+          //   FROM bpTransaction 
+          //   WHERE TransactionId = @TransactionId;
+
+          //   DELETE FROM bpNotification
+          //   WHERE TransactionId = @TransactionId;
+
+          //   DELETE FROM bpTransaction
+          //   WHERE TransactionId = @TransactionId;
+          // `)
 
           resolve();
 

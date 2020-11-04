@@ -108,8 +108,13 @@ router.delete("/:transactionId", async (req, res) => {
       // check if requester is source owner
       await Source.checkOwner(params.sourceId, req.user.id);
 
+      // check if transaction exists
+      await Transaction.getSourceTransaction(params.transactionId, params.sourceId);
+
       // delete transaction from source and all other places
-      await Transaction.deleteFromSource(params.transactionId);
+      await Transaction.deleteFromSource(params.transactionId, params.sourceId);
+
+      res.json({ message: "Transaction deleted" });
 
     } else if (params.containerId) {
       console.log(params.containerId)
@@ -127,9 +132,10 @@ router.delete("/:transactionId", async (req, res) => {
 
       // delete transaction from source and all other places
       await Transaction.deleteFromContainer(params.transactionId);
+
+      res.json({ message: "Transaction deleted" });
     }
-    
-    res.json({ message: "Source deleted" });
+   
   } catch (err) {
     console.log(err)
     res.status(err.status || 400).json(err);
