@@ -125,6 +125,37 @@ class Transaction {
     })
   }
 
+  static getTransactionSource(transactionId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+          const result = await pool
+            .request()
+            .input("TransactionId", sql.Int, transactionId).query(`
+              SELECT SourceId
+              FROM bpTransaction
+              AND TransactionId = @TransactionId
+            `);
+
+          if (result.recordset.length <= 0)
+            throw { status: 404, message: "No transactions found" };
+
+          if (result.recordset.length > 1)
+            throw { status: 500, message: "Something is wrong in the DB" };
+
+          const record = result.recordset[0];
+
+          resolve(record.SourceId)
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        // sql.close();
+      })();
+    });
+  }
+
   static getAllSourceTransactions(sourceId) {
     return new Promise((resolve, reject) => {
       (async () => {
@@ -374,6 +405,74 @@ class Transaction {
         // sql.close();
       })();
     });
+  }
+
+  static deleteFromSource(transactionId, sourceId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+          const result = await pool.request()
+            .input('TransactionId', sql.Int, transactionId)
+            .query(`
+            DELETE FROM bpContainerTransaction
+            WHERE TransactionId = @TransactionId;
+
+            IF bpTransaction.TransactionIsExpense = 1
+              UPDATE bpSource 
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = bpTransaction.SourceId) + bpTransaction.TransactionAmount
+              FROM bpSource
+              INNER JOIN bpTransaction
+              ON bpTransaction.SourceId = bpSource.SourceId
+              WHERE bpSource.TransactionId = @TransactionId;
+            ELSE
+              UPDATE bpSource 
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = bpTransaction.SourceId) - bpTransaction.TransactionAmount
+              FROM bpSource
+              INNER JOIN bpTransaction
+              ON bpTransaction.SourceId = bpSource.SourceId
+              WHERE bpSource.TransactionId = @TransactionId;
+
+            DELETE FROM bpNotification
+            WHERE TransactionId = @TransactionId;
+
+            DELETE FROM bpTransaction
+            WHERE TransactionId = @TransactionId;
+          `)
+
+          resolve();
+
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        //sql.close();
+      })()
+    })
+  }
+
+  static deleteFromContainer(transactionId, containerId) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+          const result = await pool.request()
+            .input('TransactionId', sql.Int, transactionId)
+            .input('ContainerId', sql.Int, containerId)
+            .query(`
+            DELETE FROM bpContainerTransaction
+            WHERE TransactionId = @TransactionId AND ContainerId = @ContainerId;
+          `)
+
+          resolve();
+
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
+        //sql.close();
+      })()
+    })
   }
 }
 

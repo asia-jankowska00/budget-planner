@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 
       res.json(transactions)
     } else if (params.containerId) {
-      // verify if user has access on the source
+      // verify if user is in the container
       await Container.checkUserContainer(req.user.id, params.containerId)
 
       // getAll transactions by SourceId
@@ -96,6 +96,42 @@ router.post('/', async (req, res) => {
     res.status(201).json(newTransaction)
   } catch (err) {
     console.log(err);
+    res.status(err.status || 400).json(err);
+  }
+});
+
+router.delete("/:transactionId", async (req, res) => {
+  try {
+    const params = req.params;
+
+    if (params.sourceId) {
+      // check if requester is source owner
+      await Source.checkOwner(params.sourceId, req.user.id);
+
+      // delete transaction from source and all other places
+      await Transaction.deleteFromSource(params.transactionId);
+
+    } else if (params.containerId) {
+      console.log(params.containerId)
+      // check if requester has access to container
+      const userContainerId = await Container.checkUserContainer(req.user.id, params.containerId);
+
+      // get the source of the transaction
+      const sourceId = await Transaction.getTransactionSource(params.transactionId)
+
+      // check if source is in container
+      const sourceContainerId = await Container.checkSourceContainer(sourceId, params.containerId);
+  
+      // check if user has access to the source of this transaction in this container
+      await Container.checkUserSourceContainer(userContainerId, sourceContainerId)
+
+      // delete transaction from source and all other places
+      await Transaction.deleteFromContainer(params.transactionId);
+    }
+    
+    res.json({ message: "Source deleted" });
+  } catch (err) {
+    console.log(err)
     res.status(err.status || 400).json(err);
   }
 });
