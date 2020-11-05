@@ -4,6 +4,7 @@ const Container = require("../models/container");
 const Source = require("../models/source");
 const User = require("../models/user");
 const containerSchemas = require("./schemas/containerSchemas");
+const Category = require("../models/category");
 
 // container CRUD
 router.post("/", async (req, res) => {
@@ -21,6 +22,11 @@ router.post("/", async (req, res) => {
     //create new container and get its name and id
     const newContainer = await Container.create(req.body, requester);
 
+    // create default categories to prevent bugs
+    await Category.create(newContainer.id, {name: "Food"})
+    await Category.create(newContainer.id, {name: "Transport"})
+    await Category.create(newContainer.id, {name: "Bills"})
+
     // bind the sources to the container
     await Promise.all(
       req.body.sources.map((sourceId) =>
@@ -31,6 +37,7 @@ router.post("/", async (req, res) => {
     // attach owner and sources to newContainer
     newContainer.owner = requester;
     newContainer.sources = sources;
+
 
     // validate with Joi the newContainer
     await containerSchemas.postContainersOutput.validateAsync(newContainer);
@@ -388,17 +395,6 @@ router.get("/:containerId/permissions", async (req, res) => {
     const usersWithAccess = await Promise.all(
       sourceIds.map((sourceId) => container.getPermissions(sourceId))
     );
-    console.log(usersWithAccess);
-
-    // const fullUsersWithAccess = await Promise.all(
-    //   usersWithAccess.forEach((userIdArray) =>
-    //     userIdArray.map((userId) => {
-    //       return User.readById(userId);
-    //     })
-    //   )
-    // );
-
-    // console.log(fullUsersWithAccess);
 
     // get all sources bound to a container
     const sources = await Promise.all(
