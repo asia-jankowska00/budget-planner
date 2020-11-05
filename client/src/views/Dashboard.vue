@@ -104,11 +104,11 @@ export default {
       const newPage = this.$route.name.toLowerCase();
 
       if (newPage === "sources") {
-        indicator.style.left = "0px";
-        indicator.style.right = "225px";
+        indicator.style.left = "0%";
+        indicator.style.right = "50%";
       } else if (newPage === "budgets") {
-        indicator.style.left = "225px";
-        indicator.style.right = "0px";
+        indicator.style.left = "50%";
+        indicator.style.right = "0%";
       }
     },
   },
