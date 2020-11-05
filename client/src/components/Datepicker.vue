@@ -28,6 +28,8 @@ export default {
     const container = document.getElementById('addTransactionPopup')
     M.Datepicker.init(elem, {
       defaultDate: new Date(),
+      setDefaultDate: true,
+      firstDay: 1,
       container,
       onSelect: (date) => self.$emit('input', date)
     });
@@ -38,7 +40,7 @@ export default {
 <style lang="scss">
 .datepicker-modal {
   max-width: 400px;
-  min-width: 300px;
+  min-width: 200px;
   max-height: none;
 }
 
@@ -69,6 +71,10 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0;
+}
+
+.datepicker-row .is-today.is-selected {
+  color: white;
 }
 
 .datepicker-date-display {

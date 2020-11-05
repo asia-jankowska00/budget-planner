@@ -7,6 +7,7 @@
       type="radio"
       :value="value"
       v-on:change="$emit('change', $event.target.value)"
+      :checked="value"
     />
     <span>{{ label }}</span>
   </label>

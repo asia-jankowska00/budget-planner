@@ -78,13 +78,13 @@ export default {
   name: "AddTransaction",
   data() {
     return {
-      isExpense: "",
+      isExpense: "true",
       name: "",
       amount: "",
       budgetId: "",
       sourceId: "",
       categoryId: "",
-      date: null,
+      date: new Date(),
     };
   },
   components: {
