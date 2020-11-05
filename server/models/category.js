@@ -19,17 +19,18 @@ class Category {
             .input("CategoryName", sql.NVarChar, categoryObj.name)
             .input("CategoryEstimation", sql.Int, categoryObj.estimation)
             .query(`
-                        INSERT INTO bpCategory (CategoryName)
-                        VALUES (@CategoryName);
+              INSERT INTO bpCategory (CategoryName)
+              VALUES (@CategoryName);
 
-                        INSERT INTO bpContainerCategory (ContainerId,CategoryId, CategoryEstimation) VALUES (@ContainerId, IDENT_CURRENT('bpCategory'), @CategoryEstimation)
+              INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation) 
+              VALUES (@ContainerId, IDENT_CURRENT('bpCategory'), @CategoryEstimation)
 
-                        SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.ContainerId, bpContainerCategory.CategoryEstimation
-                        FROM bpCategory
-                        INNER JOIN bpContainerCategory
-                        ON bpCategory.CategoryId = bpContainerCategory.CategoryId
-                        WHERE bpCategory.CategoryId = IDENT_CURRENT('bpCategory');
-                        `);
+              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.ContainerId, bpContainerCategory.CategoryEstimation
+              FROM bpCategory
+              INNER JOIN bpContainerCategory
+              ON bpCategory.CategoryId = bpContainerCategory.CategoryId
+              WHERE bpCategory.CategoryId = IDENT_CURRENT('bpCategory');
+            `);
 
           if (!result.recordset[0])
             throw {
@@ -63,11 +64,11 @@ class Category {
           const result = await pool
             .request()
             .input("ContainerId", sql.Int, containerId).query(`
-                        SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-                        INNER JOIN bpContainerCategory
-                        ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-                        WHERE bpContainerCategory.ContainerId = @ContainerId;
-                        `);
+              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
+              INNER JOIN bpContainerCategory
+              ON bpContainerCategory.CategoryId = bpCategory.CategoryId
+              WHERE bpContainerCategory.ContainerId = @ContainerId;
+            `);
 
           if (result.recordset.length <= 0)
             throw {
@@ -105,11 +106,11 @@ class Category {
             .request()
             .input("ContainerId", sql.Int, containerId)
             .input("CategoryId", sql.Int, categoryId).query(`
-                            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-                            INNER JOIN bpContainerCategory
-                            ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-                            WHERE bpContainerCategory.ContainerId = @ContainerId AND bpCategory.CategoryId = @CategoryId;
-                    `);
+              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
+              INNER JOIN bpContainerCategory
+              ON bpContainerCategory.CategoryId = bpCategory.CategoryId
+              WHERE bpContainerCategory.ContainerId = @ContainerId AND bpCategory.CategoryId = @CategoryId;
+            `);
 
           if (!result.recordset[0]) {
             throw {
@@ -146,9 +147,9 @@ class Category {
               .request()
               .input("CategoryName", sql.NVarChar, categoryObj.name)
               .input("CategoryId", sql.Int, this.id).query(`
-                            UPDATE bpCategory SET CategoryName = @CategoryName
-                            WHERE CategoryId = @CategoryId
-                        `);
+                UPDATE bpCategory SET CategoryName = @CategoryName
+                WHERE CategoryId = @CategoryId
+              `);
 
             if (!result.rowsAffected[0]) {
               throw { status: 500, message: "Failed to update category" };
@@ -203,14 +204,14 @@ class Category {
             .request()
             .input("CategoryId", sql.Int, categoryId)
             .input("ContainerId", sql.Int, containerId).query(`
-                        UPDATE bpContainerTransaction SET CategoryId = NULL
-                        WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+              UPDATE bpContainerTransaction SET CategoryId = NULL
+              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
 
-                        DELETE FROM bpContainerCategory
-                        WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+              DELETE FROM bpContainerCategory
+              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
 
-                        DELETE FROM bpCategory WHERE CategoryId = @CategoryId
-                `);
+              DELETE FROM bpCategory WHERE CategoryId = @CategoryId
+            `);
 
           resolve();
         } catch (err) {
@@ -230,9 +231,9 @@ class Category {
             .request()
             .input("CategoryId", sql.Int, categoryId)
             .input("ContainerId", sql.Int, containerId).query(`
-                        SELECT * FROM bpContainerCategory
-                        WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
-                `);
+              SELECT * FROM bpContainerCategory
+              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+            `);
 
           if (result.recordset.length < 1) {
             throw {
