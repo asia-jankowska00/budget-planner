@@ -100,6 +100,52 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.patch("/:transactionId", async (req, res) => {
+  try {
+    const params = req.params;
+    console.log(params.transactionId)
+
+    if (params.sourceId) {
+      // check if requester is source owner
+      await Source.checkOwner(params.sourceId, req.user.id);
+
+      // check if transaction exists
+      const transaction = await Transaction.getSourceTransaction(params.sourceId, params.transactionId);
+
+      // update fetched transaction
+      await transaction.update(req.body, req.user)
+
+      res.json(transaction);
+
+    } else if (params.containerId) {
+
+      // check if requester has access to container
+      const userContainerId = await Container.checkUserContainer(req.user.id, params.containerId);
+
+      // get the source of the transaction
+      const sourceId = await Transaction.getTransactionSource(params.transactionId)
+
+      // check if source is in container
+      const sourceContainerId = await Container.checkSourceContainer(sourceId, params.containerId);
+
+      // check if user has access to the source of this transaction in this container
+      await Container.checkUserSourceContainer(userContainerId, sourceContainerId)
+
+      // check if transaction exists
+      const transaction = await Transaction.getContainerTransaction(params.containerId, params.transactionId);
+
+      // update fetched transaction
+      await transaction.update(req.body, req.user)
+
+      await transactionSchemas.defaultTransactionOutput.validateAsync(transaction)
+
+      res.json(transaction);
+    }
+  } catch (err) {
+    res.status(err.status || 400).json(err);
+  }
+});
+
 router.delete("/:transactionId", async (req, res) => {
   try {
     const params = req.params;
@@ -117,16 +163,16 @@ router.delete("/:transactionId", async (req, res) => {
       res.json({ message: "Transaction deleted" });
 
     } else if (params.containerId) {
-      console.log(params.containerId)
+
       // check if requester has access to container
       const userContainerId = await Container.checkUserContainer(req.user.id, params.containerId);
 
       // get the source of the transaction
       const sourceId = await Transaction.getTransactionSource(params.transactionId)
-
+ 
       // check if source is in container
       const sourceContainerId = await Container.checkSourceContainer(sourceId, params.containerId);
-  
+
       // check if user has access to the source of this transaction in this container
       await Container.checkUserSourceContainer(userContainerId, sourceContainerId)
 

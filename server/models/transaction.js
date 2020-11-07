@@ -135,7 +135,7 @@ class Transaction {
             .input("TransactionId", sql.Int, transactionId).query(`
               SELECT SourceId
               FROM bpTransaction
-              AND TransactionId = @TransactionId
+              WHERE TransactionId = @TransactionId
             `);
 
           if (result.recordset.length <= 0)
@@ -406,6 +406,64 @@ class Transaction {
           reject(err);
         }
 
+        // sql.close();
+      })();
+    });
+  }
+
+  update(input, owner) {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const pool = await sql.connect(connection);
+
+          const keys = Object.keys(input);
+
+          keys.forEach((key) => {
+            this[key] = input[key];
+          });
+
+
+
+
+          const result = await pool
+              .request()
+              .input("TransactionId", sql.Int, this.id)
+              .input("TransactionName", sql.NVarChar, this.name)
+              .input("TransactionDate", sql.Date, this.date)
+              .input("TransactionAmount", sql.Money, this.amount)
+              .input("TransactionIsExpense", sql.Int, this.isExpense)
+              .input("TransactionNote", sql.Int, this.note)
+              .input("UserId", sql.Int, owner.id)
+              .query(`
+                  UPDATE bpTransaction
+                  SET TransactionName = @TransactionName, 
+                  TransactionDate = @TransactionDate,
+                  TransactionAmount = @TransactionAmount,
+                  TransactionIsExpense = @TransactionIsExpense,
+                  TransactionNote = @TransactionNote
+                  WHERE TransactionId = @TransactionId AND UserId = @UserId;
+              `);
+
+          if (!result.rowsAffected[0]) {
+            throw {
+              status: 500,
+              message: "Failed to update transaction",
+            };
+          }
+
+          if (result.rowsAffected.length != 1) {
+            throw {
+              status: 500,
+              message: "Database is corrupt",
+            };
+          }
+
+          resolve();
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
         // sql.close();
       })();
     });
