@@ -26,6 +26,15 @@ const postTransactionInput = {
   categoryId: Joi.number().integer().min(1)
 }
 
+const patchTransactionInput = Joi.object({
+  name: Joi.string().min(1).max(255),
+  date: Joi.date(),
+  amount: Joi.number().precision(4),
+  isExpense: Joi.bool(),
+  note: Joi.string().min(1).max(255).empty(''),
+  categoryId: Joi.number().integer().min(1)
+})
+
 const defaultTransactionInput = Joi.object(postTransactionInput);
 const defaultTransactionOutput = Joi.object(defaultTransaction);
 const getAllTransactions = Joi.array().items(defaultTransactionOutput);
@@ -33,6 +42,7 @@ const getAllTransactions = Joi.array().items(defaultTransactionOutput);
 module.exports = {
   defaultTransaction,
   postTransactionInput,
+  patchTransactionInput,
   defaultTransactionOutput,
   defaultTransactionInput,
   getAllTransactions

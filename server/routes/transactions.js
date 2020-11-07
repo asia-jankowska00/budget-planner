@@ -102,8 +102,9 @@ router.post('/', async (req, res) => {
 
 router.patch("/:transactionId", async (req, res) => {
   try {
+    await transactionSchemas.patchTransactionInput.validateAsync(req.body)
+
     const params = req.params;
-    console.log(params.transactionId)
 
     if (params.sourceId) {
       // check if requester is source owner
@@ -142,6 +143,7 @@ router.patch("/:transactionId", async (req, res) => {
       res.json(transaction);
     }
   } catch (err) {
+    console.log(err)
     res.status(err.status || 400).json(err);
   }
 });

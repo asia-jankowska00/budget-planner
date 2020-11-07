@@ -423,9 +423,6 @@ class Transaction {
             this[key] = input[key];
           });
 
-
-
-
           const result = await pool
               .request()
               .input("TransactionId", sql.Int, this.id)
