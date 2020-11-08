@@ -11,7 +11,7 @@ const patchProfileInput = Joi.object({
   password: Joi.string().empty(''),
   firstName: Joi.string().min(1).max(255),
   lastName: Joi.string().min(1).max(255),
-  currencyId: Joi.number().integer().min(1),
+  currency: Joi.number().integer().min(1),
 });
 
 module.exports = {

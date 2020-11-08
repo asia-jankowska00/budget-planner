@@ -31,8 +31,8 @@ router.patch("/", auth, async (req, res) => {
     let currency;
 
     // get the new currency if needed
-    if (user.currency.id !== req.body.currencyId) {
-      currency = await Currency.readById(req.body.currencyId);
+    if (user.currency.id !== req.body.currency) {
+      currency = await Currency.readById(req.body.currency);
     }
 
     await user.update(req.body, currency);

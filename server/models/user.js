@@ -1,5 +1,4 @@
-const connection = require("../config/connection");
-const sql = require("mssql");
+const pool = require("../db");
 const bcrypt = require("bcryptjs");
 const Currency = require("./currency");
 
@@ -28,12 +27,7 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = reqBody;
-
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("LoginUsername", sql.NVarChar, input.username).query(`
+          const { rows } = await pool.query(`
             SELECT 
             bpLogin.LoginUsername, 
             bpLogin.LoginPassword,
@@ -41,19 +35,19 @@ class User {
             FROM bpLogin
             INNER JOIN bpUser
             ON bpUser.UserId = bpLogin.UserId
-            WHERE bpLogin.LoginUsername = @LoginUsername
+            WHERE bpLogin.LoginUsername = $1
             AND
             NOT bpUser.UserIsDisabled = 1;
-            `);
+          `, [reqBody.username]);
 
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 404,
               message: "User not found",
             };
 
           const match = await bcrypt.compare(
-            input.password,
+            reqBody.password,
             result.recordset[0].LoginPassword
           );
 
@@ -64,7 +58,6 @@ class User {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -74,21 +67,16 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = username;
+          const { rows } = await pool.query(`
+            SELECT bpLogin.UserId
+            FROM bpLogin
+            INNER JOIN bpUser
+            ON bpUser.UserId = bpLogin.UserId
+            WHERE bpLogin.LoginUsername = $1
+            AND bpUser.UserIsDisabled = false;
+          `, [username]);
 
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("LoginUsername", sql.NVarChar, input).query(`
-              SELECT bpLogin.UserId
-              FROM bpLogin
-              INNER JOIN bpUser
-              ON bpUser.UserId = bpLogin.UserId
-              WHERE bpLogin.LoginUsername = @LoginUsername
-              AND NOT bpUser.UserIsDisabled = 1;
-          `);
-
-          if (result.recordset[0])
+          if (rows[0])
             throw {
               status: 409,
               message: "Username taken",
@@ -99,82 +87,56 @@ class User {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
 
   // search
-  static  search(query) {
+  static search(query) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = query;
+          const q = `${query}%`
 
-          const pool = await sql.connect(connection);
-          // const result = await pool
-          //   .request()
-          //   .input("Query", sql.NVarChar, input).query(`
-          //     SELECT 
-          //     bpLogin.UserId,
-          //     bpLogin.LoginUsername,
-          //     bpUser.UserFirstName,
-          //     bpUser.UserLastName
-          //     FROM bpLogin 
-          //     INNER JOIN bpUser 
-          //     ON bpLogin.UserId = bpUser.UserId
-          //     WHERE 
-          //     bpLogin.LoginUsername LIKE @Query + '%' 
-          //     OR 
-          //     bpUser.UserFirstName LIKE @Query + '%'
-          //     OR 
-          //     bpUser.UserLastName LIKE @Query + '%'
-          //     AND NOT bpUser.UserIsDisabled = 1;
-          // `);
+          const { rows } = await pool.query(`
+            SELECT 
+            bpLogin.UserId,
+            bpLogin.LoginUsername,
+            bpUser.UserFirstName,
+            bpUser.UserLastName
+            FROM bpLogin 
+            INNER JOIN bpUser 
+            ON bpLogin.UserId = bpUser.UserId
+            WHERE bpLogin.LoginUsername LIKE $1
+            AND bpUser.UserIsDisabled = false;
+          `, [q]);
 
-          const result = await pool
-            .request()
-            .input("Query", sql.NVarChar, input).query(`
-              SELECT 
-              bpLogin.UserId,
-              bpLogin.LoginUsername,
-              bpUser.UserFirstName,
-              bpUser.UserLastName
-              FROM bpLogin 
-              INNER JOIN bpUser 
-              ON bpLogin.UserId = bpUser.UserId
-              WHERE 
-              bpLogin.LoginUsername LIKE @Query + '%'
-              AND NOT bpUser.UserIsDisabled = 1;
-          `);
-
-          if (!result.recordset.length < 0)
+          if (!rows.length < 0)
             throw {
               status: 500,
               message: "Something went wrong in the DB",
             };
 
-          const dbRecords = [];
+          const users = [];
           
-          if (result.recordset.length > 0) {
-            result.recordset.forEach((record) => {
-              dbRecords.push(
+          if (rows.length > 0) {
+            rows.forEach((record) => {
+              users.push(
                 new User({
-                  id: record.UserId,
-                  username: record.LoginUsername,
-                  firstName: record.UserFirstName,
-                  lastName: record.UserLastName,
+                  id: record.userid,
+                  username: record.loginusername,
+                  firstName: record.userfirstname,
+                  lastName: record.userlastname,
                 })
               );
             });
           }
 
-          resolve(dbRecords);
+          resolve(users);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -184,77 +146,77 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = reqBody;
-
-          const hash = await bcrypt.hash(input.password, 10);
+          const hash = await bcrypt.hash(reqBody.password, 10);
           if (!hash) {
             throw {
               status: 500,
               message: "Something went wrong",
             };
           } else {
-            input.password = hash;
+            reqBody.password = hash;
           }
 
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("LoginUsername", sql.NVarChar, input.username)
-            .input("LoginPassword", sql.NVarChar, input.password)
-            .input("UserFirstName", sql.NVarChar, input.firstName)
-            .input("UserLastName", sql.NVarChar, input.lastName)
-            .input("UserIsDisabled", sql.Bit, false)
-            .input("CurrencyId", sql.Int, input.currency)
-            .query(
-              `INSERT INTO bpUser (UserFirstName, UserLastName, UserIsDisabled, CurrencyId) 
-              VALUES (@UserFirstName, @UserLastName, @UserIsDisabled, @CurrencyId);
+          const { rows: newUserId } = await pool.query(`
+              INSERT INTO bpUser (UserFirstName, UserLastName, UserIsDisabled, CurrencyId) 
+              VALUES ($1, $2, $3, $4) RETURNING UserId;`, 
+              [reqBody.firstName,
+                reqBody.lastName,
+                false,
+                reqBody.currency]
+            );
+      
+          const userId = newUserId[0].userid
 
-              INSERT INTO bpLogin (LoginUsername, LoginPassword, UserId)
-              VALUES (@LoginUsername, @LoginPassword, SCOPE_IDENTITY());
-
-              SELECT bpUser.UserId, 
-              bpLogin.LoginUsername,
-              bpUser.UserFirstName, 
-              bpUser.UserLastName,
-              bpUser.UserIsDisabled,
-              bpUser.CurrencyId,
-              bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode,
-              bpCurrency.CurrencySymbol
-              FROM bpUser
-              INNER JOIN bpLogin 
-              ON bpUser.UserId = bpLogin.UserId  
-              INNER JOIN bpCurrency 
-              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpUser.UserId = IDENT_CURRENT('bpUser');`
+          await pool.query(
+              `INSERT INTO bpLogin (LoginUsername, LoginPassword, UserId)
+              VALUES ($1, $2, $3);`,
+              [reqBody.username,
+                reqBody.password, 
+                userId]
             );
 
-          if (!result.recordset[0])
+          const { rows } = await pool.query(
+            `SELECT bpUser.UserId, 
+            bpLogin.LoginUsername,
+            bpUser.UserFirstName, 
+            bpUser.UserLastName,
+            bpUser.UserIsDisabled,
+            bpUser.CurrencyId,
+            bpCurrency.CurrencyName,
+            bpCurrency.CurrencyCode,
+            bpCurrency.CurrencySymbol
+            FROM bpUser
+            INNER JOIN bpLogin 
+            ON bpUser.UserId = bpLogin.UserId  
+            INNER JOIN bpCurrency 
+            ON bpUser.CurrencyId = bpCurrency.CurrencyId  
+            WHERE bpUser.UserId = $1;`, [userId])
+
+          if (!rows[0])
             throw {
               status: 500,
               message: "Failed to save User to database.",
             };
 
-          const record = result.recordset[0];
-          const dbRecord = {
-            id: record.UserId,
-            username: record.LoginUsername,
-            firstName: record.UserFirstName,
-            lastName: record.UserLastName,
+          const record = rows[0];
+          const user = {
+            id: record.userid,
+            username: record.loginusername,
+            firstName: record.userfirstname,
+            lastName: record.userlastname,
             currency: {
-              id: record.CurrencyId,
-              name: record.CurrencyName,
-              code: record.CurrencyCode,
-              symbol: record.CurrencySymbol,
+              id: record.currencyid,
+              name: record.currencyname,
+              code: record.currencycode,
+              symbol: record.currencysymbol,
             },
           };
 
-          resolve(new User(dbRecord));
+          resolve(new User(user));
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -264,11 +226,7 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = userId;
-
-          const pool = await sql.connect(connection);
-          const result = await pool.request().input("UserId", sql.Int, input)
-            .query(`
+          const { rows } = await pool.query(`
               SELECT bpUser.UserId, 
               bpLogin.LoginUsername,
               bpUser.UserFirstName, 
@@ -282,31 +240,31 @@ class User {
               ON bpUser.UserId = bpLogin.UserId  
               INNER JOIN bpCurrency 
               ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpUser.UserId = @UserId
-              AND NOT bpUser.UserIsDisabled = 1; 
-          `);
+              WHERE bpUser.UserId = $1
+              AND bpUser.UserIsDisabled = false; 
+          `, [userId]);
 
-          if (!result.recordset[0] || result.recordset[0].UserIsDisabled)
+          if (!rows[0] || rows[0].userisdisabled)
             throw {
               status: 404,
               message: "User not found",
             };
 
-          const record = result.recordset[0];
-          const dbRecord = {
-            id: record.UserId,
-            username: record.LoginUsername,
-            firstName: record.UserFirstName,
-            lastName: record.UserLastName,
+          const record = rows[0];
+          const user = {
+            id: record.userid,
+            username: record.loginusername,
+            firstName: record.userfirstname,
+            lastName: record.userlastname,
             currency: {
-              id: record.CurrencyId,
-              name: record.CurrencyName,
-              code: record.CurrencyCode,
-              symbol: record.CurrencySymbol,
+              id: record.currencyid,
+              name: record.currencyname,
+              code: record.currencycode,
+              symbol: record.currencysymbol,
             },
           };
 
-          resolve(new User(dbRecord));
+          resolve(new User(user));
         } catch (err) {
           console.log(err);
           reject(err);
@@ -321,55 +279,51 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("LoginUsername", sql.NVarChar, username).query(`
-              SELECT 
-              bpLogin.LoginUsername,
-              bpUser.UserId, 
-              bpUser.UserFirstName, 
-              bpUser.UserLastName,
-              bpUser.UserIsDisabled,
-              bpUser.CurrencyId,
-              bpCurrency.CurrencyName,
-              bpCurrency.CurrencyCode,
-              bpCurrency.CurrencySymbol
-              FROM bpLogin
-              INNER JOIN bpUser 
-              ON bpLogin.UserId = bpUser.UserId  
-              INNER JOIN bpCurrency 
-              ON bpUser.CurrencyId = bpCurrency.CurrencyId  
-              WHERE bpLogin.LoginUsername = @LoginUsername
-              AND NOT bpUser.UserIsDisabled = 1; 
-          `);
+          const { rows } = await pool.query(`
+            SELECT 
+            bpLogin.LoginUsername,
+            bpUser.UserId, 
+            bpUser.UserFirstName, 
+            bpUser.UserLastName,
+            bpUser.UserIsDisabled,
+            bpUser.CurrencyId,
+            bpCurrency.CurrencyName,
+            bpCurrency.CurrencyCode,
+            bpCurrency.CurrencySymbol
+            FROM bpLogin
+            INNER JOIN bpUser 
+            ON bpLogin.UserId = bpUser.UserId  
+            INNER JOIN bpCurrency 
+            ON bpUser.CurrencyId = bpCurrency.CurrencyId  
+            WHERE bpLogin.LoginUsername = $1
+            AND bpUser.UserIsDisabled = false; 
+          `, [username]);
 
-          if (!result.recordset[0] || result.recordset[0].UserIsDisabled)
+          if (!rows[0] || rows[0].userisdisabled)
             throw {
               status: 404,
               message: "User not found",
             };
 
-          const record = result.recordset[0];
-          const dbRecord = {
-            id: record.UserId,
-            username: record.LoginUsername,
-            firstName: record.UserFirstName,
-            lastName: record.UserLastName,
+          const record = rows[0];
+          const user = {
+            id: record.userid,
+            username: record.loginusername,
+            firstName: record.userfirstname,
+            lastName: record.userlastname,
             currency: {
-              id: record.CurrencyId,
-              name: record.CurrencyName,
-              code: record.CurrencyCode,
-              symbol: record.CurrencySymbol,
+              id: record.currencyid,
+              name: record.currencyname,
+              code: record.currencycode,
+              symbol: record.currencysymbol,
             },
           };
 
-          resolve(new User(dbRecord));
+          resolve(new User(user));
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -379,8 +333,6 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
           if (reqBody.password) {
             const newPassword = await bcrypt.hash(reqBody.password, 10);
             if (!newPassword)
@@ -389,46 +341,33 @@ class User {
                 message: "Something went wrong",
               };
 
-            await pool
-              .request()
-              .input("UserId", sql.NVarChar, this.id)
-              .input("LoginPassword", sql.NVarChar, newPassword)
-              .query(
-                `UPDATE bpLogin SET LoginPassword = @LoginPassword WHERE UserId = @UserId;`
+            await pool.query(
+                `UPDATE bpLogin SET LoginPassword = $2 WHERE UserId = $1;`,
+                [this.id, newPassword]
               );
           }
 
           if (reqBody.username !== this.username) {
-            await pool
-              .request()
-              .input("UserId", sql.NVarChar, this.id)
-              .input("LoginUsername", sql.NVarChar, reqBody.username)
-              .query(
-                `UPDATE bpLogin SET LoginUsername = @LoginUsername WHERE UserId = @UserId;`
+            await pool.query(
+                `UPDATE bpLogin SET LoginUsername = $2 WHERE UserId = $1;`,
+                [this.id, reqBody.username]
               );
 
             this.username = reqBody.username;
           }
 
           if (currencyObj) {
-            await pool
-              .request()
-              .input("CurrencyId", sql.Int, currencyObj.id)
-              .input("UserId", sql.Int, this.id)
-              .query(
-                `UPDATE bpUser SET CurrencyId = @CurrencyId WHERE UserId = @UserId;`
+            await pool.query(
+                `UPDATE bpUser SET CurrencyId = $1 WHERE UserId = $2;`,
+                [currencyObj.id, this.id]
               );
 
             this.currency = currencyObj;
           }
 
-          await pool
-            .request()
-            .input("UserId", sql.Int, this.id)
-            .input("UserFirstName", sql.NVarChar, reqBody.firstName)
-            .input("UserLastName", sql.NVarChar, reqBody.lastName)
-            .query(
-              `UPDATE bpUser SET UserFirstName = @UserFirstName, UserLastName = @UserLastName WHERE UserId = @UserId;`
+          await pool.query(
+              `UPDATE bpUser SET UserFirstName = $2, UserLastName = $3 WHERE UserId = $1;`,
+              [this.id, reqBody.firstName, reqBody.lastName]
             );
 
           this.firstName = reqBody.firstName;
@@ -439,7 +378,6 @@ class User {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -449,26 +387,17 @@ class User {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = userId;
-
-          const pool = await sql.connect(connection);
-          await pool
-            .request()
-            .input("UserId", sql.Int, input)
-            .input("UserIsDisabled", sql.Bit, true).query(`
+          await pool.query(`
               UPDATE bpUser
-              SET UserIsDisabled = @UserIsDisabled
-              WHERE UserId = @UserId;
-
-              SELECT * FROM bpUser WHERE UserId = @UserId;
-          `);
+              SET UserIsDisabled = true
+              WHERE UserId = $1;
+          `, [userId]);
 
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
