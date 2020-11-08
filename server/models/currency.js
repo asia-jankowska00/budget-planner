@@ -1,5 +1,4 @@
-const connection = require("../config/connection");
-const sql = require("mssql");
+const pool = require("../db");
 
 class Currency {
   constructor(currency) {
@@ -12,13 +11,12 @@ class Currency {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool.request().query(`
-                  SELECT *
-                  FROM bpCurrency;
-              `);
+          const { rows } = await pool.query(`
+              SELECT *
+              FROM bpCurrency;
+            `);
 
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 404,
               message: "No currencies found",
@@ -26,12 +24,12 @@ class Currency {
 
           const currencies = [];
 
-          result.recordset.forEach((record) => {
+          rows.forEach((record) => {
             const currency = {
-              id: record.CurrencyId,
-              code: record.CurrencyCode,
-              name: record.CurrencyName,
-              symbol: record.CurrencySymbol,
+              id: record.currencyid,
+              code: record.currencycode,
+              name: record.currencyname,
+              symbol: record.currencysymbol,
             };
 
             currencies.push(new Currency(currency));
@@ -42,7 +40,6 @@ class Currency {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -51,36 +48,28 @@ class Currency {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = currencyId;
+          const { rows } = await pool.query(`
+            SELECT * FROM bpCurrency WHERE CurrencyId = $1;
+          `, [currencyId]);
 
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("CurrencyId", sql.Int, input).query(`
-                SELECT *
-                FROM bpCurrency
-                WHERE CurrencyId = @CurrencyId;
-            `);
-
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 404,
               message: "Currency not found",
             };
 
-          const dbRecord = {
-            id: result.recordset[0].CurrencyId,
-            code: result.recordset[0].CurrencyCode,
-            name: result.recordset[0].CurrencyName,
-            symbol: result.recordset[0].CurrencySymbol,
+          const currency = {
+            id: rows[0].currencyid,
+            code: rows[0].currencycode,
+            name: rows[0].currencyname,
+            symbol: rows[0].currencysymbol,
           };
 
-          resolve(new Currency(dbRecord));
+          resolve(new Currency(currency));
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
