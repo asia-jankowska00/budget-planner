@@ -2,6 +2,7 @@ const express = require("express");
 const Source = require("../models/source");
 const User = require("../models/user");
 const Currency = require("../models/currency");
+const Transaction = require("../models/transaction");
 const router = express.Router();
 
 const sourceSchemas = require("./schemas/sourceSchemas");
@@ -12,6 +13,11 @@ router.post("/", async (req, res) => {
 
     // fetch requester info
     const requester = await User.readById(req.user.id);
+
+    if (req.body.currencyId) {
+      // check if currency exists
+      await Currency.readById(req.body.currencyId);
+    }
 
     // create new source
     const newSource = await Source.create(req.body, requester);
@@ -91,10 +97,18 @@ router.delete("/:sourceId", async (req, res) => {
     // check if requester is source owner
     await Source.checkOwner(req.params.sourceId, req.user.id);
 
+    // delete all transactions bound to source
+    const transactions = await Transaction.getAllSourceTransactions(req.params.sourceId)
+
+    await Promise.all(
+      transactions.map((transaction) => Transaction.deleteFromSource(transaction.id, req.params.sourceId))
+    );
+
     // delete source
     await Source.delete(req.params.sourceId);
     res.json({ message: "Source deleted" });
   } catch (err) {
+    console.log(err)
     res.status(err.status || 400).json(err);
   }
 });
