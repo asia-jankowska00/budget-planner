@@ -1,5 +1,4 @@
-const connection = require("../config/connection");
-const sql = require("mssql");
+const pool = require("../db");
 
 class Transaction {
   constructor(transaction) {
@@ -50,77 +49,75 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input('TransactionName', sql.NVarChar, transactionObj.name)
-            .input('TransactionDate', sql.Date, transactionObj.date)
-            .input('TransactionAmount', sql.Money, transactionObj.amount)
-            .input('TransactionIsExpense', sql.Bit, transactionObj.isExpense)
-            .input('TransactionNote', sql.NVarChar, transactionObj.note)
-            .input('UserId', sql.Int, user.id)
-            .input('ContainerId', sql.Int, transactionObj.containerId)
-            .input('SourceId', sql.Int, transactionObj.sourceId)
-            .input('CategoryId', sql.Int, transactionObj.categoryId)
-            .query(`
-            INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, UserId, SourceId)
-            VALUES (@TransactionName, @TransactionDate, @TransactionAmount, @TransactionIsExpense, @TransactionNote, @UserId, @SourceId)
+          const { rows: transactionId } = await pool.query(`
+            INSERT INTO bpTransaction 
+            (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, UserId, SourceId)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING TransactionId;
+          `, [transactionObj.name, transactionObj.date, transactionObj.amount, 
+            transactionObj.isExpense, transactionObj.note, user.id, transactionObj.sourceId])
 
-            INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
-            VALUES (@ContainerId, IDENT_CURRENT('bpTransaction'), @CategoryId);
+          const TransactionId = transactionId[0].transactionid;
 
-            IF @TransactionIsExpense = 1
+          await pool.query(`
+              INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
+              VALUES ($1, $2, $3);
+          `, [transactionObj.containerId, TransactionId, transactionObj.categoryId])
+
+          await pool.query(`
+            IF $1 = 1
               UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - @TransactionAmount
-              WHERE SourceId = @SourceId;
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) - $3
+              WHERE SourceId = $2;
             ELSE
               UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + @TransactionAmount
-              WHERE SourceId = @SourceId;
+              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) + $3
+              WHERE SourceId = $2;
+          `, [transactionObj.isExpense, transactionObj.sourceId, transactionObj.amount])
 
-            SELECT bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
-            FROM bpTransaction
-            INNER JOIN bpContainerTransaction
-            ON bpTransaction.TransactionId = bpContainerTransaction.TransactionId
-            INNER JOIN bpSource
-            ON bpTransaction.SourceId = bpSource.SourceId
-            WHERE bpTransaction.TransactionId = IDENT_CURRENT('bpTransaction')
-          `)
+          const { rows } = await pool.query(`
+              SELECT bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
+              FROM bpTransaction
+              INNER JOIN bpContainerTransaction
+              ON bpTransaction.TransactionId = bpContainerTransaction.TransactionId
+              INNER JOIN bpSource
+              ON bpTransaction.SourceId = bpSource.SourceId
+              WHERE bpTransaction.TransactionId = $1;
+          `, [TransactionId])
 
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 500,
               message: 'Failed to save Transaction to database'
             };
 
-          const record = result.recordset[0];
+          const record = rows[0];
 
           const newTransaction = new Transaction({
-            id: record.TransactionId,
-            name: record.TransactionName,
-            date: record.TransactionDate,
-            amount: record.TransactionAmount,
-            isExpense: record.TransactionIsExpense,
-            note: record.TransactionNote,
+            id: record.transactionid,
+            name: record.transactionname,
+            amount: record.transactionamount,
+            isExpense: record.transactionisexpense,
+            date: record.transactiondate,
+            note: record.transactionnote,
             user: {
-              id: user.id,
-              username: user.username,
-              firstName: user.firstName,
-              lastName: user.lastName
+              id: record.userid,
+              username: record.loginusername,
+              firstName: record.userfirstname,
+              lastName: record.userlastname
             },
             source: {
-              id: record.SourceId,
-              name: record.SourceName
+              id: record.sourceid,
+              name: record.sourcename
             },
-            category: record.CategoryId
+            category: record.categoryid
           })
 
           resolve(newTransaction);
-
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        //sql.close();
       })()
     })
   }
@@ -129,29 +126,25 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("TransactionId", sql.Int, transactionId).query(`
-              SELECT SourceId
-              FROM bpTransaction
-              WHERE TransactionId = @TransactionId
-            `);
+          const { rows } = await pool.query(`
+            SELECT SourceId
+            FROM bpTransaction
+            WHERE TransactionId = $1
+          `, [transactionId]);
 
-          if (result.recordset.length <= 0)
+          if (rows.length <= 0)
             throw { status: 404, message: "No transactions found" };
 
-          if (result.recordset.length > 1)
+          if (rows.length > 1)
             throw { status: 500, message: "Something is wrong in the DB" };
 
-          const record = result.recordset[0];
+          const record = rows[0];
 
-          resolve(record.SourceId)
+          resolve(record.sourceid)
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -160,43 +153,40 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("SourceId", sql.Int, sourceId).query(`
-              SELECT
-              TransactionId, TransactionName, TransactionDate, 
-              TransactionAmount, TransactionIsExpense, TransactionNote,  
-              bpTransaction.UserId, UserFirstName, UserLastName, LoginUsername
-              FROM bpTransaction
-              INNER JOIN bpSource
-              ON bpTransaction.SourceId = bpSource.SourceId
-              INNER JOIN bpUser
-              ON bpTransaction.UserId = bpUser.UserId
-              INNER JOIN bpLogin
-              ON bpTransaction.UserId = bpLogin.UserId 
-              WHERE bpTransaction.SourceId = @SourceId 
-              ORDER BY TransactionDate DESC
-            `);
+          const { rows } = await pool.query(`
+            SELECT
+            TransactionId, TransactionName, TransactionDate, 
+            TransactionAmount, TransactionIsExpense, TransactionNote,  
+            bpTransaction.UserId, UserFirstName, UserLastName, LoginUsername
+            FROM bpTransaction
+            INNER JOIN bpSource
+            ON bpTransaction.SourceId = bpSource.SourceId
+            INNER JOIN bpUser
+            ON bpTransaction.UserId = bpUser.UserId
+            INNER JOIN bpLogin
+            ON bpTransaction.UserId = bpLogin.UserId 
+            WHERE bpTransaction.SourceId = $1 
+            ORDER BY TransactionDate DESC;
+          `, [sourceId]);
 
-          if (result.recordset.length < 0)
+          if (rows.length < 0)
             throw { status: 404, message: "No transactions found" };
 
           const transactions = [];
-          if (result.recordset.length > 1) {
-            result.recordset.forEach((record) => {
+          if (rows.length > 1) {
+            rows.forEach((record) => {
               const transactionObj = {
-                id: record.TransactionId,
-                name: record.TransactionName,
-                amount: record.TransactionAmount,
-                isExpense: record.TransactionIsExpense,
-                date: record.TransactionDate,
-                note: record.TransactionNote,
+                id: record.transactionid,
+                name: record.transactionname,
+                amount: record.transactionamount,
+                isExpense: record.transactionisexpense,
+                date: record.transactiondate,
+                note: record.transactionnote,
                 user: {
-                  id: record.UserId,
-                  username: record.LoginUsername,
-                  firstName: record.UserFirstName,
-                  lastName: record.UserLastName
+                  id: record.userid,
+                  username: record.loginusername,
+                  firstName: record.userfirstname,
+                  lastName: record.userlastname
                 }
               }
 
@@ -209,7 +199,6 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -218,53 +207,48 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("SourceId", sql.Int, sourceId)
-            .input("TransactionId", sql.Int, transactionId).query(`
-              SELECT
-              TransactionId, TransactionName, TransactionDate, 
-              TransactionAmount, TransactionIsExpense, TransactionNote,  
-              bpTransaction.UserId, UserFirstName, UserLastName, LoginUsername
-              FROM bpTransaction
-              INNER JOIN bpSource
-              ON bpTransaction.SourceId = bpSource.SourceId
-              INNER JOIN bpUser
-              ON bpTransaction.UserId = bpUser.UserId
-              INNER JOIN bpLogin
-              ON bpTransaction.UserId = bpLogin.UserId 
-              WHERE bpTransaction.SourceId = @SourceId 
-              AND bpTransaction.TransactionId = @TransactionId
-            `);
+          const { rows } = await pool.query(`
+            SELECT
+            TransactionId, TransactionName, TransactionDate, 
+            TransactionAmount, TransactionIsExpense, TransactionNote,  
+            bpTransaction.UserId, UserFirstName, UserLastName, LoginUsername
+            FROM bpTransaction
+            INNER JOIN bpSource
+            ON bpTransaction.SourceId = bpSource.SourceId
+            INNER JOIN bpUser
+            ON bpTransaction.UserId = bpUser.UserId
+            INNER JOIN bpLogin
+            ON bpTransaction.UserId = bpLogin.UserId 
+            WHERE bpTransaction.SourceId = $1 
+            AND bpTransaction.TransactionId = $2;
+          `, [sourceId, transactionId]);
 
-          if (result.recordset.length <= 0)
+          if (rows.length <= 0)
             throw { status: 404, message: "Transaction not found" };
 
-          if (result.recordset.length > 1)
+          if (rows.length > 1)
             throw { status: 500, message: "Something is wrong in the DB" };
 
-          const record = result.recordset[0];
+          const record = rows[0];
 
           resolve(new Transaction({
-            id: record.TransactionId,
-            name: record.TransactionName,
-            amount: record.TransactionAmount,
-            isExpense: record.TransactionIsExpense,
-            date: record.TransactionDate,
-            note: record.TransactionNote,
+            id: record.transactionid,
+            name: record.transactionname,
+            amount: record.transactionamount,
+            isExpense: record.transactionisexpense,
+            date: record.transactiondate,
+            note: record.transactionnote,
             user: {
-              id: record.UserId,
-              username: record.LoginUsername,
-              firstName: record.UserFirstName,
-              lastName: record.UserLastName
+              id: record.userid,
+              username: record.loginusername,
+              firstName: record.userfirstname,
+              lastName: record.userlastname
             }
           }))
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -273,56 +257,53 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input('ContainerId', sql.Int, containerId)
-            .query(`
-          SELECT
-          bpTransaction.TransactionId,
-          TransactionName,
-          TransactionDate,
-          TransactionAmount,
-          TransactionIsExpense,
-          TransactionNote,
-          bpTransaction.SourceId,
-          bpTransaction.UserId,
-          SourceName,
-          UserFirstName, UserLastName, LoginUsername
-          FROM bpTransaction
-          INNER JOIN bpContainerTransaction
-          ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
-          INNER JOIN bpSource
-          ON bpSource.SourceId = bpTransaction.SourceId
-          INNER JOIN bpUser
-          ON bpTransaction.UserId = bpUser.UserId
-          INNER JOIN bpLogin
-          ON bpTransaction.UserId = bpLogin.UserId 
-          WHERE bpContainerTransaction.ContainerId = @ContainerId
-          ORDER BY TransactionDate DESC
-          `);
+          const { rows } = await pool.query(`
+            SELECT
+            bpTransaction.TransactionId,
+            TransactionName,
+            TransactionDate,
+            TransactionAmount,
+            TransactionIsExpense,
+            TransactionNote,
+            bpTransaction.SourceId,
+            bpTransaction.UserId,
+            SourceName,
+            UserFirstName, UserLastName, LoginUsername
+            FROM bpTransaction
+            INNER JOIN bpContainerTransaction
+            ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
+            INNER JOIN bpSource
+            ON bpSource.SourceId = bpTransaction.SourceId
+            INNER JOIN bpUser
+            ON bpTransaction.UserId = bpUser.UserId
+            INNER JOIN bpLogin
+            ON bpTransaction.UserId = bpLogin.UserId 
+            WHERE bpContainerTransaction.ContainerId = $1
+            ORDER BY TransactionDate DESC;
+          `, [containerId]);
 
-          if (result.recordset < 0)
+          if (rows.length < 0)
             throw { status: 404, message: "No transactions found." };
 
           const transactions = [];
-          if (result.recordset.length > 0) {
-            result.recordset.forEach((record) => {
+          if (rows.length > 0) {
+            rows.forEach((record) => {
               const transactionObj = {
-                id: record.TransactionId,
-                name: record.TransactionName,
-                amount: record.TransactionAmount,
-                isExpense: record.TransactionIsExpense,
-                date: record.TransactionDate,
-                note: record.TransactionNote,
+                id: record.transactionid,
+                name: record.transactionname,
+                amount: record.transactionamount,
+                isExpense: record.transactionisexpense,
+                date: record.transactiondate,
+                note: record.transactionnote,
                 user: {
-                  id: record.UserId,
-                  username: record.LoginUsername,
-                  firstName: record.UserFirstName,
-                  lastName: record.UserLastName
+                  id: record.userid,
+                  username: record.loginusername,
+                  firstName: record.userfirstname,
+                  lastName: record.userlastname
                 },
                 source: {
-                  id: record.SourceId,
-                  name: record.SourceName
+                  id: record.sourceid,
+                  name: record.sourcename
                 }
               }
 
@@ -334,7 +315,6 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -343,113 +323,95 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input('ContainerId', sql.Int, containerId)
-            .input('TransactionId', sql.Int, transactionId)
-            .query(`
-          SELECT
-          bpTransaction.TransactionId,
-          TransactionName,
-          TransactionDate,
-          TransactionAmount,
-          TransactionIsExpense,
-          TransactionNote,
-          bpTransaction.SourceId,
-          bpTransaction.UserId,
-          SourceName,
-          UserFirstName, UserLastName, LoginUsername
-          FROM bpTransaction
-          INNER JOIN bpContainerTransaction
-          ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
-          INNER JOIN bpSource
-          ON bpSource.SourceId = bpTransaction.SourceId
-          INNER JOIN bpUser
-          ON bpTransaction.UserId = bpUser.UserId
-          INNER JOIN bpLogin
-          ON bpTransaction.UserId = bpLogin.UserId 
-          WHERE bpContainerTransaction.ContainerId = @ContainerId
-          AND bpTransaction.TransactionId = @TransactionId;
-          `);
+          const { rows } = await pool.query(`
+            SELECT
+            bpTransaction.TransactionId,
+            TransactionName,
+            TransactionDate,
+            TransactionAmount,
+            TransactionIsExpense,
+            TransactionNote,
+            bpTransaction.SourceId,
+            bpTransaction.UserId,
+            SourceName,
+            UserFirstName, UserLastName, LoginUsername
+            FROM bpTransaction
+            INNER JOIN bpContainerTransaction
+            ON bpContainerTransaction.TransactionId = bpTransaction.TransactionId
+            INNER JOIN bpSource
+            ON bpSource.SourceId = bpTransaction.SourceId
+            INNER JOIN bpUser
+            ON bpTransaction.UserId = bpUser.UserId
+            INNER JOIN bpLogin
+            ON bpTransaction.UserId = bpLogin.UserId 
+            WHERE bpContainerTransaction.ContainerId = $1
+            AND bpTransaction.TransactionId = $2;
+          `, [containerId, transactionId]);
 
-          if (result.recordset.length <= 0)
+          if (rows.length <= 0)
             throw { status: 404, message: "Transaction not found" };
 
-          if (result.recordset.length > 1)
+          if (rows.length > 1)
             throw { status: 500, message: "Something is wrong in the DB" };
 
-          const record = result.recordset[0];
+          const record = rows[0];
           const transaction = new Transaction({
-            id: record.TransactionId,
-            name: record.TransactionName,
-            amount: record.TransactionAmount,
-            isExpense: record.TransactionIsExpense,
-            date: record.TransactionDate,
-            note: record.TransactionNote,
+            id: record.transactionid,
+            name: record.transactionname,
+            amount: record.transactionamount,
+            isExpense: record.transactionisexpense,
+            date: record.transactiondate,
+            note: record.transactionnote,
             user: {
-              id: record.UserId,
-              username: record.LoginUsername,
-              firstName: record.UserFirstName,
-              lastName: record.UserLastName
+              id: record.userid,
+              username: record.loginusername,
+              firstName: record.userfirstname,
+              lastName: record.userlastname
             },
             source: {
-              id: record.SourceId,
-              name: record.SourceName
+              id: record.sourceid,
+              name: record.sourcename
             }
           })
-
-          resolve(transaction)
 
           resolve(transaction);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
 
-  update(input, owner) {
+  update(transactionObj, owner) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const keys = Object.keys(input);
+          const keys = Object.keys(transactionObj);
 
           keys.forEach((key) => {
-            this[key] = input[key];
+            this[key] = transactionObj[key];
           });
 
-          const result = await pool
-              .request()
-              .input("TransactionId", sql.Int, this.id)
-              .input("TransactionName", sql.NVarChar, this.name)
-              .input("TransactionDate", sql.Date, this.date)
-              .input("TransactionAmount", sql.Money, this.amount)
-              .input("TransactionIsExpense", sql.Int, this.isExpense)
-              .input("TransactionNote", sql.Int, this.note)
-              .input("UserId", sql.Int, owner.id)
-              .query(`
-                  UPDATE bpTransaction
-                  SET TransactionName = @TransactionName, 
-                  TransactionDate = @TransactionDate,
-                  TransactionAmount = @TransactionAmount,
-                  TransactionIsExpense = @TransactionIsExpense,
-                  TransactionNote = @TransactionNote
-                  WHERE TransactionId = @TransactionId AND UserId = @UserId;
-              `);
+          const { rows } = await pool.query(`
+            UPDATE bpTransaction
+            SET TransactionName = $2, 
+            TransactionDate = $3,
+            TransactionAmount = $4,
+            TransactionIsExpense = $5,
+            TransactionNote = $6
+            WHERE TransactionId = $1 AND UserId = $7
+            RETURNING TransactionId;
+          `, [this.id, this.name, this.date, this.amount, this.isExpense, this.note, owner.id]);
 
-          if (!result.rowsAffected[0]) {
+          if (!rows[0]) {
             throw {
               status: 500,
               message: "Failed to update transaction",
             };
           }
 
-          if (result.rowsAffected.length != 1) {
+          if (rows.length != 1) {
             throw {
               status: 500,
               message: "Database is corrupt",
@@ -461,7 +423,6 @@ class Transaction {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -470,31 +431,46 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool.request()
-            .input('TransactionId', sql.Int, transactionId)
-            .input('SourceId', sql.Int, sourceId)
-            .query(`
+          await pool.query(`
             DELETE FROM bpContainerTransaction
-            WHERE TransactionId = @TransactionId;
+            WHERE TransactionId = $1;
+          `, [transactionId])
 
+          await pool.query(`
             UPDATE bpSource 
-            SET bpSource.SourceAmount = CASE 
-                    WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + bpTransaction.TransactionAmount
-                    ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - bpTransaction.TransactionAmount
-                  END
-            FROM bpSource
-            INNER JOIN bpTransaction
-              ON bpSource.SourceId = bpTransaction.SourceId
-            WHERE bpTransaction.SourceId = @SourceId;
+            SET SourceAmount = CASE 
+              WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) + bpTransaction.TransactionAmount
+              ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) - bpTransaction.TransactionAmount
+              END
+            FROM bpTransaction
+              WHERE bpTransaction.SourceId = $1;
+          `, [sourceId])
 
+          await pool.query(`
             DELETE FROM bpNotification
-            WHERE TransactionId = @TransactionId;
-  
+            WHERE TransactionId = $1;
+          `, [transactionId])
+
+          await pool.query(`
             DELETE FROM bpTransaction
-            WHERE TransactionId = @TransactionId;
-          `)
+            WHERE TransactionId = $1;
+          `, [transactionId])
+
+          //backup
+          // await pool.query(`
+          //   UPDATE bpSource 
+          //   SET bpSource.SourceAmount = CASE 
+          //     WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) + bpTransaction.TransactionAmount
+          //     ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) - bpTransaction.TransactionAmount
+          //     END
+          //   FROM bpSource
+          //   INNER JOIN bpTransaction
+          //     ON bpSource.SourceId = bpTransaction.SourceId
+          //   WHERE bpTransaction.SourceId = $1;
+          // `, [sourceId])
+
+
+          //old
           //   .query(`
           //   DELETE FROM bpContainerTransaction
           //   WHERE TransactionId = @TransactionId;
@@ -527,12 +503,10 @@ class Transaction {
           // `)
 
           resolve();
-
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        //sql.close();
       })()
     })
   }
@@ -541,22 +515,16 @@ class Transaction {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool.request()
-            .input('TransactionId', sql.Int, transactionId)
-            .input('ContainerId', sql.Int, containerId)
-            .query(`
+          await pool.query(`
             DELETE FROM bpContainerTransaction
-            WHERE TransactionId = @TransactionId AND ContainerId = @ContainerId;
-          `)
+            WHERE TransactionId = $1 AND ContainerId = $2;
+          `, [transactionId, containerId])
 
           resolve();
-
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        //sql.close();
       })()
     })
   }
