@@ -4,6 +4,7 @@ class Category {
   constructor(category) {
     this.id = category.id;
     this.name = category.name;
+    this.containerId = category.containerId;
     this.estimation = category.estimation ? category.estimation : 0;
   }
 
@@ -12,20 +13,14 @@ class Category {
       (async () => {
         try {
           const { rows: newCategoryId } = await pool.query(`
-            INSERT INTO bpCategory (CategoryName)
-            VALUES ($1) RETURNING CategoryId;`, [categoryObj.name])
+            INSERT INTO bpCategory (CategoryName, ContainerId, CategoryEstimation)
+            VALUES ($1, $2, $3) RETURNING CategoryId;`, [categoryObj.name, containerId, categoryObj.estimation])
 
           const categoryId = newCategoryId[0].categoryid;
 
-          await pool.query(`
-            INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation) 
-            VALUES ($1, $2, $3);`, [containerId, categoryId, categoryObj.estimation])
-
           const { rows } = await pool.query(`
-            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.ContainerId, bpContainerCategory.CategoryEstimation
+            SELECT CategoryId, CategoryName, ContainerId, CategoryEstimation
             FROM bpCategory
-            INNER JOIN bpContainerCategory
-            ON bpCategory.CategoryId = bpContainerCategory.CategoryId
             WHERE bpCategory.CategoryId = $1;
           `, [categoryId]);
 
@@ -40,6 +35,7 @@ class Category {
           const newCategory = new Category({
             id: record.categoryid,
             name: record.categoryname,
+            containerId: record.containerid,
             estimation: record.categoryestimation,
           });
 
@@ -57,10 +53,9 @@ class Category {
       (async () => {
         try {
           const { rows } = await pool.query(`
-            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-            INNER JOIN bpContainerCategory
-            ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-            WHERE bpContainerCategory.ContainerId = $1;
+            SELECT CategoryId, CategoryName, ContainerId, CategoryEstimation 
+            FROM bpCategory
+            WHERE ContainerId = $1;
           `, [containerId]);
 
           if (rows.length <= 0)
@@ -74,6 +69,7 @@ class Category {
             const categoryObj = {
               id: record.categoryid,
               name: record.categoryname,
+              containerId: record.containerid,
               estimation: record.categoryestimation,
             };
 
@@ -94,10 +90,9 @@ class Category {
       (async () => {
         try {
           const { rows } = await pool.query(`
-            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-            INNER JOIN bpContainerCategory
-            ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-            WHERE bpContainerCategory.ContainerId = $1 AND bpCategory.CategoryId = $2;
+            SELECT CategoryId, CategoryName, ContainerId, CategoryEstimation 
+            FROM bpCategory
+            WHERE ContainerId = $1 AND CategoryId = $2;
           `, [containerId, categoryId]);
 
           if (!rows[0]) {
@@ -111,6 +106,7 @@ class Category {
           const category = new Category({
             id: record.categoryid,
             name: record.categoryname,
+            containerId: record.containerid,
             estimation: record.categoryestimation,
           });
 
@@ -130,7 +126,7 @@ class Category {
           if (categoryObj.name !== this.name) {
             const { rows } = await pool.query(`
               UPDATE bpCategory SET CategoryName = $1
-              WHERE CategoryId = $2;
+              WHERE CategoryId = $2 RETURNING CategoryId;
             `, [categoryObj.name, this.id]);
 
             if (!rows[0]) {
@@ -149,8 +145,8 @@ class Category {
             categoryObj.estimation !== this.estimation
           ) {
             const { rows } = await pool.query(`
-              UPDATE bpContainerCategory SET CategoryEstimation = $1
-              WHERE CategoryId = $2;
+              UPDATE bpCategory SET CategoryEstimation = $1
+              WHERE CategoryId = $2 RETURNING CategoryId;
             `, [categoryObj.estimation, this.id]);
 
             if (!rows[0]) {
@@ -178,16 +174,11 @@ class Category {
       (async () => {
         try {
           await pool.query(`
-            UPDATE bpContainerTransaction SET CategoryId = NULL
+            UPDATE bpContainerTransaction SET CategoryId = null
             WHERE ContainerId = $1 AND CategoryId = $2;
           `, [containerId, categoryId])
 
-          const { rows: deleted } = await pool.query(`
-            DELETE FROM bpContainerCategory
-            WHERE ContainerId = $1 AND CategoryId = $2;
-          `, [containerId, categoryId])
-
-          if (deleted) await pool.query(`
+          await pool.query(`
             DELETE FROM bpCategory WHERE CategoryId = $1;
           `, [categoryId]);
 
@@ -205,7 +196,7 @@ class Category {
       (async () => {
         try {
           const { rows } = await pool.query(`
-            SELECT * FROM bpContainerCategory
+            SELECT * FROM bpCategory
             WHERE ContainerId = $1 AND CategoryId = $2;
           `, [containerId, categoryId]);
 

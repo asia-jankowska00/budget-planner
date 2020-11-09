@@ -50,7 +50,7 @@ router.get("/:categoryId", async (req, res) => {
 
 router.patch("/:categoryId", async (req, res) => {
   try {
-    await categorySchemas.postInputCategory.validateAsync(req.body);
+    await categorySchemas.patchInputCategory.validateAsync(req.body);
 
     await Container.checkOwner(req.params.containerId, req.user.id);
 
