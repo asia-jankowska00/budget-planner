@@ -1,5 +1,4 @@
-const connection = require("../config/connection");
-const sql = require("mssql");
+const pool = require("../db");
 
 class Category {
   constructor(category) {
@@ -12,38 +11,36 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("CategoryName", sql.NVarChar, categoryObj.name)
-            .input("CategoryEstimation", sql.Int, categoryObj.estimation)
-            .query(`
-              INSERT INTO bpCategory (CategoryName)
-              VALUES (@CategoryName);
+          const { rows: newCategoryId } = await pool.query(`
+            INSERT INTO bpCategory (CategoryName)
+            VALUES ($1) RETURNING CategoryId;`, [categoryObj.name])
 
-              INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation) 
-              VALUES (@ContainerId, IDENT_CURRENT('bpCategory'), @CategoryEstimation)
+          const categoryId = newCategoryId[0].categoryid;
 
-              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.ContainerId, bpContainerCategory.CategoryEstimation
-              FROM bpCategory
-              INNER JOIN bpContainerCategory
-              ON bpCategory.CategoryId = bpContainerCategory.CategoryId
-              WHERE bpCategory.CategoryId = IDENT_CURRENT('bpCategory');
-            `);
+          await pool.query(`
+            INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation) 
+            VALUES ($1, $2, $3);`, [containerId, categoryId, categoryObj.estimation])
 
-          if (!result.recordset[0])
+          const { rows } = await pool.query(`
+            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.ContainerId, bpContainerCategory.CategoryEstimation
+            FROM bpCategory
+            INNER JOIN bpContainerCategory
+            ON bpCategory.CategoryId = bpContainerCategory.CategoryId
+            WHERE bpCategory.CategoryId = $1;
+          `, [categoryId]);
+
+          if (!rows[0])
             throw {
               status: 500,
               message: "Failed to save Category to database",
             };
 
-          const record = result.recordset[0];
+          const record = rows[0];
 
           const newCategory = new Category({
-            id: record.CategoryId,
-            name: record.CategoryName,
-            estimation: record.CategoryEstimation,
+            id: record.categoryid,
+            name: record.categoryname,
+            estimation: record.categoryestimation,
           });
 
           resolve(newCategory);
@@ -51,7 +48,6 @@ class Category {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -60,28 +56,25 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId).query(`
-              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-              INNER JOIN bpContainerCategory
-              ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-              WHERE bpContainerCategory.ContainerId = @ContainerId;
-            `);
+          const { rows } = await pool.query(`
+            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
+            INNER JOIN bpContainerCategory
+            ON bpContainerCategory.CategoryId = bpCategory.CategoryId
+            WHERE bpContainerCategory.ContainerId = $1;
+          `, [containerId]);
 
-          if (result.recordset.length <= 0)
+          if (rows.length <= 0)
             throw {
               status: 404,
               message: "No categories found",
             };
 
           const categories = [];
-          result.recordset.forEach((record) => {
+          rows.forEach((record) => {
             const categoryObj = {
-              id: record.CategoryId,
-              name: record.CategoryName,
-              estimation: record.CategoryEstimation,
+              id: record.categoryid,
+              name: record.categoryname,
+              estimation: record.categoryestimation,
             };
 
             categories.push(new Category(categoryObj));
@@ -92,7 +85,6 @@ class Category {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -101,29 +93,25 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("CategoryId", sql.Int, categoryId).query(`
-              SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
-              INNER JOIN bpContainerCategory
-              ON bpContainerCategory.CategoryId = bpCategory.CategoryId
-              WHERE bpContainerCategory.ContainerId = @ContainerId AND bpCategory.CategoryId = @CategoryId;
-            `);
+          const { rows } = await pool.query(`
+            SELECT bpCategory.CategoryId, bpCategory.CategoryName, bpContainerCategory.CategoryEstimation FROM bpCategory
+            INNER JOIN bpContainerCategory
+            ON bpContainerCategory.CategoryId = bpCategory.CategoryId
+            WHERE bpContainerCategory.ContainerId = $1 AND bpCategory.CategoryId = $2;
+          `, [containerId, categoryId]);
 
-          if (!result.recordset[0]) {
+          if (!rows[0]) {
             throw {
               status: 500,
               message: "Failed to get category",
             };
           }
 
-          const record = result.recordset[0];
+          const record = rows[0];
           const category = new Category({
-            id: record.CategoryId,
-            name: record.CategoryName,
-            estimation: record.CategoryEstimation,
+            id: record.categoryid,
+            name: record.categoryname,
+            estimation: record.categoryestimation,
           });
 
           resolve(category);
@@ -131,8 +119,6 @@ class Category {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -141,21 +127,17 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
           if (categoryObj.name !== this.name) {
-            const result = await pool
-              .request()
-              .input("CategoryName", sql.NVarChar, categoryObj.name)
-              .input("CategoryId", sql.Int, this.id).query(`
-                UPDATE bpCategory SET CategoryName = @CategoryName
-                WHERE CategoryId = @CategoryId
-              `);
+            const { rows } = await pool.query(`
+              UPDATE bpCategory SET CategoryName = $1
+              WHERE CategoryId = $2;
+            `, [categoryObj.name, this.id]);
 
-            if (!result.rowsAffected[0]) {
+            if (!rows[0]) {
               throw { status: 500, message: "Failed to update category" };
             }
 
-            if (result.rowsAffected.length != 1) {
+            if (rows.length != 1) {
               throw { status: 500, message: "Database is corrupt" };
             }
 
@@ -166,19 +148,16 @@ class Category {
             categoryObj.estimation &&
             categoryObj.estimation !== this.estimation
           ) {
-            const result = await pool
-              .request()
-              .input("CategoryEstimation", sql.Int, categoryObj.estimation)
-              .input("CategoryId", sql.Int, this.id).query(`
-                            UPDATE bpContainerCategory SET CategoryEstimation = @CategoryEstimation
-                            WHERE CategoryId = @CategoryId
-                        `);
+            const { rows } = await pool.query(`
+              UPDATE bpContainerCategory SET CategoryEstimation = $1
+              WHERE CategoryId = $2;
+            `, [categoryObj.estimation, this.id]);
 
-            if (!result.rowsAffected[0]) {
+            if (!rows[0]) {
               throw { status: 500, message: "Failed to update category" };
             }
 
-            if (result.rowsAffected.length != 1) {
+            if (rows.length != 1) {
               throw { status: 500, message: "Database is corrupt" };
             }
 
@@ -190,7 +169,6 @@ class Category {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -199,19 +177,19 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("CategoryId", sql.Int, categoryId)
-            .input("ContainerId", sql.Int, containerId).query(`
-              UPDATE bpContainerTransaction SET CategoryId = NULL
-              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+          await pool.query(`
+            UPDATE bpContainerTransaction SET CategoryId = NULL
+            WHERE ContainerId = $1 AND CategoryId = $2;
+          `, [containerId, categoryId])
 
-              DELETE FROM bpContainerCategory
-              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
+          const { rows: deleted } = await pool.query(`
+            DELETE FROM bpContainerCategory
+            WHERE ContainerId = $1 AND CategoryId = $2;
+          `, [containerId, categoryId])
 
-              DELETE FROM bpCategory WHERE CategoryId = @CategoryId
-            `);
+          if (deleted) await pool.query(`
+            DELETE FROM bpCategory WHERE CategoryId = $1;
+          `, [categoryId]);
 
           resolve();
         } catch (err) {
@@ -226,23 +204,19 @@ class Category {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const result = await pool
-            .request()
-            .input("CategoryId", sql.Int, categoryId)
-            .input("ContainerId", sql.Int, containerId).query(`
-              SELECT * FROM bpContainerCategory
-              WHERE ContainerId = @ContainerId AND CategoryId = @CategoryId;
-            `);
+          const { rows } = await pool.query(`
+            SELECT * FROM bpContainerCategory
+            WHERE ContainerId = $1 AND CategoryId = $2;
+          `, [containerId, categoryId]);
 
-          if (result.recordset.length < 1) {
+          if (rows.length < 1) {
             throw {
               status: 400,
               message: "Category not part of the container",
             };
           }
 
-          if (result.recordset.length > 1) {
+          if (rows.length > 1) {
             throw {
               status: 500,
               message: "Database is corrupt",

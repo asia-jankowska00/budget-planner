@@ -1,5 +1,4 @@
-const connection = require("../config/connection");
-const sql = require("mssql");
+const pool = require("../db");
 
 class Container {
   constructor(container) {
@@ -31,16 +30,12 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-          const access = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("UserId", sql.Int, userId).query(`
+          const { rows: access } = await pool.query(`
           SELECT ContainerId FROM bpContainer
-          WHERE ContainerId = @ContainerId AND UserId = @UserId;
-          `);
+          WHERE ContainerId = $1 AND UserId = $2;
+          `, [containerId, userId]);
 
-          if (!access.recordset[0]) {
+          if (!access[0]) {
             throw {
               status: 401,
               message: "This user is not the owner of this container",
@@ -52,8 +47,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
