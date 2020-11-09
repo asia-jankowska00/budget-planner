@@ -31,8 +31,8 @@ class Container {
       (async () => {
         try {
           const { rows: access } = await pool.query(`
-          SELECT ContainerId FROM bpContainer
-          WHERE ContainerId = $1 AND UserId = $2;
+            SELECT ContainerId FROM bpContainer
+            WHERE ContainerId = $1 AND UserId = $2;
           `, [containerId, userId]);
 
           if (!access[0]) {
@@ -55,33 +55,25 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          const { rows } = await pool.query(`
+            SELECT UserContainerId FROM bpUserContainer
+            WHERE ContainerId = $1 AND UserId = $2;
+          `, [containerId, userId]);
 
-          // check if user has access to the container
-          const access = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("UserId", sql.Int, userId).query(`
-          SELECT UserContainerId FROM bpUserContainer
-          WHERE ContainerId = @ContainerId AND UserId = @UserId;
-          `);
-
-          if (!access.recordset[0]) {
+          if (!rows[0]) {
             throw {
               status: 401,
               message: "This user does not have access to this container",
             };
           }
 
-          const UserContainerId = access.recordset[0].UserContainerId;
+          const UserContainerId = rows[0].usercontainerid;
 
           resolve(UserContainerId);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -90,52 +82,40 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId)
-            .input("SourceId", sql.Int, sourceId).query(`
+          const { rows } = await pool.query(`
           SELECT SourceContainerId FROM bpSourceContainer
-          WHERE ContainerId = @ContainerId AND SourceId = @SourceId;
-          `);
+          WHERE ContainerId = $1 AND SourceId = $2;
+          `, [containerId, sourceId]);
 
-          if (!result.recordset[0]) {
+          if (!rows[0]) {
             throw {
               status: 401,
               message: "This source is not bound to this container",
             };
           }
 
-          const SourceContainerId = result.recordset[0].SourceContainerId;
+          const SourceContainerId = rows[0].sourcecontainerid;
 
           resolve(SourceContainerId);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
 
+  
   static checkUserSourceContainer(userContainerId, sourceContainerId) {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          const { rows } = await pool.query(`
+            SELECT * FROM bpUserSourceContainer
+            WHERE UserContainerId = $1 AND SourceContainerId = $2;
+          `, [userContainerId, sourceContainerId]);
 
-          // check if user has access to the container
-          const access = await pool
-            .request()
-            .input("UserContainerId", sql.Int, userContainerId)
-            .input("SourceContainerId", sql.Int, sourceContainerId).query(`
-          SELECT * FROM bpUserSourceContainer
-          WHERE UserContainerId = @UserContainerId AND SourceContainerId = @SourceContainerId;
-          `);
-
-          if (!access.recordset[0]) {
+          if (!rows[0]) {
             throw {
               status: 401,
               message:
@@ -148,8 +128,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -159,47 +137,38 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          await pool.query(`
+            INSERT INTO bpSourceContainer (SourceId, ContainerId) 
+            VALUES ($2, $1) RETURNING SourceContainerId;
+          `, [containerId, sourceId])
 
-          const insert = await pool
-            .request()
-            .input("UserId", sql.NVarChar, requesterId)
-            .input("ContainerId", sql.NVarChar, containerId)
-            .input("SourceId", sql.NVarChar, sourceId).query(`
-              INSERT INTO bpSourceContainer (SourceId, ContainerId) 
-              VALUES (@SourceId, @ContainerId);
+          const { rows: sourcecontainerid } = await pool.query(`
+            SELECT SourceContainerId
+            FROM bpSourceContainer
+            WHERE SourceId = $2 AND ContainerId = $1;
+          `, [containerId, sourceId]);
 
-              SELECT SourceContainerId
-              FROM bpSourceContainer
-              WHERE SourceId = @SourceId AND ContainerId = @ContainerId;
+          const { rows: usercontainerid } = await pool.query(`
+            SELECT UserContainerId
+            FROM bpUserContainer
+            WHERE ContainerId = $1 AND UserId = $2;
+          `, [containerId, requesterId]);
 
-              SELECT UserContainerId
-              FROM bpUserContainer
-              WHERE ContainerId = @ContainerId AND UserId = @UserId;
-            `);
-
-          if (!insert.recordset[0])
+          if (!sourcecontainerid[0] || !usercontainerid[0])
             throw {
               status: 500,
               message: "Failed to save source to database.",
             };
 
-          const SourceContainerId = insert.recordsets[0][0].SourceContainerId;
-          const UserContainerId = insert.recordsets[1][0].UserContainerId;
+          const SourceContainerId = sourcecontainerid[0].sourcecontainerid;
+          const UserContainerId = usercontainerid[0].usercontainerid;
 
-          const permissionInsert = await pool
-            .request()
-            .input("UserContainerId", sql.NVarChar, UserContainerId)
-            .input("SourceContainerId", sql.NVarChar, SourceContainerId).query(`
+          const { rows: permissionInsert } = await pool.query(`
             INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId) 
-            VALUES (@UserContainerId, @SourceContainerId);
+            VALUES ($1, $2) RETURNING UserSourceContainerId;
+          `, [UserContainerId, SourceContainerId]);
 
-            SELECT * FROM bpUserSourceContainer 
-            WHERE UserContainerId = @UserContainerId
-            AND SourceContainerId = @SourceContainerId;
-          `);
-
-          if (!permissionInsert.recordset[0])
+          if (!permissionInsert[0])
             throw {
               status: 500,
               message: "Failed to save source to database.",
@@ -210,7 +179,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -220,39 +188,23 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          const { rows: exists } = await pool.query(`
+            SELECT UserId FROM bpUserContainer 
+            WHERE UserId = $2 AND ContainerId = $1;
+          `, [this.id, user.id]);
 
-          const result1 = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("UserId", sql.Int, user.id)
-            .query(
-              `
-              SELECT UserId FROM bpUserContainer 
-              WHERE UserId = @UserId AND ContainerId = @ContainerId;
-              `
-            );
-
-          if (result1.recordset[0])
+          if (exists[0])
             throw {
               status: 400,
               message: "Collaborator already exists in this container.",
             };
 
-          const result2 = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("UserId", sql.Int, user.id)
-            .query(
-              `
+          const { rows: collaborator } = await pool.query(`
               INSERT INTO bpUserContainer (UserId, ContainerId)
-              VALUES (@UserId, @ContainerId);
+              VALUES ($2, $1) RETURNING UserContainerId RETURNING UserContainerId;
+            `, [this.id, user.id]);
 
-              SELECT UserId FROM bpUserContainer WHERE UserContainerId = SCOPE_IDENTITY();
-              `
-            );
-
-          if (!result2.recordset[0])
+          if (!collaborator[0])
             throw {
               status: 500,
               message: "Failed to add collaborator.",
@@ -263,8 +215,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -273,23 +223,19 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id).query(`
+          const { rows } = await pool.query(`
             SELECT UserId FROM bpUserContainer
-            WHERE ContainerId = @ContainerId;
-              `);
+            WHERE ContainerId = $1;
+          `, [this.id]);
 
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 404,
               message: "No collaborators found.",
             };
 
-          const collaborators = result.recordsets[0].map((record) => {
-            return record.UserId;
+          const collaborators = rows.map((record) => {
+            return record.userid;
           });
 
           resolve(collaborators);
@@ -297,8 +243,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -307,30 +251,23 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          await pool.query(`
+            DELETE bpUserSourceContainer FROM bpUserSourceContainer
+            INNER JOIN bpUserContainer
+            ON bpUserSourceContainer.UserContainerId = bpSourceContainer.UserContainerId
+            WHERE UserId = $1;
+            `, [userId]);
 
-          await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("UserId", sql.Int, userId)
-            .query(
-              `
-              DELETE bpUserSourceContainer FROM bpUserSourceContainer
-              INNER JOIN bpUserContainer
-              ON bpUserSourceContainer.UserContainerId = bpSourceContainer.UserContainerId
-              WHERE UserId = @UserId;
-
-              DELETE FROM bpUserContainer 
-              WHERE UserId = @UserId AND ContainerId = @ContainerId;
-              `
-            );
+          await pool.query(`
+            DELETE FROM bpUserContainer 
+            WHERE UserId = $2 AND ContainerId = $1;
+          `, [this.id, userId]);
 
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -340,54 +277,35 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          const { rows: exists } = await pool.query(`
+            SELECT SourceId FROM bpSourceContainer 
+            WHERE SourceId = $2 AND ContainerId = $1;
+          `, [this.id, sourceId]);
 
-          // check if the container already has the source attached!
-          const result1 = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("SourceId", sql.Int, sourceId)
-            .query(
-              `
-              SELECT SourceId FROM bpSourceContainer 
-              WHERE SourceId = @SourceId AND ContainerId = @ContainerId;
-              `
-            );
-
-          if (result1.recordset[0])
+          if (exists[0])
             throw {
               status: 400,
               message: "Source already exists in this container.",
             };
 
-          const result2 = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("SourceId", sql.Int, sourceId)
-            .query(
-              `
-              INSERT INTO bpSourceContainer (SourceId, ContainerId)
-              VALUES (@SourceId, @ContainerId);
+          const { rows: sourcecontainerid} = await pool.query(`
+            INSERT INTO bpSourceContainer (SourceId, ContainerId)
+            VALUES ($2, $1) RETURNING SourceContainerId;
+          `, [this.id, sourceId]);
 
-              SELECT SourceContainerId  FROM bpSourceContainer 
-              WHERE SourceId = @SourceId AND ContainerId = @ContainerId;
-              `
-            );
-
-          if (!result2.recordset[0])
+          if (!sourcecontainerid[0])
             throw {
               status: 500,
               message: "Failed to add source to container.",
             };
 
-          const SourceContainerId = result2.recordset[0].SourceContainerId;
+          const SourceContainerId = sourcecontainerid[0].sourcecontainerid;
 
           resolve(SourceContainerId);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -396,23 +314,19 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id).query(`
+          const { rows } = await pool.query(`
             SELECT SourceId FROM bpSourceContainer
-            WHERE ContainerId = @ContainerId;
-              `);
+            WHERE ContainerId = $1;
+          `, [this.id]);
 
-          if (!result.recordset[0])
+          if (!rows[0])
             throw {
               status: 404,
               message: "No sources found.",
             };
 
-          const sources = result.recordsets[0].map((record) => {
-            return record.SourceId;
+          const sources = rows.map((record) => {
+            return record.sourceid;
           });
 
           resolve(sources);
@@ -420,8 +334,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -430,30 +342,21 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          await pool.query(`
+            DELETE bpUserSourceContainer FROM bpUserSourceContainer
+            INNER JOIN bpSourceContainer
+            ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+            WHERE SourceId = $2;
 
-          await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("SourceId", sql.Int, sourceId)
-            .query(
-              `
-              DELETE bpUserSourceContainer FROM bpUserSourceContainer
-              INNER JOIN bpSourceContainer
-              ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
-              WHERE SourceId = @SourceId;
-
-              DELETE FROM bpSourceContainer 
-              WHERE SourceId = @SourceId AND ContainerId = @ContainerId;
-              `
-            );
+            DELETE FROM bpSourceContainer 
+            WHERE SourceId = $2 AND ContainerId = $1;
+          `, [this.id, sourceId]);
 
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -462,23 +365,12 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          const { rows: UserSourceContainer } = await pool.query(`
+            INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId)
+            VALUES ($1, $2) RETURNING UserSourceContainerId;
+          `, [UserContainerId, SourceContainerId]);
 
-          const result2 = await pool
-            .request()
-            .input("UserContainerId", sql.Int, UserContainerId)
-            .input("SourceContainerId", sql.Int, SourceContainerId)
-            .query(
-              `
-              INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId)
-              VALUES (@UserContainerId, @SourceContainerId);
-
-              SELECT * FROM bpUserSourceContainer 
-              WHERE UserContainerId = @UserContainerId AND SourceContainerId = @SourceContainerId;
-              `
-            );
-
-          if (!result2.recordset[0])
+          if (!UserSourceContainer[0])
             throw {
               status: 500,
               message: "Failed to add permission to source.",
@@ -489,7 +381,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -498,42 +389,34 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool
-            .request()
-            .input("SourceId", sql.Int, sourceId)
-            .input("ContainerId", sql.Int, this.id).query(`
+          const { rows: sourceContainerId} = await pool.query(`
             SELECT SourceContainerId FROM bpSourceContainer
-            WHERE ContainerId = @ContainerId AND SourceId = @SourceId;
-              `);
+            WHERE ContainerId = $2 AND SourceId = $1;
+          `, [sourceId, this.id]);
 
-          if (!result.recordset[0])
+          if (!sourceContainerId[0])
             throw {
               status: 404,
               message: "This source doesn't exist in this container.",
             };
 
-          const SourceContainerId = result.recordset[0].SourceContainerId;
+          const SourceContainerId = sourceContainerId[0].sourcecontainerid;
 
-          const result2 = await pool
-            .request()
-            .input("SourceContainerId", sql.Int, SourceContainerId).query(`
-          SELECT UserId FROM bpUserSourceContainer
-          INNER JOIN
-          bpUserContainer
-          ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
-          WHERE SourceContainerId = @SourceContainerId;
-            `);
+          const { rows: userSourceContainer } = await pool.query(`
+            SELECT UserId FROM bpUserSourceContainer
+            INNER JOIN bpUserContainer
+            ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+            WHERE SourceContainerId = $1;
+          `, [SourceContainerId]);
 
-          // if (!result2.recordset[0])
-          //   throw {
-          //     status: 404,
-          //     message: "This source has no bound permissions.",
-          //   };
+          if (!userSourceContainer[0])
+            throw {
+              status: 404,
+              message: "This source has no bound permissions.",
+            };
 
-          const users = result2.recordsets[0].map((record) => {
-            return record.UserId;
+          const users = userSourceContainer.map((record) => {
+            return record.userid;
           });
 
           // const UserContainerId = result2.recordset[0].UserContainerId;
@@ -558,8 +441,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -568,30 +449,20 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
+          await pool.query(`
+            DELETE FROM bpUserSourceContainer
+            INNER JOIN bpSourceContainer
+            ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+            INNER JOIN bpUserContainer
+            ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+            WHERE SourceId = $2 and UserId = $1;
+          `, [userId, sourceId]);
 
-          await pool
-            .request()
-            .input("UserId", sql.Int, userId)
-            .input("SourceId", sql.Int, sourceId)
-            .query(
-              `
-              DELETE FROM bpUserSourceContainer
-              INNER JOIN bpSourceContainer
-              ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
-              INNER JOIN bpUserContainer
-              ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
-              WHERE SourceId = @SourceId and UserId = @UserId;
-
-              
-              `
-            );
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -601,37 +472,40 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const input = containerObj;
-          const user = userObj;
+          const { rows: container1 } = await pool.query(`
+            INSERT INTO bpContainer (ContainerName, UserId)
+            VALUES ($1, $2) RETURNING ContainerId;
+          `, [containerObj.name, userObj.id]);
 
-          // create the container
-          const insertPool = await sql.connect(connection);
-          const containerQuery = await insertPool
-            .request()
-            .input("ContainerName", sql.NVarChar, input.name)
-            .input("UserId", sql.Int, user.id).query(`
-                INSERT INTO bpContainer (ContainerName, UserId)
-                VALUES (@ContainerName, @UserId);
+          if (!container1[0])
+          throw {
+            status: 500,
+            message: "Failed to save Container to database.",
+          };
 
-                INSERT INTO bpUserContainer (UserId, ContainerId)
-                VALUES (@UserId, IDENT_CURRENT('bpContainer'));
-                
-                SELECT *
-                FROM bpContainer
-                WHERE ContainerId = IDENT_CURRENT('bpContainer');
-            `);
+          const containerId = container1[0].containerid;
 
-          if (!containerQuery.recordset[0])
+          await pool.query(`
+            INSERT INTO bpUserContainer (UserId, ContainerId)
+            VALUES ($2, $1);
+            `, [containerId, userObj.id]);
+            
+          const { rows: container2 } = await pool.query(`
+            SELECT * FROM bpContainer
+            WHERE ContainerId = $1;
+          `, [containerId]);
+
+          if (!container2[0])
             throw {
               status: 500,
               message: "Failed to save Container to database.",
             };
 
-          const containerRecord = containerQuery.recordset[0];
+          const containerRecord = container2[0];
 
           const newContainer = new Container({
-            id: containerRecord.ContainerId,
-            name: containerRecord.ContainerName,
+            id: containerRecord.containerid,
+            name: containerRecord.containername,
           });
 
           resolve(newContainer);
@@ -639,7 +513,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -648,45 +521,41 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, containerId).query(`
+          const { rows: container } = await pool.query(`
             SELECT 
             ContainerId, ContainerName, UserId
             FROM bpContainer
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          const { rows: sources } = await pool.query(`
             SELECT SourceId
             FROM bpSourceContainer
-            WHERE ContainerId = @ContainerId;
-            `);
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
-          if (!result.recordset[0]) {
+          if (!container[0] || !sources[0]) {
             throw {
               status: 500,
               message: "Failed to get container",
             };
           }
-          const record = result.recordset[0];
+          const record = container[0];
 
-          const container = new Container({
-            id: record.ContainerId,
-            name: record.ContainerName,
-            owner: { id: record.UserId },
-            sources: result.recordsets[1].map((source) => {
-              return source.SourceId;
+          const containerRecord = new Container({
+            id: record.containerid,
+            name: record.containername,
+            owner: { id: record.userid },
+            sources: sources.map((source) => {
+              return source.sourceid;
             }),
           });
 
-          resolve(container);
+          resolve(containerRecord);
         } catch (err) {
           console.log(err);
           reject(err);
         }
-
-        // sql.close();
       })();
     });
   }
@@ -695,22 +564,17 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          // get all containers where user has access
-          const result = await pool
-            .request()
-            .input("UserId", sql.Int, userObj.id).query(`
+          const { rows } = await pool.query(`
             SELECT DISTINCT 
             bpContainer.ContainerId, bpContainer.ContainerName, bpContainer.UserId 
             FROM bpContainer
             INNER JOIN
             bpUserContainer
             ON bpContainer.ContainerId = bpUserContainer.ContainerId
-            WHERE bpUserContainer.UserId = @UserId;
-          `);
+            WHERE bpUserContainer.UserId = $1;
+          `, [userObj.id]);
 
-          if (result.recordset.length < 0)
+          if (rows.length < 0)
             throw {
               status: 404,
               message: "No containers found",
@@ -718,12 +582,12 @@ class Container {
 
           const containers = [];
 
-          if (result.recordset.length > 0) {
-            result.recordset.forEach((record) => {
+          if (rows.length > 0) {
+            rows.forEach((record) => {
               const containerObj = {
-                id: record.ContainerId,
-                name: record.ContainerName,
-                owner: { id: record.UserId },
+                id: record.containerid,
+                name: record.containername,
+                owner: { id: record.userid },
               };
 
               containers.push(new Container(containerObj));
@@ -735,7 +599,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -744,34 +607,26 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          const input = containerObj;
-
-          const keys = Object.keys(input);
+          const keys = Object.keys(containerObj);
 
           keys.forEach((key) => {
-            this[key] = input[key];
+            this[key] = containerObj[key];
           });
 
-          const result = await pool
-            .request()
-            .input("ContainerId", sql.Int, this.id)
-            .input("ContainerName", sql.NVarChar, this.name)
-            .input("UserId", sql.Int, userObj.id).query(`
-                  UPDATE bpContainer
-                  SET ContainerName = @ContainerName
-                  WHERE ContainerId = @ContainerId AND UserId = @UserId;
-              `);
+          const { rows } = await pool.query(`
+            UPDATE bpContainer
+            SET ContainerName = $1
+            WHERE ContainerId = $2 AND UserId = $3 RETURNING ContainerId;
+          `, [this.id, this.name, userObj.id]);
 
-          if (!result.rowsAffected[0]) {
+          if (!rows[0]) {
             throw {
               status: 500,
               message: "Failed to update container",
             };
           }
 
-          if (result.rowsAffected.length != 1) {
+          if (rows.length != 1) {
             throw {
               status: 500,
               message: "Database is corrupt",
@@ -783,7 +638,6 @@ class Container {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
@@ -792,40 +646,48 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          const pool = await sql.connect(connection);
-
-          await pool.request().input("ContainerId", sql.Int, containerId)
-            .query(`
+          await pool.query(`
             DELETE bpUserSourceContainer FROM bpUserSourceContainer
             INNER JOIN bpUserContainer
             ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          await pool.query(`
             DELETE FROM bpUserContainer
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          await pool.query(`
             DELETE FROM bpSourceContainer
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
   
+          await pool.query(`
             DELETE FROM bpContainerCategory 
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          await pool.query(`
             DELETE FROM bpContainerTransaction 
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          await pool.query(`
             DELETE FROM bpGoal
-            WHERE ContainerId = @ContainerId;
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
+          await pool.query(`
             DELETE FROM bpContainer
-            WHERE ContainerId = @ContainerId;
-              `);
+            WHERE ContainerId = $1;
+          `, [containerId]);
 
           resolve();
         } catch (err) {
           console.log(err);
           reject(err);
         }
-        // sql.close();
       })();
     });
   }
