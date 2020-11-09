@@ -121,23 +121,28 @@ CREATE TABLE bpUserSourceContainer(
 -- create category table
 CREATE TABLE bpCategory(
     CategoryId SERIAL PRIMARY KEY,
-    CategoryName VARCHAR (255) NOT NULL
+    CategoryName VARCHAR (255) NOT NULL,
+    CategoryEstimation INT,
+
+    ContainerId SERIAL NOT NULL,
+
+    FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId)
 );
 
 -- creating container has category
-CREATE TABLE bpContainerCategory(
-    ContainerId SERIAL NOT NULL,
-    CategoryId SERIAL NOT NULL,
-    CategoryEstimation INT,
+-- CREATE TABLE bpContainerCategory(
+--     ContainerId SERIAL NOT NULL,
+--     CategoryId SERIAL NOT NULL,
+--     CategoryEstimation INT,
 
-    CONSTRAINT ContainerCategory PRIMARY KEY(
-        ContainerId,
-        CategoryId
-    ),
+--     CONSTRAINT ContainerCategory PRIMARY KEY(
+--         ContainerId,
+--         CategoryId
+--     ),
 
-    FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId),
-    FOREIGN KEY(CategoryId) REFERENCES bpCategory(CategoryId)
-);
+--     FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId),
+--     FOREIGN KEY(CategoryId) REFERENCES bpCategory(CategoryId)
+-- );
 
 -- creating transaction table
 -- transaction is made with source
@@ -295,74 +300,110 @@ VALUES
 /* 10 */    (8, 7);
 
 --bpCategory
-INSERT INTO bpCategory (CategoryName)
+INSERT INTO bpCategory (CategoryName, ContainerId, CategoryEstimation)
 VALUES
-/* 1 */    ('Groceries'),
-/* 2 */    ('Clothes'),
-/* 3 */    ('Transport'),
-/* 4 */    ('Entertainment'),
-/* 5 */    ('Restaurants'),
-/* 6 */    ('Bills'),
-/* 7 */    ('Footwear'),
-/* 8 */    ('Car'),
-/* 9 */    ('Maintanance'),
-/* 10 */    ('Sport'),
-/* 11 */    ('Trips'),
-/* 12 */    ('Savings'),
-/* 13 */    ('Subscriptions');
+/* 1 */    ('Clothes', 1, 1040),
+/* 2 */    ('Footwear', 1, 850),
+/* 3 */    ('Car', 1, 5500),
+/* 4 */    ('Maintanance', 1, 1250),
+/* 5 */    ('Savings', 1, 1205),
+/* 6 */    ('Subscriptions', 1, 900),
+
+/* 7 */    ('Groceries', 2, 1250),
+/* 8 */    ('Transport', 2, 10000),
+/* 9 */    ('Entertainment', 2, 950),
+/* 10 */    ('Restaurants', 2, 2550),
+/* 11 */    ('Bills', 2, 12000),
+/* 12 */    ('Maintanance', 2, 1250),
+/* 13 */    ('Trips', 2, 965),
+/* 14 */    ('Savings', 2, 1205),
+
+/* 15 */    ('Clothes', 1, 1040),
+/* 16 */    ('Transport', 3, 10000),
+/* 17 */    ('Entertainment', 3, 950),
+/* 18 */    ('Footwear', 3, 850),
+/* 19 */    ('Car', 3, 5500),
+/* 20 */    ('Sport', 3, 2550),
+
+/* 21 */    ('Entertainment', 4, 950),
+/* 22 */    ('Restaurants', 4, 2550),
+/* 23 */    ('Trips', 4, 965),
+
+/* 24 */    ('Groceries', 5, 1250),
+/* 25 */    ('Clothes', 5, 1040),
+/* 26 */    ('Transport', 5, 10000),
+/* 27 */    ('Bills', 5, 12000),
+/* 28 */    ('Footwear', 5, 850),
+/* 29 */    ('Car', 5, 5500),
+/* 30 */    ('Trips', 5, 965),
+/* 31 */    ('Savings', 5, 1205),
+
+/* 32 */    ('Groceries', 6, 1250),
+/* 33 */    ('Clothes', 6, 1040),
+/* 34 */    ('Transport', 6, 10000),
+/* 35 */    ('Entertainment', 6, 950),
+/* 36 */    ('Restaurants', 6, 2550),
+/* 37 */    ('Bills', 6, 12000),
+/* 38 */    ('Footwear', 6, 850),
+/* 39 */    ('Car', 6, 5500),
+/* 40 */    ('Maintanance', 6, 1250),
+/* 41 */    ('Sport', 6, 2550),
+/* 42 */    ('Trips', 6, 965),
+/* 43 */    ('Savings', 6, 1205),
+/* 45 */    ('Subscriptions', 6, 900);
 
 --bpContainerCategory
-INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation)
-VALUES
-/* 1 */    (1, 2, 1250),
-/* 2 */    (1, 7, 1040),
-/* 3 */    (1, 8, 10000),
-/* 4 */    (1, 9, 20000),
-/* 5 */    (1, 12, 30000),
-/* 6 */    (1, 13, 500),
+-- INSERT INTO bpContainerCategory (ContainerId, CategoryId, CategoryEstimation)
+-- VALUES
+-- /* 1 */    (1, 2, 1250),
+-- /* 2 */    (1, 7, 1040),
+-- /* 3 */    (1, 8, 10000),
+-- /* 4 */    (1, 9, 20000),
+-- /* 5 */    (1, 12, 30000),
+-- /* 6 */    (1, 13, 500),
 
-/* 7 */    (2, 1, 850),
-/* 8 */    (2, 3, 950),
-/* 9 */    (2, 4, 1250),
-/* 10 */    (2, 5, 2550),
-/* 11 */    (2, 6, 7500),
-/* 12 */    (2, 9, 12000),
-/* 13 */    (2, 11, 10000),
-/* 14 */    (2, 12, 30000),
+-- /* 7 */    (2, 1, 850),
+-- /* 8 */    (2, 3, 950),
+-- /* 9 */    (2, 4, 1250),
+-- /* 10 */    (2, 5, 2550),
+-- /* 11 */    (2, 6, 7500),
+-- /* 12 */    (2, 9, 12000),
+-- /* 13 */    (2, 11, 10000),
+-- /* 14 */    (2, 12, 30000),
 
-/* 15 */    (3, 2, 1000),
-/* 16 */    (3, 3, 650),
-/* 17 */    (3, 4, 750),
-/* 18 */    (3, 7, 950),
-/* 19 */    (3, 8, 25000),
-/* 20 */    (3, 10, 6500),
+-- /* 15 */    (3, 2, 1000),
+-- /* 16 */    (3, 3, 650),
+-- /* 17 */    (3, 4, 750),
+-- /* 18 */    (3, 7, 950),
+-- /* 19 */    (3, 8, 25000),
+-- /* 20 */    (3, 10, 6500),
 
-/* 21 */    (4, 4, 5500),
-/* 22 */    (4, 5, 6000),
-/* 23 */    (4, 11, 11000),
+-- /* 21 */    (4, 4, 5500),
+-- /* 22 */    (4, 5, 6000),
+-- /* 23 */    (4, 11, 11000),
 
-/* 24 */    (5, 1, 900),
-/* 25 */    (5, 2, 1200),
-/* 26 */    (5, 3, 950),
-/* 27 */    (5, 6, 5500),
-/* 28 */    (5, 7, 2500),
-/* 29 */    (5, 8, 25000),
-/* 30 */    (5, 11, 15000),
-/* 31 */    (5, 12, 10000),
+-- /* 24 */    (5, 1, 900),
+-- /* 25 */    (5, 2, 1200),
+-- /* 26 */    (5, 3, 950),
+-- /* 27 */    (5, 6, 5500),
+-- /* 28 */    (5, 7, 2500),
+-- /* 29 */    (5, 8, 25000),
+-- /* 30 */    (5, 11, 15000),
+-- /* 31 */    (5, 12, 10000),
 
-/* 32 */    (6, 1, 850),
-/* 33 */    (6, 2, 2500),
-/* 34 */    (6, 3, 650),
-/* 35 */    (6, 4, 750),
-/* 36 */    (6, 5, 2250),
-/* 37 */    (6, 6, 6550),
-/* 38 */    (6, 7, 1205),
-/* 39 */    (6, 8, 15000),
-/* 40 */    (6, 9, 12000),
-/* 41 */    (6, 10, 5000),
-/* 42 */    (6, 11, 12000),
-/* 43 */    (6, 12, 16505),
-/* 44 */    (6, 13, 965);
+-- /* 32 */    (6, 1, 850),
+-- /* 33 */    (6, 2, 2500),
+-- /* 34 */    (6, 3, 650),
+-- /* 35 */    (6, 4, 750),
+-- /* 36 */    (6, 5, 2250),
+-- /* 37 */    (6, 6, 6550),
+-- /* 38 */    (6, 7, 1205),
+-- /* 39 */    (6, 8, 15000),
+-- /* 40 */    (6, 9, 12000),
+-- /* 41 */    (6, 10, 5000),
+-- /* 42 */    (6, 11, 12000),
+-- /* 43 */    (6, 12, 16505),
+-- /* 44 */    (6, 13, 965);
 
 --bpTransaction
 INSERT INTO bpTransaction (TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, UserId, SourceId)
@@ -419,54 +460,53 @@ VALUES
 --bpContainerTransaction
 INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
 VALUES
-/* 1 */    (1, 1, 2),
-/* 2 */    (1, 2, 7),
-/* 3 */    (1, 3, 8),
-/* 4 */    (1, 4, 9),
-/* 5 */    (1, 5, 12),
-/* 6 */    (1, 6, 13),
+/* 1 */    (1, 1, 1),
+/* 2 */    (1, 2, 2),
+/* 3 */    (1, 3, 3),
+/* 4 */    (1, 4, 4),
+/* 5 */    (1, 5, 5),
+/* 6 */    (1, 6, 6),
 
-/* 7 */    (2, 7, 1),
-/* 8 */    (2, 8, 3),
-/* 9 */    (2, 9, 3),
-/* 10 */    (2, 10, 5),
-/* 11 */    (2, 11, 6),
+/* 7 */    (2, 7, 7),
+/* 8 */    (2, 8, 8),
+/* 9 */    (2, 9, 12),
+/* 10 */    (2, 10, 13),
+/* 11 */    (2, 11, 11),
 /* 12 */    (2, 12, 12),
+/* 13 */    (2, 13, 13),
+/* 14 */    (2, 14, 12),
+/* 15 */    (2, 15, 8),
+/* 16 */    (2, 16, 14),
+/* 17 */    (2, 17, 9),
+/* 18 */    (2, 18, 7),
 
-/* 13 */    (2, 13, 1),
-/* 14 */    (2, 14, 5),
-/* 15 */    (2, 15, 6),
-/* 16 */    (2, 16, 8),
-/* 17 */    (2, 17, 12),
-/* 18 */    (2, 18, 11),
+/* 19 */    (3, 19, 15),
+/* 20 */    (3, 20, 15),
+/* 21 */    (3, 21, 16),
+/* 22 */    (3, 22, 18),
+/* 23 */    (3, 23, 19),
+/* 24 */    (3, 24, 20),
 
-/* 19 */    (3, 19, 2),
-/* 20 */    (3, 20, 7),
-/* 21 */    (3, 21, 4),
-/* 22 */    (3, 22, 8),
-/* 23 */    (3, 23, 8),
-/* 24 */    (3, 24, 12),
+/* 25 */    (4, 25, 21),
+/* 26 */    (4, 26, 22),
+/* 27 */    (4, 27, 22),
+/* 28 */    (4, 28, 23),
+/* 29 */    (4, 29, 21),
+/* 30 */    (4, 30, 22),
 
-/* 25 */    (4, 25, 4),
-/* 26 */    (4, 26, 4),
-/* 27 */    (4, 27, 4),
-/* 28 */    (4, 28, 4),
-/* 29 */    (4, 29, 5),
-/* 30 */    (4, 30, 11),
+/* 31 */    (5, 31, 25),
+/* 32 */    (5, 32, 26),
+/* 33 */    (5, 33, 28),
+/* 34 */    (5, 34, 29),
+/* 35 */    (5, 35, 30),
+/* 36 */    (5, 36, 31),
 
-/* 31 */    (5, 31, 1),
-/* 32 */    (5, 32, 2),
-/* 33 */    (5, 33, 2),
-/* 34 */    (5, 34, 3),
-/* 35 */    (5, 35, 7),
-/* 36 */    (5, 36, 12),
-
-/* 37 */    (6, 37, 1),
-/* 38 */    (6, 38, 8),
-/* 39 */    (6, 39, 10),
-/* 40 */    (6, 40, 13),
-/* 41 */    (6, 41, 13),
-/* 42 */    (6, 42, 12);
+/* 37 */    (6, 37, 40),
+/* 38 */    (6, 38, 41),
+/* 39 */    (6, 39, 42),
+/* 40 */    (6, 40, 43),
+/* 41 */    (6, 41, 44),
+/* 42 */    (6, 42, 42);
 
 
 
@@ -505,7 +545,7 @@ SELECT * FROM bpUserContainer;
 SELECT * FROM bpSourceContainer;
 SELECT * FROM bpUserSourceContainer;
 SELECT * FROM bpCategory;
-SELECT * FROM bpContainerCategory;
+-- SELECT * FROM bpContainerCategory;
 SELECT * FROM bpTransaction;
 SELECT * FROM bpContainerTransaction;
 SELECT * FROM bpNotification;
