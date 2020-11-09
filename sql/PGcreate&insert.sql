@@ -318,7 +318,7 @@ VALUES
 /* 13 */    ('Trips', 2, 965),
 /* 14 */    ('Savings', 2, 1205),
 
-/* 15 */    ('Clothes', 1, 1040),
+/* 15 */    ('Clothes', 3, 1040),
 /* 16 */    ('Transport', 3, 10000),
 /* 17 */    ('Entertainment', 3, 950),
 /* 18 */    ('Footwear', 3, 850),
