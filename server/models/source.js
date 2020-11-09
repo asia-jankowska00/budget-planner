@@ -327,10 +327,11 @@ class Source {
           `, [sourceId]);
 
           await pool.query(`
-            DELETE bpUserSourceContainer FROM bpUserSourceContainer
-            INNER JOIN bpSourceContainer
-            ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
-            WHERE SourceId = $1;
+            DELETE 
+            FROM bpUserSourceContainer
+            USING bpSourceContainer
+            WHERE bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+            AND SourceId = $1;
           `, [sourceId]);
 
           await pool.query(`

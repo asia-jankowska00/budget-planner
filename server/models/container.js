@@ -252,11 +252,11 @@ class Container {
       (async () => {
         try {
           await pool.query(`
-            DELETE bpUserSourceContainer FROM bpUserSourceContainer
-            INNER JOIN bpUserContainer
-            ON bpUserSourceContainer.UserContainerId = bpSourceContainer.UserContainerId
-            WHERE UserId = $1;
-            `, [userId]);
+            DELETE FROM bpUserSourceContainer
+            USING bpUserContainer
+            WHERE bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+            AND UserId = $1;
+          `, [userId]);
 
           await pool.query(`
             DELETE FROM bpUserContainer 
@@ -343,11 +343,13 @@ class Container {
       (async () => {
         try {
           await pool.query(`
-            DELETE bpUserSourceContainer FROM bpUserSourceContainer
-            INNER JOIN bpSourceContainer
-            ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
-            WHERE SourceId = $2;
+            DELETE FROM bpUserSourceContainer
+            USING bpSourceContainer
+            WHERE bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+            AND SourceId = $1;
+          `, [sourceId]);
 
+          await pool.query(`
             DELETE FROM bpSourceContainer 
             WHERE SourceId = $2 AND ContainerId = $1;
           `, [this.id, sourceId]);
@@ -403,7 +405,7 @@ class Container {
           const SourceContainerId = sourceContainerId[0].sourcecontainerid;
 
           const { rows: userSourceContainer } = await pool.query(`
-            SELECT UserId FROM bpUserSourceContainer
+            SELECT bpUserContainer.UserId FROM bpUserSourceContainer
             INNER JOIN bpUserContainer
             ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
             WHERE SourceContainerId = $1;
@@ -647,10 +649,11 @@ class Container {
       (async () => {
         try {
           await pool.query(`
-            DELETE bpUserSourceContainer FROM bpUserSourceContainer
-            INNER JOIN bpUserContainer
-            ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
-            WHERE ContainerId = $1;
+            DELETE 
+            FROM bpUserSourceContainer
+            USING bpUserContainer
+            WHERE bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+            AND ContainerId = $1;
           `, [containerId]);
 
           await pool.query(`
@@ -662,14 +665,14 @@ class Container {
             DELETE FROM bpSourceContainer
             WHERE ContainerId = $1;
           `, [containerId]);
-  
-          await pool.query(`
-            DELETE FROM bpContainerCategory 
-            WHERE ContainerId = $1;
-          `, [containerId]);
 
           await pool.query(`
             DELETE FROM bpContainerTransaction 
+            WHERE ContainerId = $1;
+          `, [containerId]);
+  
+          await pool.query(`
+            DELETE FROM bpCategory 
             WHERE ContainerId = $1;
           `, [containerId]);
 
