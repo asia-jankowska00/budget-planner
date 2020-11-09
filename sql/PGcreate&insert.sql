@@ -53,7 +53,7 @@ CREATE TABLE bpSource(
     SourceId SERIAL PRIMARY KEY,
     SourceName VARCHAR (255) NOT NULL,
     SourceDescription VARCHAR(255),
-    SourceAmount MONEY NOT NULL, --come back, money format
+    SourceAmount NUMERIC(100, 2) NOT NULL, --come back, NUMERIC(100, 2) format
      -- currency VARCHAR (50) NOT NULL,
 
     UserId INT,
@@ -151,7 +151,7 @@ CREATE TABLE bpTransaction(
     TransactionId SERIAL PRIMARY KEY,
     TransactionName VARCHAR (255) NOT NULL,
     TransactionDate DATE,
-    TransactionAmount MONEY,--data type for money
+    TransactionAmount NUMERIC(100, 2),--data type for NUMERIC(100, 2)
     TransactionIsExpense BOOLEAN NOT NULL,
     TransactionNote VARCHAR (255),
 
@@ -194,7 +194,7 @@ CREATE TABLE bpNotification(
 CREATE TABLE bpGoal(
     GoalId SERIAL PRIMARY KEY,
     GoalName VARCHAR (255) NOT NULL,
-    GoalAmount MONEY, 
+    GoalAmount NUMERIC(100, 2), 
     GoalDeadline DATE,
 
     ContainerId INT,
