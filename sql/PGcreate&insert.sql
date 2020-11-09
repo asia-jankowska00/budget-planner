@@ -31,7 +31,7 @@ CREATE TABLE bpUser(
     UserLastName VARCHAR (255) NOT NULL,
     UserIsDisabled BOOLEAN,
 
-    CurrencyId SERIAL  NOT NULL,
+    CurrencyId INT NOT NULL,
 
     FOREIGN KEY (CurrencyId) REFERENCES bpCurrency(CurrencyId)
 );
@@ -41,7 +41,7 @@ CREATE TABLE bpLogin(
     LoginUsername VARCHAR (255) NOT NULL,
     LoginPassword VARCHAR (255) NOT NULL,
 
-    UserId SERIAL NOT NULL,
+    UserId INT NOT NULL,
 
     CONSTRAINT LoginUser FOREIGN KEY(UserId) REFERENCES bpUser(UserId)
 );
@@ -56,8 +56,8 @@ CREATE TABLE bpSource(
     SourceAmount MONEY NOT NULL, --come back, money format
      -- currency VARCHAR (50) NOT NULL,
 
-    UserId SERIAL,
-    CurrencyId SERIAL,
+    UserId INT,
+    CurrencyId INT,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
     FOREIGN KEY(CurrencyId) REFERENCES bpCurrency(CurrencyId)
@@ -77,8 +77,8 @@ CREATE TABLE bpContainer(
 -- creating user has access to container
 CREATE TABLE bpUserContainer(
     UserContainerId SERIAL PRIMARY KEY,
-    UserId SERIAL NOT NULL,
-    ContainerId SERIAL NOT NULL,
+    UserId INT NOT NULL,
+    ContainerId INT NOT NULL,
 
     CONSTRAINT UserContainer UNIQUE(
         UserId,
@@ -92,8 +92,8 @@ CREATE TABLE bpUserContainer(
 -- creating container includes source
 CREATE TABLE bpSourceContainer(
     SourceContainerId SERIAL PRIMARY KEY,
-    SourceId SERIAL NOT NULL,
-    ContainerId SERIAL NOT NULL,
+    SourceId INT NOT NULL,
+    ContainerId INT NOT NULL,
 
     CONSTRAINT SourceContainer UNIQUE(
         ContainerId,
@@ -106,8 +106,8 @@ CREATE TABLE bpSourceContainer(
 
 -- creating user can use source in specific container
 CREATE TABLE bpUserSourceContainer(
-    UserContainerId SERIAL NOT NULL,
-    SourceContainerId SERIAL NOT NULL,
+    UserContainerId INT NOT NULL,
+    SourceContainerId INT NOT NULL,
 
     CONSTRAINT UserSourceContainer UNIQUE(
         UserContainerId,
@@ -124,7 +124,7 @@ CREATE TABLE bpCategory(
     CategoryName VARCHAR (255) NOT NULL,
     CategoryEstimation INT,
 
-    ContainerId SERIAL NOT NULL,
+    ContainerId INT NOT NULL,
 
     FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId)
 );
@@ -155,8 +155,8 @@ CREATE TABLE bpTransaction(
     TransactionIsExpense BOOLEAN NOT NULL,
     TransactionNote VARCHAR (255),
 
-    UserId SERIAL NOT NULL,
-    SourceId SERIAL NOT NULL,
+    UserId INT NOT NULL,
+    SourceId INT NOT NULL,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
     FOREIGN KEY(SourceId) REFERENCES bpSource(SourceId)
@@ -164,9 +164,9 @@ CREATE TABLE bpTransaction(
 
 -- creating transaction is visible in container table
 CREATE TABLE bpContainerTransaction(
-    ContainerId SERIAL NOT NULL,
-    TransactionId SERIAL NOT NULL,
-    CategoryId SERIAL,
+    ContainerId INT NOT NULL,
+    TransactionId INT NOT NULL,
+    CategoryId INT,
 
     CONSTRAINT ContainerTransaction PRIMARY KEY(
         ContainerId,
@@ -182,8 +182,8 @@ CREATE TABLE bpContainerTransaction(
 CREATE TABLE bpNotification(
     NotificationId SERIAL PRIMARY KEY,
 
-    UserId SERIAL NOT NULL,
-    TransactionId SERIAL NOT NULL,
+    UserId INT NOT NULL,
+    TransactionId INT NOT NULL,
 
     FOREIGN KEY(UserId) REFERENCES bpUser(UserId),
     FOREIGN KEY(TransactionId) REFERENCES bpTransaction(TransactionId)
@@ -197,7 +197,7 @@ CREATE TABLE bpGoal(
     GoalAmount MONEY, 
     GoalDeadline DATE,
 
-    ContainerId SERIAL,
+    ContainerId INT,
 
     FOREIGN KEY(ContainerId) REFERENCES bpContainer(ContainerId)
 );
