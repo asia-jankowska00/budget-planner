@@ -60,29 +60,30 @@ class Transaction {
           const TransactionId = transactionId[0].transactionid;
 
           await pool.query(`
-              INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
-              VALUES ($1, $2, $3);
+            INSERT INTO bpContainerTransaction (ContainerId, TransactionId, CategoryId)
+            VALUES ($1, $2, $3);
           `, [transactionObj.containerId, TransactionId, transactionObj.categoryId])
 
           await pool.query(`
-            IF $1 = 1
-              UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) - $3
-              WHERE SourceId = $2;
-            ELSE
-              UPDATE bpSource 
-              SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) + $3
-              WHERE SourceId = $2;
+            UPDATE bpSource 
+            SET SourceAmount = CASE 
+              WHEN $1 = true THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) + $3
+              ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) - $3
+              END
+            FROM bpTransaction
+              WHERE bpTransaction.SourceId = $2;
           `, [transactionObj.isExpense, transactionObj.sourceId, transactionObj.amount])
 
           const { rows } = await pool.query(`
-              SELECT bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
-              FROM bpTransaction
-              INNER JOIN bpContainerTransaction
-              ON bpTransaction.TransactionId = bpContainerTransaction.TransactionId
-              INNER JOIN bpSource
-              ON bpTransaction.SourceId = bpSource.SourceId
-              WHERE bpTransaction.TransactionId = $1;
+            SELECT 
+            bpTransaction.TransactionId, TransactionName, TransactionDate, TransactionAmount, TransactionIsExpense, TransactionNote, 
+            bpTransaction.UserId, ContainerId, bpTransaction.SourceId, SourceName, CategoryId
+            FROM bpTransaction
+            INNER JOIN bpContainerTransaction
+            ON bpTransaction.TransactionId = bpContainerTransaction.TransactionId
+            INNER JOIN bpSource
+            ON bpTransaction.SourceId = bpSource.SourceId
+            WHERE bpTransaction.TransactionId = $1;
           `, [TransactionId])
 
           if (!rows[0])
@@ -92,7 +93,7 @@ class Transaction {
             };
 
           const record = rows[0];
-
+ 
           const newTransaction = new Transaction({
             id: record.transactionid,
             name: record.transactionname,
@@ -101,10 +102,10 @@ class Transaction {
             date: record.transactiondate,
             note: record.transactionnote,
             user: {
-              id: record.userid,
-              username: record.loginusername,
-              firstName: record.userfirstname,
-              lastName: record.userlastname
+              id: user.id,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName
             },
             source: {
               id: record.sourceid,
@@ -285,6 +286,8 @@ class Transaction {
           if (rows.length < 0)
             throw { status: 404, message: "No transactions found." };
 
+ 
+
           const transactions = [];
           if (rows.length > 0) {
             rows.forEach((record) => {
@@ -389,6 +392,8 @@ class Transaction {
         try {
           const keys = Object.keys(transactionObj);
 
+          // ADD SOURCE AMOUNT UPDATING LOGIC
+
           keys.forEach((key) => {
             this[key] = transactionObj[key];
           });
@@ -403,6 +408,16 @@ class Transaction {
             WHERE TransactionId = $1 AND UserId = $7
             RETURNING TransactionId;
           `, [this.id, this.name, this.date, this.amount, this.isExpense, this.note, owner.id]);
+
+          await pool.query(`
+            UPDATE bpSource 
+            SET SourceAmount = CASE 
+              WHEN $1 = true THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) + $3
+              ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $2) - $3
+              END
+            FROM bpTransaction
+              WHERE bpTransaction.SourceId = $2;
+        `, [this.isExpense, this.sourceId, this.amount])
 
           if (!rows[0]) {
             throw {
@@ -439,7 +454,7 @@ class Transaction {
           await pool.query(`
             UPDATE bpSource 
             SET SourceAmount = CASE 
-              WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) + bpTransaction.TransactionAmount
+              WHEN bpTransaction.TransactionIsExpense = true THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) + bpTransaction.TransactionAmount
               ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) - bpTransaction.TransactionAmount
               END
             FROM bpTransaction
@@ -455,52 +470,6 @@ class Transaction {
             DELETE FROM bpTransaction
             WHERE TransactionId = $1;
           `, [transactionId])
-
-          //backup
-          // await pool.query(`
-          //   UPDATE bpSource 
-          //   SET bpSource.SourceAmount = CASE 
-          //     WHEN bpTransaction.TransactionIsExpense = 1 THEN (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) + bpTransaction.TransactionAmount
-          //     ELSE (SELECT SourceAmount FROM bpSource WHERE SourceId = $1) - bpTransaction.TransactionAmount
-          //     END
-          //   FROM bpSource
-          //   INNER JOIN bpTransaction
-          //     ON bpSource.SourceId = bpTransaction.SourceId
-          //   WHERE bpTransaction.SourceId = $1;
-          // `, [sourceId])
-
-
-          //old
-          //   .query(`
-          //   DELETE FROM bpContainerTransaction
-          //   WHERE TransactionId = @TransactionId;
-
-          //   SELECT bpTransaction.TransactionIsExpense,
-          //   CASE
-          //   WHEN bpTransaction.TransactionIsExpense = 1 THEN
-          //     UPDATE bpSource 
-          //     SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) + bpTransaction.TransactionAmount
-          //     FROM bpSource
-          //     INNER JOIN bpTransaction
-          //     ON bpTransaction.SourceId = @SourceId
-          //     WHERE bpSource.TransactionId = @TransactionId
-          //   ELSE
-          //     UPDATE bpSource 
-          //     SET SourceAmount = (SELECT SourceAmount FROM bpSource WHERE SourceId = @SourceId) - bpTransaction.TransactionAmount
-          //     FROM bpSource
-          //     INNER JOIN bpTransaction
-          //     ON bpTransaction.SourceId = @SourceId
-          //     WHERE bpSource.TransactionId = @TransactionId
-          //   END AS NewField
-          //   FROM bpTransaction 
-          //   WHERE TransactionId = @TransactionId;
-
-          //   DELETE FROM bpNotification
-          //   WHERE TransactionId = @TransactionId;
-
-          //   DELETE FROM bpTransaction
-          //   WHERE TransactionId = @TransactionId;
-          // `)
 
           resolve();
         } catch (err) {
@@ -519,6 +488,13 @@ class Transaction {
             DELETE FROM bpContainerTransaction
             WHERE TransactionId = $1 AND ContainerId = $2;
           `, [transactionId, containerId])
+
+          const { rows } = await pool.query(`
+            SELECT * FROM bpContainerTransaction
+            WHERE TransactionId = $1 AND ContainerId = $2;
+          `, [transactionId, containerId])
+
+          if (rows[0]) throw { message: "Failed to delete" }
 
           resolve();
         } catch (err) {

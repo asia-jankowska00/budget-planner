@@ -123,7 +123,7 @@ class Container {
             };
           }
 
-          resolve();
+          resolve(rows[0]);
         } catch (err) {
           console.log(err);
           reject(err);
@@ -165,7 +165,7 @@ class Container {
 
           const { rows: permissionInsert } = await pool.query(`
             INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId) 
-            VALUES ($1, $2) RETURNING UserSourceContainerId;
+            VALUES ($1, $2) RETURNING UserContainerId, SourceContainerId;
           `, [UserContainerId, SourceContainerId]);
 
           if (!permissionInsert[0])
@@ -201,7 +201,7 @@ class Container {
 
           const { rows: collaborator } = await pool.query(`
               INSERT INTO bpUserContainer (UserId, ContainerId)
-              VALUES ($2, $1) RETURNING UserContainerId RETURNING UserContainerId;
+              VALUES ($2, $1) RETURNING UserContainerId;
             `, [this.id, user.id]);
 
           if (!collaborator[0])
@@ -369,7 +369,7 @@ class Container {
         try {
           const { rows: UserSourceContainer } = await pool.query(`
             INSERT INTO bpUserSourceContainer (UserContainerId, SourceContainerId)
-            VALUES ($1, $2) RETURNING UserSourceContainerId;
+            VALUES ($1, $2) RETURNING UserContainerId, SourceContainerId;
           `, [UserContainerId, SourceContainerId]);
 
           if (!UserSourceContainer[0])
@@ -451,15 +451,23 @@ class Container {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
+        //   const { rows }  = await pool.query(`
+        //   SELECT * FROM bpUserSourceContainer
+        //   INNER JOIN bpSourceContainer
+        //   ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+        //   inner join bpUserContainer
+        //   ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+        //   AND SourceId = $2 and UserId = $1;
+        // `, [userId, sourceId]);
+
           await pool.query(`
             DELETE FROM bpUserSourceContainer
-            INNER JOIN bpSourceContainer
-            ON bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
-            INNER JOIN bpUserContainer
-            ON bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
-            WHERE SourceId = $2 and UserId = $1;
+            USING bpSourceContainer, bpUserContainer
+            WHERE bpUserSourceContainer.SourceContainerId = bpSourceContainer.SourceContainerId
+            AND bpUserSourceContainer.UserContainerId = bpUserContainer.UserContainerId
+            AND SourceId = $2 and UserId = $1;
           `, [userId, sourceId]);
-
+          
           resolve();
         } catch (err) {
           console.log(err);
@@ -617,8 +625,9 @@ class Container {
 
           const { rows } = await pool.query(`
             UPDATE bpContainer
-            SET ContainerName = $1
-            WHERE ContainerId = $2 AND UserId = $3 RETURNING ContainerId;
+            SET ContainerName = $2
+            WHERE ContainerId = $1 AND UserId = $3 
+            RETURNING ContainerId;
           `, [this.id, this.name, userObj.id]);
 
           if (!rows[0]) {

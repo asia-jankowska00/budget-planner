@@ -36,8 +36,7 @@ class User {
             INNER JOIN bpUser
             ON bpUser.UserId = bpLogin.UserId
             WHERE bpLogin.LoginUsername = $1
-            AND
-            NOT bpUser.UserIsDisabled = 1;
+            AND bpUser.UserIsDisabled = false;
           `, [reqBody.username]);
 
           if (!rows[0])
@@ -48,7 +47,7 @@ class User {
 
           const match = await bcrypt.compare(
             reqBody.password,
-            result.recordset[0].LoginPassword
+            rows[0].loginpassword
           );
 
           if (!match) throw { statusCode: 400, message: "Wrong credentials" };
