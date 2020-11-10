@@ -150,7 +150,7 @@ CREATE TABLE bpCategory(
 CREATE TABLE bpTransaction(
     TransactionId SERIAL PRIMARY KEY,
     TransactionName VARCHAR (255) NOT NULL,
-    TransactionDate DATE,
+    TransactionDate TIMESTAMP WITH TIME ZONE,
     TransactionAmount NUMERIC(100, 2),--data type for NUMERIC(100, 2)
     TransactionIsExpense BOOLEAN NOT NULL,
     TransactionNote VARCHAR (255),
@@ -195,7 +195,7 @@ CREATE TABLE bpGoal(
     GoalId SERIAL PRIMARY KEY,
     GoalName VARCHAR (255) NOT NULL,
     GoalAmount NUMERIC(100, 2), 
-    GoalDeadline DATE,
+    GoalDeadline TIMESTAMP WITH TIME ZONE,
 
     ContainerId INT,
 
