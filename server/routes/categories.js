@@ -72,8 +72,14 @@ router.delete("/:categoryId", async (req, res) => {
   try {
     await Container.checkOwner(req.params.containerId, req.user.id);
 
+    // check if category exists
+    await Category.readById(
+      req.params.containerId,
+      req.params.categoryId
+    );
+
     await Category.delete(req.params.containerId, req.params.categoryId);
-    res.json("Category deleted");
+    res.json({ message: "Category deleted" });
   } catch (err) {
     console.log(err);
     res.status(err.status || 400).json(err);

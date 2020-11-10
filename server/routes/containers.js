@@ -113,7 +113,6 @@ router.patch("/:containerId", async (req, res) => {
 
     // update container instance
     await container.update(req.body, requester);
-    console.log(container);
 
     // fetch sources
     const sources = await Promise.all(
@@ -346,16 +345,19 @@ router.delete("/:containerId/sources/:sourceId", async (req, res) => {
 router.post("/:containerId/sources/:sourceId/permissions", async (req, res) => {
   // bind new source to container
   try {
-    console.log(req.user);
-    // check if requester is in container
-    await Container.checkUserContainer(req.user.id, req.params.containerId);
-
     // check if source is in container
     const SourceContainerId = await Container.checkSourceContainer(
       req.params.sourceId,
       req.params.containerId
     );
 
+    // check if requester is in container
+    await Container.checkUserContainer(
+      req.user.id,
+      req.params.containerId
+    );
+
+    // check if user to add permission for is in the contianer
     const UserContainerId = await Container.checkUserContainer(
       req.body.userId,
       req.params.containerId
@@ -367,11 +369,17 @@ router.post("/:containerId/sources/:sourceId/permissions", async (req, res) => {
     // fetch container
     const container = await Container.readById(req.params.containerId);
 
-    // delete source from container and all permissions related to the source
+    // check if this user already has permission on this source
+    const exists = await container.getPermissions(req.params.sourceId)
+    console.log(exists)
+    if (exists.includes(req.body.userId)) throw { message: "This user already has access to this source"}
+
+    // add the permission
     await container.addPermission(UserContainerId, SourceContainerId);
 
     res.json(container);
   } catch (err) {
+    console.log(err)
     res.status(err.status || 400).json(err);
   }
 });
@@ -419,14 +427,20 @@ router.delete(
   async (req, res) => {
     // get all sources bound to a container
     try {
+      // check if requester owns the source
+      await Source.checkOwner(req.params.sourceId, req.user.id);
+
       // check if requester is in container
-      const UserContainerId = await Container.checkUserContainer(
-        req.user.id,
+      await Container.checkUserContainer(req.user.id, req.params.containerId);
+
+      // check if user is in container
+      await Container.checkUserContainer(
+        req.params.userId,
         req.params.containerId
       );
 
       // check if source is in container
-      const SourceContainerId = await Container.checkSourceContainer(
+      await Container.checkSourceContainer(
         req.params.sourceId,
         req.params.containerId
       );
@@ -435,9 +449,9 @@ router.delete(
       const container = await Container.readById(req.params.containerId);
 
       // delete source from container and all permissions related to the source
-      await container.deletePermission(UserContainerId, SourceContainerId);
+      await container.deletePermission(req.params.sourceId, req.params.userId);
 
-      res.json({ message: "Source deleted" });
+      res.json({ message: "Permission removed." });
     } catch (err) {
       console.log(err);
       res.status(err.status || 400).json(err);

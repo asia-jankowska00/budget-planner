@@ -79,6 +79,7 @@ router.post('/', async (req, res) => {
   try {
     await transactionSchemas.defaultTransactionInput.validateAsync(req.body);
 
+    // console.log(req.body.date)
     const userContainerId = await Container.checkUserContainer(req.user.id, req.body.containerId);
 
     const sourceContainerId = await Container.checkSourceContainer(req.body.sourceId,  req.body.containerId);
@@ -157,7 +158,7 @@ router.delete("/:transactionId", async (req, res) => {
       await Source.checkOwner(params.sourceId, req.user.id);
 
       // check if transaction exists
-      await Transaction.getSourceTransaction(params.transactionId, params.sourceId);
+      await Transaction.getSourceTransaction(params.sourceId, params.transactionId);
 
       // delete transaction from source and all other places
       await Transaction.deleteFromSource(params.transactionId, params.sourceId);
@@ -179,7 +180,7 @@ router.delete("/:transactionId", async (req, res) => {
       await Container.checkUserSourceContainer(userContainerId, sourceContainerId)
 
       // delete transaction from source and all other places
-      await Transaction.deleteFromContainer(params.transactionId);
+      await Transaction.deleteFromContainer(params.transactionId, params.containerId);
 
       res.json({ message: "Transaction deleted" });
     }
