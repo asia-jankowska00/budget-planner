@@ -142,6 +142,8 @@ body {
   }
 }
 
+.test {}
+
 @media (max-width: 450px) {
   body #root {
     width: 100%;
