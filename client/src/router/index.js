@@ -75,8 +75,8 @@ const routes = [
 ];
 
 const router = new VueRouter({
-  base: "/class/mmdi0919/1081578/wad",
-  mode: "history",
+  // base: "/class/mmdi0919/1081578/wad",
+  // mode: "history",
   routes,
 });
 

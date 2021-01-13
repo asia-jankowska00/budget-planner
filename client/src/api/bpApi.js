@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const PORT = 8550;
-const baseUrl = `http://localhost:${PORT}/api`;
+// const PORT = 8550;
+const baseUrl = `https://budget-planner-dev.herokuapp.com/api`;
 
 axios.defaults.headers.common["Content-Type"] = "application/json-patch+json";
 
