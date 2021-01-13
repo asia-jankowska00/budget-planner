@@ -75,7 +75,7 @@ const routes = [
 ];
 
 const router = new VueRouter({
-  base: "/budget-planner/",
+  // base: "/budget-planner/",
   mode: "hash",
   routes,
 });
