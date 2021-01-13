@@ -1,5 +1,4 @@
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production'
-    ? '/budget-planner/'
-    : '/'
+  publicPath: '/budget-planner/',
+  baseUrl: '/budget-planner/',
 };
