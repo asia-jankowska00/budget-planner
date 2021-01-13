@@ -1,5 +1,5 @@
 module.exports = {
   publicPath: process.env.NODE_ENV === 'production'
-    ? '/budget-planner/'
+    ? 'https://asia-jankowska00.github.io/budget-planner/'
     : '/'
 };
